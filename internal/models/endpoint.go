@@ -14,3 +14,9 @@ type Response struct {
 	Size int `json:"size"`
 	Body string `json:"body"`
 }
+
+type Endpoint struct {
+	Method string `json:"method"`
+	Path string `json:"path"`
+	SourceFile string `json:"source_file"`
+}
