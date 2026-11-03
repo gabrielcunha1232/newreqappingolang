@@ -10,7 +10,7 @@ type Request struct {
 
 type Response struct {
 	StatusCode int `json:"status_code"`
-	TimeSpent int `json:"time_spent"`
+	TimeSpent int64 `json:"time_spent"`
 	Size int `json:"size"`
 	Body string `json:"body"`
 }

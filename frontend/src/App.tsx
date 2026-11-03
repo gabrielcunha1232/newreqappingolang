@@ -1,74 +1,70 @@
-import { useState, useEffect, useRef } from 'react'
-import {Events, WML} from "@wailsio/runtime";
-import {GreetService} from "../bindings/changeme";
+import { useEffect, useState, type FormEvent } from 'react'
+import { Events, WML } from "@wailsio/runtime";
+import { HttpClientService } from "../bindings/changeme";
+import { Request, type Response } from "../bindings/changeme/internal/models";
 
-// Show the actual Wails version this project was generated against.
 const wailsVersion = "v3.0.0";
+const methods = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"];
 
 function App() {
-  const [name, setName] = useState<string>('');
   const [time, setTime] = useState<string>('Listening for Time event...');
+  const [method, setMethod] = useState('GET');
+  const [url, setUrl] = useState('https://httpbin.org/get');
+  const [headers, setHeaders] = useState('{}');
+  const [body, setBody] = useState('');
+  const [response, setResponse] = useState<Response | null>(null);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const titleNameRef = useRef<HTMLSpanElement | null>(null);
-  const toastRef = useRef<HTMLDivElement | null>(null);
-  const resultRef = useRef<HTMLSpanElement | null>(null);
-  const toastTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const doRequest = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError('');
+    setResponse(null);
 
-  // Crossfade the framework word in the heading ("Wails + React") to the name
-  // the user entered ("Wails + <name>"): the old word fades out while the new one
-  // fades in over the same spot.
-  const swapTitleName = (name: string) => {
-    const titleNameElement = titleNameRef.current;
-    if (!titleNameElement) {
+    let parsedHeaders: unknown;
+    try {
+      parsedHeaders = JSON.parse(headers || '{}');
+    } catch {
+      setError('Headers must be valid JSON.');
       return;
     }
-    const current = titleNameElement.querySelector('.title-name-text:not(.is-outgoing)');
-    if (!current || current.textContent === name) {
+
+    if (parsedHeaders === null || typeof parsedHeaders !== 'object' || Array.isArray(parsedHeaders)) {
+      setError('Headers must be a JSON object with string values.');
       return;
     }
-    const incoming = document.createElement('span');
-    incoming.className = 'title-name-text is-entering';
-    incoming.textContent = name;
-    current.classList.add('is-outgoing');
-    titleNameElement.appendChild(incoming);
-    // Force a reflow so the transitions run from the starting state.
-    void incoming.offsetWidth;
-    incoming.classList.remove('is-entering');
-    current.classList.add('is-leaving');
-    current.addEventListener('transitionend', () => current.remove(), {once: true});
-  };
 
-  // Pop the toast with the message Go returned, then auto-dismiss it.
-  const showToast = (message: string) => {
-    if (resultRef.current) {
-      resultRef.current.innerText = message;
-    }
-    if (toastRef.current) {
-      toastRef.current.classList.add('is-visible');
-    }
-    clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => {
-      if (toastRef.current) {
-        toastRef.current.classList.remove('is-visible');
+    const requestHeaders: Record<string, string> = {};
+    for (const [key, value] of Object.entries(parsedHeaders)) {
+      if (typeof value !== 'string') {
+        setError('Every header value must be a string.');
+        return;
       }
-    }, 4000);
-  };
+      requestHeaders[key] = value;
+    }
 
-  const doGreet = () => {
-    let n = name || 'anonymous';
-    swapTitleName(n);
-    GreetService.Greet(n).then(showToast).catch(console.error);
+    setLoading(true);
+    try {
+      const result = await HttpClientService.DoRequest(new Request({
+        method,
+        url,
+        headers: requestHeaders,
+        body,
+      }));
+      setResponse(result);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : String(requestError));
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     Events.On('time', (timeValue: any) => {
-      // On a narrow screen the full RFC1123 stamp is too wide for the footer, so
-      // show just the clock time there (matching the CSS breakpoint).
       const full = timeValue.data;
       const compact = (full.match(/\d{1,2}:\d{2}:\d{2}/) || [full])[0];
       setTime(window.matchMedia('(max-width: 640px)').matches ? compact : full);
     });
-    // Reload WML so it picks up the wml tags
     WML.Reload();
   }, []);
 
@@ -84,18 +80,46 @@ function App() {
           </a>
         </header>
 
-        <h1 className="title"><span className="title-accent">Wails +</span> <span className="title-name" ref={titleNameRef}><span className="title-name-text">React</span></span></h1>
-        <p className="subtitle">Build beautiful cross-platform apps with Go and React.</p>
+        <h1 className="title"><span className="title-accent">HTTP</span> Client</h1>
+        <p className="subtitle">Send a request through the Go HTTP client and inspect the response.</p>
 
-        <div className="greet">
-          <div className="input-box">
-            <svg className="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            <input aria-label="input" className="input" value={name} onChange={(e) => setName(e.target.value)} type="text" placeholder="Your name" autoComplete="off"/>
-            <button aria-label="greet-btn" className="btn" onClick={doGreet}>Greet
+        <form className="request-form" onSubmit={doRequest}>
+          <div className="request-url-row">
+            <label className="sr-only" htmlFor="request-method">Method</label>
+            <select id="request-method" className="request-method" value={method} onChange={(event) => setMethod(event.target.value)}>
+              {methods.map((value) => <option key={value} value={value}>{value}</option>)}
+            </select>
+            <label className="sr-only" htmlFor="request-url">Request URL</label>
+            <input id="request-url" className="request-url" value={url} onChange={(event) => setUrl(event.target.value)} type="text" placeholder="https://example.com" required/>
+            <button className="btn request-submit" type="submit" disabled={loading}>
+              {loading ? 'Sending…' : 'Send'}
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
             </button>
           </div>
-        </div>
+
+          <div className="request-options">
+            <label className="request-field">
+              <span>Headers <span className="field-hint">JSON object</span></span>
+              <textarea className="request-textarea request-headers" value={headers} onChange={(event) => setHeaders(event.target.value)} spellCheck={false} placeholder={'{\n  "Authorization": "Bearer token"\n}'}/>
+            </label>
+            <label className="request-field">
+              <span>Body</span>
+              <textarea className="request-textarea request-body" value={body} onChange={(event) => setBody(event.target.value)} spellCheck={false} placeholder="Request body (optional)"/>
+            </label>
+          </div>
+        </form>
+
+        {error && <p className="request-error" role="alert">{error}</p>}
+        {response && (
+          <section className="response-panel" aria-live="polite">
+            <div className="response-meta">
+              <strong>Status {response.status_code}</strong>
+              <span>{response.time_spent} ms</span>
+              <span>{response.size} bytes</span>
+            </div>
+            <pre className="response-body">{response.body || '(empty response body)'}</pre>
+          </section>
+        )}
       </main>
 
       <hr className="footer-divider"/>
@@ -109,11 +133,6 @@ function App() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
         </a>
       </footer>
-
-      <div className="toast" ref={toastRef} role="status" aria-live="polite">
-        <span className="toast-label">From Go</span>
-        <span aria-label="result" className="toast-msg" ref={resultRef}></span>
-      </div>
     </>
   )
 }
