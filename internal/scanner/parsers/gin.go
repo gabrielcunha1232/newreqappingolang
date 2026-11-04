@@ -51,7 +51,7 @@ func(g *GinParser) scanDir(dir string) ([]models.Endpoint, error) {
 	var endpoints []models.Endpoint
 
 	err := filepath.WalkDir(dir, func(path string, d os.DirEntry, err error) error {
-		if err != nil || !d.IsDir() || strings.HasPrefix(d.Name(), ".") {
+		if err != nil || !d.IsDir() || strings.HasPrefix(d.Name(), ".") || d.Name() == "vendor" {
 			return err
 		}
 
