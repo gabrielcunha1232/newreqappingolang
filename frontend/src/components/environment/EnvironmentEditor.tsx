@@ -70,8 +70,8 @@ export function EnvironmentEditor({ environments, active, actions }: Environment
           rows={active.variables}
           onChange={(variables) => actions.setVariables(active.id, variables)}
           addLabel="Nova variável"
-          keyPlaceholder="base_url"
-          valuePlaceholder="https://api.exemplo.com"
+          keyPlaceholder="nova variável"
+          valuePlaceholder="valor"
           showDescription={false}
         />
       ) : (

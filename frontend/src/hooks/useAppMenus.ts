@@ -89,8 +89,8 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar }: D
           onSelect: () => toast.show('Ctrl+T nova aba · Ctrl+W fecha aba · Ctrl+Enter envia'),
         },
         {
-          label: 'Sobre o NewPostman',
-          onSelect: () => toast.show('NewPostman — cliente HTTP em Go + Wails.'),
+          label: 'Sobre o Forkarsenet',
+          onSelect: () => toast.show('Forkarsenet — cliente HTTP em Go + Wails.'),
         },
       ],
     },

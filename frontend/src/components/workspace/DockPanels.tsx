@@ -47,8 +47,15 @@ function NoActiveRequest() {
   );
 }
 
+/** Nomes das variáveis habilitadas do ambiente ativo. */
+function useVariableNames(): string[] {
+  const { environment } = useWorkbench();
+  return (environment.active?.variables ?? []).filter((v) => v.enabled && v.key.trim()).map((v) => v.key.trim());
+}
+
 function RequestPanel() {
   const { request, dock } = useWorkbench();
+  const variableNames = useVariableNames();
   return (
     <PanelFrame>
       {request.active ? (
@@ -59,6 +66,7 @@ function RequestPanel() {
           error={request.runtime.error}
           detachedParts={dock.detachedParts}
           onDetach={dock.detach}
+          variableNames={variableNames}
           onChange={request.onChange}
           onSend={request.onSend}
         />
@@ -74,9 +82,14 @@ function partPanel(part: RequestPart): FunctionComponent<IDockviewPanelProps> {
   const Editor = REQUEST_PART_EDITORS[part];
   return function RequestPartPanel() {
     const { request } = useWorkbench();
+    const variableNames = useVariableNames();
     return (
       <PanelFrame>
-        {request.active ? <Editor request={request.active} onChange={request.onChange} /> : <NoActiveRequest />}
+        {request.active ? (
+          <Editor request={request.active} onChange={request.onChange} variableNames={variableNames} />
+        ) : (
+          <NoActiveRequest />
+        )}
       </PanelFrame>
     );
   };

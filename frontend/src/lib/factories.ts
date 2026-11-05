@@ -29,6 +29,7 @@ export function newRequest(collectionId: string | null = null): SavedRequest {
     params: [],
     headers: [newKeyValue({ key: 'Accept', value: 'application/json' })],
     auth: defaultAuth(),
+    bodyType: 'json',
     body: '',
     preScript: '',
     postScript: '',

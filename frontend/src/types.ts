@@ -13,6 +13,8 @@ export interface KeyValue {
 
 export type AuthType = 'none' | 'bearer' | 'basic' | 'apikey';
 
+export type BodyType = 'json' | 'text';
+
 export interface RequestAuth {
   type: AuthType;
   token: string;
@@ -40,6 +42,7 @@ export interface SavedRequest {
   params: KeyValue[];
   headers: KeyValue[];
   auth: RequestAuth;
+  bodyType: BodyType;
   body: string;
   preScript: string;
   postScript: string;

@@ -6,9 +6,9 @@
 		"0409": {
 			"ProductVersion": "0.1.0",
 			"CompanyName": "My Company",
-			"FileDescription": "A newpostman application",
+			"FileDescription": "Forkarsenet — API Workbench",
 			"LegalCopyright": "© 2026, My Company",
-			"ProductName": "My Product",
+			"ProductName": "Forkarsenet",
 			"Comments": "This is a comment"
 		}
 	}

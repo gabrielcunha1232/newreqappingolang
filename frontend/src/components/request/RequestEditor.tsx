@@ -14,6 +14,7 @@ interface RequestEditorProps {
   /** Partes abertas como painéis próprios (somem das sub-abas). */
   detachedParts: RequestPart[];
   onDetach: (part: RequestPart) => void;
+  variableNames: string[];
   onChange: (changes: Partial<SavedRequest>) => void;
   onSend: () => void;
 }
@@ -28,6 +29,7 @@ export function RequestEditor({
   error,
   detachedParts,
   onDetach,
+  variableNames,
   onChange,
   onSend,
 }: RequestEditorProps) {
@@ -51,7 +53,7 @@ export function RequestEditor({
     if (!tab) return <EmptyState icon="⇱" title="Todas as partes estão destacadas em painéis" />;
     if (isRequestPart(tab)) {
       const Editor = REQUEST_PART_EDITORS[tab];
-      return <Editor request={request} onChange={onChange} />;
+      return <Editor request={request} onChange={onChange} variableNames={variableNames} />;
     }
     const field = tab === 'pre' ? 'preScript' : 'postScript';
     return (

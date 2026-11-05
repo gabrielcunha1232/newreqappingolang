@@ -1,6 +1,7 @@
 import type { Endpoint } from '../../bindings/changeme/internal/models/models';
 import { newRequest, requestFromEndpoint } from '../lib/factories';
 import { generateId } from '../lib/id';
+import { applyRequestChanges, reconcileParams } from '../lib/query';
 import { collectionNameFromPath, normalizeBaseUrl } from '../lib/url';
 import type { Collection, SavedRequest } from '../types';
 
@@ -103,12 +104,15 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
       return action.state;
 
     case 'request/create':
-      return openTab({ ...state, requests: [...state.requests, action.request] }, action.request.id);
+      return openTab(
+        { ...state, requests: [...state.requests, reconcileParams(action.request)] },
+        action.request.id
+      );
 
     case 'request/update':
       return {
         ...state,
-        requests: state.requests.map((r) => (r.id === action.id ? { ...r, ...action.changes } : r)),
+        requests: state.requests.map((r) => (r.id === action.id ? applyRequestChanges(r, action.changes) : r)),
       };
 
     case 'request/duplicate': {

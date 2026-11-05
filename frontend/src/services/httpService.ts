@@ -1,6 +1,8 @@
 import { DoRequest } from '../../bindings/changeme/httpclientservice';
 import { Request, type Response } from '../../bindings/changeme/internal/models/models';
-import { appendQueryParams, resolveUrl } from '../lib/url';
+import { findJsonError } from '../lib/jsonBody';
+import { encodeQuery } from '../lib/query';
+import { resolveUrl } from '../lib/url';
 import { findUnresolved, interpolate } from '../lib/variables';
 import type { Collection, RequestAuth, SavedRequest } from '../types';
 
@@ -30,7 +32,7 @@ function authHeaders(auth: RequestAuth, sub: (text: string) => string): Record<s
 
 /**
  * Monta a requisição enviada ao Go: aplica variáveis do ambiente, URL base da
- * coleção, parâmetros de query, cabeçalhos habilitados e autenticação.
+ * coleção, codifica a query string e junta cabeçalhos habilitados e autenticação.
  */
 export function buildHttpRequest(
   saved: SavedRequest,
@@ -43,8 +45,8 @@ export function buildHttpRequest(
   if (error) return { ok: false, error };
   if (!resolved) return { ok: false, error: 'Informe a URL da requisição.' };
 
-  const params = saved.params.map((p) => ({ ...p, key: sub(p.key), value: sub(p.value) }));
-  const url = appendQueryParams(resolved, params);
+  // Os parâmetros já estão na URL (sincronizados com a tabela); só codifica.
+  const url = encodeQuery(resolved);
 
   const headers: Record<string, string> = {};
   for (const header of saved.headers) {
@@ -55,10 +57,26 @@ export function buildHttpRequest(
   Object.assign(headers, authHeaders(saved.auth, sub));
 
   const body = sub(saved.body);
+  const bodyWarnings: string[] = [];
+  if (saved.bodyType === 'json' && body.trim()) {
+    // Como no Postman: corpo JSON leva o Content-Type, a menos que o usuário defina outro.
+    if (!Object.keys(headers).some((name) => name.toLowerCase() === 'content-type')) {
+      headers['Content-Type'] = 'application/json';
+    }
+    const jsonError = findJsonError(saved.body);
+    if (jsonError) {
+      bodyWarnings.push(
+        `Corpo JSON inválido (linha ${jsonError.line}, coluna ${jsonError.column}): ${jsonError.message}. Enviando assim mesmo.`
+      );
+    }
+  }
+  // Checa a URL antes da codificação ("{{" vira "%7B%7B" depois dela).
   const warnings = findUnresolved(
-    [url, body, ...Object.keys(headers), ...Object.values(headers)].join('\n'),
+    [resolved, body, ...Object.keys(headers), ...Object.values(headers)].join('\n'),
     vars
-  ).map((name) => `Variável {{${name}}} não definida no ambiente ativo.`);
+  )
+    .map((name) => `Variável {{${name}}} não definida no ambiente ativo.`)
+    .concat(bodyWarnings);
 
   return {
     ok: true,

@@ -1,11 +1,14 @@
-import { tryParseJson } from '../../lib/json';
-import type { RequestPart, SavedRequest } from '../../types';
+import { findJsonError, formatJsonBody } from '../../lib/jsonBody';
+import type { BodyType, RequestPart, SavedRequest } from '../../types';
+import { CodeEditor } from '../editor/CodeEditor';
 import { AuthEditor } from './AuthEditor';
 import { KeyValueTable } from './KeyValueTable';
 
 export interface RequestPartProps {
   request: SavedRequest;
   onChange: (changes: Partial<SavedRequest>) => void;
+  /** Variáveis do ambiente ativo (usadas no editor do corpo). */
+  variableNames: string[];
 }
 
 export function ParamsPart({ request, onChange }: RequestPartProps) {
@@ -30,27 +33,74 @@ export function HeadersPart({ request, onChange }: RequestPartProps) {
   );
 }
 
-export function BodyPart({ request, onChange }: RequestPartProps) {
-  const formatBody = () => {
-    const parsed = tryParseJson(request.body);
-    if (parsed.ok) onChange({ body: JSON.stringify(parsed.value, null, 2) });
+const BODY_PLACEHOLDER = `{
+  "nome": "Novo usuário",
+  "token": "{{token}}"
+}`;
+
+export function BodyPart({ request, onChange, variableNames }: RequestPartProps) {
+  const isJson = request.bodyType === 'json';
+  const error = isJson ? findJsonError(request.body) : null;
+  const isEmpty = !request.body.trim();
+
+  const reformat = (indent: number) => {
+    const formatted = formatJsonBody(request.body, indent);
+    if (formatted !== null) onChange({ body: formatted });
   };
 
   return (
-    <>
-      <textarea
-        className="code-input"
-        value={request.body}
-        spellCheck={false}
-        placeholder={'{\n  "name": "Novo usuário"\n}'}
-        onChange={(event) => onChange({ body: event.target.value })}
-      />
-      <div className="editor-actions">
-        <button type="button" className="addrow" onClick={formatBody}>
-          ⇲ Formatar JSON
-        </button>
+    <div className="body-editor">
+      <div className="body-toolbar">
+        <div className="segmented" role="radiogroup" aria-label="Tipo do corpo">
+          {(['json', 'text'] as BodyType[]).map((type) => (
+            <button
+              key={type}
+              type="button"
+              role="radio"
+              aria-checked={request.bodyType === type}
+              className={request.bodyType === type ? 'active' : ''}
+              onClick={() => onChange({ bodyType: type })}
+            >
+              {type === 'json' ? 'JSON' : 'Texto'}
+            </button>
+          ))}
+        </div>
+
+        {isJson && !isEmpty && (
+          <span className={'body-status ' + (error ? 'invalid' : 'valid')} role="status">
+            {error ? `✕ Linha ${error.line}, coluna ${error.column}: ${error.message}` : '✓ JSON válido'}
+          </span>
+        )}
+
+        {isJson && (
+          <span className="body-actions">
+            <button type="button" onClick={() => reformat(2)} disabled={isEmpty || !!error} title="Formatar (Shift+Alt+F)">
+              {'{ }'} Formatar
+            </button>
+            <button type="button" onClick={() => reformat(0)} disabled={isEmpty || !!error} title="Remover espaços e quebras de linha">
+              Minificar
+            </button>
+          </span>
+        )}
       </div>
-    </>
+
+      <CodeEditor
+        value={request.body}
+        onChange={(body) => onChange({ body })}
+        language={isJson ? 'json' : 'text'}
+        variableNames={variableNames}
+        placeholder={isJson ? BODY_PLACEHOLDER : 'Corpo da requisição'}
+        ariaLabel="Corpo da requisição"
+        onFormat={() => reformat(2)}
+      />
+
+      {isJson && (
+        <p className="hint body-hint">
+          Digite {'{{'} para inserir uma variável do ambiente. Variáveis podem ficar sem aspas, ex.: {'"id": {{user_id}}'}.
+          O cabeçalho Content-Type: application/json é enviado automaticamente.
+        </p>
+      )}
+    </div>
   );
 }
 

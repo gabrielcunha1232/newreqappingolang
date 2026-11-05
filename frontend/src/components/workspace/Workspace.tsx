@@ -6,8 +6,8 @@ import { RequestTabsBar } from './RequestTabsBar';
 import { WorkbenchProvider, type WorkbenchValue } from './WorkbenchContext';
 
 const THEME: DockviewTheme = {
-  name: 'newpostman',
-  className: 'dockview-theme-newpostman',
+  name: 'forkarsenet',
+  className: 'dockview-theme-forkarsenet',
   gap: 9,
 };
 

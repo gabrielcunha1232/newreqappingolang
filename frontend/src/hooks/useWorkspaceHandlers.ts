@@ -89,7 +89,7 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
 
   const saveLogs = useCallback(() => {
     const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-    downloadText(`newpostman-logs-${stamp}.txt`, logsToText(logger.entries));
+    downloadText(`forkarsenet-logs-${stamp}.txt`, logsToText(logger.entries));
     toast.show('Logs salvos.');
   }, [logger.entries, toast]);
 

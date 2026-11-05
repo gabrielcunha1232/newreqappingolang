@@ -1,73 +1,71 @@
 /* ==========================================================================
-   NewPostman — API Workbench
-   Layout do protótipo newpostman-prototype.html; cores da marca Forkarsenet.
+   Forkarsenet — API Workbench
+   Layout do protótipo newpostman-prototype.html; paleta monocromática.
    ========================================================================== */
 
 /* ===== Tokens ===== */
 
 :root {
-  /* Paleta Forkarsenet (forkarsenet-brand-kit/LEIA-ME.txt) */
-  --brand-500: #064734; /* verde principal */
-  --brand-600: #053927; /* verde secundário */
-  --brand-700: #032b1a; /* verde profundo */
-  --brand-800: #021d0d; /* verde escuro */
-  --brand-900: #000f00; /* preto esverdeado */
+  /* Paleta monocromática (cinzas) */
+  --gray-0: #000000; /* preto puro: fundo geral */
+  --gray-1: #131416; /* quase preto: fundo dos painéis */
+  --gray-2: #26282c; /* cinza escuro: elementos secundários */
+  --gray-3: #393c41; /* cinza médio-escuro: bordas */
+  --gray-4: #4c5157; /* cinza médio: bordas em foco */
 
-  /* Tons claros da marca "F" do ícone (forkarsenet.svg) */
-  --mark-100: #f4fff9;
-  --mark-200: #d8f2e5;
-  --mark-300: #bfe8d4;
-  --mark-400: #a8dcc4;
-  --mark-500: #4baf87;
-  --mark-600: #07865c;
-  --mark-700: #0a6047;
+  /* Tons derivados da mesma escala (não fazem parte da paleta base) */
+  --gray-05: #0a0b0c;
+  --gray-15: #1c1e21;
+  --gray-25: #2f3236;
+  --gray-light: #d4d7dc;
+  --gray-lighter: #e6e8eb;
 
   /* Superfícies */
-  --bg: var(--brand-900);
-  --surface: var(--brand-800);
-  --surface-2: var(--brand-700);
-  --surface-3: var(--brand-600);
-  --input: var(--brand-900);
-  --hover: var(--brand-600);
-  --selected: var(--brand-500);
-  --line: var(--brand-500);
-  --line-strong: var(--mark-700);
+  --bg: var(--gray-0);
+  --surface: var(--gray-1);
+  --surface-2: var(--gray-2);
+  --surface-3: var(--gray-25);
+  --input: var(--gray-05);
+  --hover: var(--gray-15);
+  --selected: var(--gray-2);
+  --line: var(--gray-3);
+  --line-strong: var(--gray-4);
 
   /* Texto */
-  --text: var(--mark-200);
-  --text-strong: var(--mark-100);
-  --text-soft: var(--mark-300);
-  --muted: #7fa694;
-  --muted-2: #4f7a66;
+  --text: var(--gray-lighter);
+  --text-strong: #ffffff;
+  --text-soft: #c4c8ce;
+  --muted: #8b9199;
+  --muted-2: #62676e;
 
-  /* Destaque */
-  --accent: var(--mark-500);
-  --accent-strong: var(--mark-400);
-  --accent-deep: var(--mark-600);
-  --on-accent: var(--brand-900);
-  --accent-alpha: rgba(75, 175, 135, 0.18);
+  /* Destaque (neutro, para manter o tema monocromático) */
+  --accent: var(--gray-light);
+  --accent-strong: #ffffff;
+  --accent-deep: #a9aeb5;
+  --on-accent: var(--gray-0);
+  --accent-alpha: rgba(212, 215, 220, 0.14);
 
-  /* Semânticas (independentes da marca) */
-  --green: #7bd8a4;
-  --red: #e0786e;
-  --blue: #83b9d4;
-  --amber: #e3b66b;
-  --danger-bg: #2a1513;
-  --danger-line: #6b3430;
-  --danger-text: #f0b0a9;
+  /* Feedback (constante em todas as paletas) */
+  --green: #4ade80; /* sucesso */
+  --red: #f87171; /* erro / deletar */
+  --blue: #60a5fa; /* informação / PUT */
+  --amber: #e3b66b; /* aviso */
+  --danger-bg: #2a1414;
+  --danger-line: #7f2d2d;
+  --danger-text: #fca5a5;
 
   /* Selos de método HTTP */
-  --m-get-bg: #1f5a3b;
-  --m-get-fg: #a5e0bd;
+  --m-get-bg: #14532d;
+  --m-get-fg: #86efac;
   --m-post-bg: #59451e;
   --m-post-fg: #f0c56e;
-  --m-put-bg: #263f58;
-  --m-put-fg: #9bc8ed;
-  --m-del-bg: #542b29;
-  --m-del-fg: #e99a91;
+  --m-put-bg: #1e3a5f;
+  --m-put-fg: #93c5fd;
+  --m-del-bg: #5c2626;
+  --m-del-fg: #fca5a5;
 
   /* Realce de JSON */
-  --code-text: var(--mark-300);
+  --code-text: var(--text-soft);
   --code-key: #8bc6dd;
   --code-str: #e7a16b;
   --code-num: #e4c46e;
@@ -368,7 +366,7 @@ input[type='checkbox'] {
   width: 28px;
   height: 28px;
   border-radius: 6px;
-  box-shadow: 0 3px 10px rgba(7, 134, 92, 0.3);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.6);
 }
 
 .side-tabs {
@@ -743,7 +741,7 @@ input[type='checkbox'] {
   height: 100%;
 }
 
-.dockview-theme-newpostman {
+.dockview-theme-forkarsenet {
   --dv-paneview-active-outline-color: var(--accent);
   --dv-tabs-and-actions-container-font-size: 13px;
   --dv-tabs-and-actions-container-height: 36px;
@@ -777,34 +775,34 @@ input[type='checkbox'] {
 }
 
 /* Cada grupo tem a "moldura" dos painéis do protótipo. */
-.dockview-theme-newpostman .dv-groupview {
+.dockview-theme-forkarsenet .dv-groupview {
   border: 1px solid var(--line);
   border-radius: 6px;
   overflow: hidden;
   box-shadow: 0 2px 7px #0005;
 }
 
-.dockview-theme-newpostman .dv-groupview.dv-active-group {
+.dockview-theme-forkarsenet .dv-groupview.dv-active-group {
   border-color: var(--line-strong);
 }
 
-.dockview-theme-newpostman .dv-tabs-and-actions-container {
+.dockview-theme-forkarsenet .dv-tabs-and-actions-container {
   border-bottom: 1px solid var(--line-strong);
 }
 
-.dockview-theme-newpostman .dv-tab {
+.dockview-theme-forkarsenet .dv-tab {
   padding: 0 12px;
   text-transform: uppercase;
   letter-spacing: 0.4px;
   font-size: 12px;
 }
 
-.dockview-theme-newpostman .dv-tab.dv-active-tab {
+.dockview-theme-forkarsenet .dv-tab.dv-active-tab {
   box-shadow: inset 0 -2px 0 var(--accent);
 }
 
 /* Barra de redimensionamento: aparece dourada ao passar o mouse. */
-.dockview-theme-newpostman .dv-sash:hover {
+.dockview-theme-forkarsenet .dv-sash:hover {
   background-color: var(--line-strong);
 }
 
@@ -986,9 +984,91 @@ input[type='checkbox'] {
   font: 12px/1.6 var(--mono);
 }
 
-.editor-actions {
+/* Editor do corpo (CodeMirror) */
+
+.body-editor {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
+.body-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: none;
+}
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.segmented button {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  padding: 5px 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.segmented button + button {
+  border-left: 1px solid var(--line);
+}
+
+.segmented button.active {
+  background: var(--surface-2);
+  color: var(--text-strong);
+}
+
+.body-status {
+  font-size: 12px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.body-status.valid {
+  color: var(--green);
+}
+
+.body-status.invalid {
+  color: var(--red);
+}
+
+.body-actions {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.body-actions button {
+  padding: 5px 10px;
+  font-size: 12px;
+}
+
+.code-editor {
+  flex: 1;
+  min-height: 180px;
+  display: flex;
+  flex-direction: column;
+}
+
+.code-editor .cm-editor {
+  flex: 1;
+  min-height: 0;
+}
+
+.body-hint {
+  margin: 0;
+  flex: none;
 }
 
 .form-stack {

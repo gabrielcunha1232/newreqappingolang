@@ -1,5 +1,6 @@
 import { Load, Save } from '../../bindings/changeme/collectionservice';
 import { defaultAuth, newKeyValue } from '../lib/factories';
+import { reconcileParams } from '../lib/query';
 import { normalizeBaseUrl } from '../lib/url';
 import type {
   Collection,
@@ -38,19 +39,23 @@ function migrateHeaders(headers: KeyValue[] | string | undefined): KeyValue[] {
 }
 
 function deserialize(state: Partial<PersistedState>): AppSnapshot {
-  const requests: SavedRequest[] = (state.requests ?? []).map((request) => ({
-    id: request.id,
-    collectionId: request.collectionId ?? null,
-    title: request.title ?? 'Requisição',
-    method: request.method ?? 'GET',
-    url: request.url ?? '',
-    params: request.params ?? [],
-    headers: migrateHeaders(request.headers),
-    auth: { ...defaultAuth(), ...request.auth },
-    body: request.body ?? '',
-    preScript: request.preScript ?? '',
-    postScript: request.postScript ?? '',
-  }));
+  // Versões anteriores guardavam os parâmetros só na tabela (fora da URL).
+  const requests: SavedRequest[] = (state.requests ?? []).map((request) =>
+    reconcileParams({
+      id: request.id,
+      collectionId: request.collectionId ?? null,
+      title: request.title ?? 'Requisição',
+      method: request.method ?? 'GET',
+      url: request.url ?? '',
+      params: request.params ?? [],
+      headers: migrateHeaders(request.headers),
+      auth: { ...defaultAuth(), ...request.auth },
+      bodyType: request.bodyType ?? 'json',
+      body: request.body ?? '',
+      preScript: request.preScript ?? '',
+      postScript: request.postScript ?? '',
+    })
+  );
 
   const ids = new Set(requests.map((r) => r.id));
   // Arquivos antigos não têm abas abertas: abre a primeira requisição.

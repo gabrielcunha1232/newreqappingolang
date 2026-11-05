@@ -1,4 +1,4 @@
-import type { Collection, KeyValue } from '../types';
+import type { Collection } from '../types';
 
 /** "C:\Projetos\GOLANG\teste" → "teste" */
 export function collectionNameFromPath(dir: string): string {
@@ -31,19 +31,4 @@ export function resolveUrl(
   }
 
   return { url: base + url, error: '' };
-}
-
-/** Acrescenta os parâmetros habilitados à query string da URL. */
-export function appendQueryParams(url: string, params: KeyValue[]): string {
-  const query = params
-    .filter((p) => p.enabled && p.key.trim())
-    .map((p) => `${encodeURIComponent(p.key.trim())}=${encodeURIComponent(p.value)}`)
-    .join('&');
-  if (!query) return url;
-
-  const hashIndex = url.indexOf('#');
-  const base = hashIndex === -1 ? url : url.slice(0, hashIndex);
-  const hash = hashIndex === -1 ? '' : url.slice(hashIndex);
-  const separator = base.includes('?') ? (base.endsWith('?') || base.endsWith('&') ? '' : '&') : '?';
-  return base + separator + query + hash;
 }

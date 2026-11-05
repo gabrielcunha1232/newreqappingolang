@@ -5,6 +5,7 @@ import { isRequestPart } from '../lib/panels';
 import type { PanelId, RequestPart } from '../types';
 
 // v2: descarta layouts salvos com painéis colapsados pela v1.
+// Prefixo antigo mantido de propósito para não perder o layout já salvo.
 const STORAGE_KEY = 'newpostman.dock.v2';
 /** Grupo menor que isso (px) é considerado colapsado/quebrado. */
 const MIN_GROUP_SIZE = 30;

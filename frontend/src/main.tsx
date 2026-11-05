@@ -6,7 +6,7 @@ import { ErrorBoundary } from './components/common/ErrorBoundary'
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>
-    <ErrorBoundary label="NewPostman">
+    <ErrorBoundary label="Forkarsenet">
       <App />
     </ErrorBoundary>
   </React.StrictMode>,

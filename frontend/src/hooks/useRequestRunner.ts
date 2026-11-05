@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { formatBytes, statusLabel } from '../lib/format';
+import { maskHeaderValue } from '../lib/secrets';
 import { buildHttpRequest, sendHttpRequest } from '../services/httpService';
 import type { Collection, HistoryEntry, RequestRuntime, SavedRequest } from '../types';
 import type { Logger } from './useConsole';
@@ -31,6 +32,12 @@ export function useRequestRunner({ log, onComplete }: RunnerDeps) {
       const { request, warnings } = built;
       warnings.forEach((w) => log('warn', w));
       log('info', `Enviando ${request.method} ${request.url}`);
+      const apiKeyHeader = saved.auth.type === 'apikey' ? saved.auth.apiKeyName.trim().toLowerCase() : '';
+      for (const [name, value] of Object.entries(request.headers)) {
+        const masked = maskHeaderValue(name, value ?? '', name.toLowerCase() === apiKeyHeader);
+        log('info', `  ${name}: ${masked}`);
+      }
+      if (request.body) log('info', `  Corpo: ${formatBytes(new TextEncoder().encode(request.body).length)}`);
       patch(saved.id, { error: '', response: null, loading: true });
 
       try {
