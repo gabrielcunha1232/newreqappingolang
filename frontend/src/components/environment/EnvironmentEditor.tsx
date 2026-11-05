@@ -40,7 +40,7 @@ export function EnvironmentEditor({ environments, active, actions }: Environment
           <option value={NONE}>⚪ Nenhum ambiente</option>
           {environments.map((env) => (
             <option key={env.id} value={env.id}>
-              🟡 {env.name}
+              🟢 {env.name}
             </option>
           ))}
         </select>

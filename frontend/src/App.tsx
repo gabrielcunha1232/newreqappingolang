@@ -8,10 +8,10 @@ import { Toast } from './components/common/Toast';
 import { Workspace } from './components/workspace/Workspace';
 import { useAppMenus } from './hooks/useAppMenus';
 import { useConsole } from './hooks/useConsole';
+import { useDockLayout } from './hooks/useDockLayout';
 import { useEnvironments } from './hooks/useEnvironments';
 import { useHistory } from './hooks/useHistory';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
-import { usePanelLayout } from './hooks/usePanelLayout';
 import { usePersistence } from './hooks/usePersistence';
 import { useRequestRunner } from './hooks/useRequestRunner';
 import { useToast } from './hooks/useToast';
@@ -31,13 +31,13 @@ function App() {
   const history = useHistory();
   const logger = useConsole();
   const toast = useToast();
-  const panels = usePanelLayout();
+  const dock = useDockLayout();
   const runner = useRequestRunner({ log: logger.log, onComplete: history.actions.add });
 
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
   usePersistence(handlers.snapshot, handlers.hydrate);
   useKeyboardShortcuts(handlers.shortcuts);
-  const menus = useAppMenus({ workspace, panels, logger, toast, onShowSidebar: setSidebarView });
+  const menus = useAppMenus({ workspace, dock, logger, toast, onShowSidebar: setSidebarView });
 
   const { state } = workspace;
 
@@ -76,20 +76,29 @@ function App() {
             onClose: workspace.actions.closeTab,
             onAdd: () => workspace.actions.createRequest(),
           }}
-          request={{
-            active: workspace.activeRequest,
-            runtime: runner.get(state.activeRequestId),
-            onChange: handlers.updateActiveRequest,
-            onSend: handlers.sendActiveRequest,
-            onCopyResponse: handlers.copyActiveResponse,
+          workbench={{
+            request: {
+              active: workspace.activeRequest,
+              runtime: runner.get(state.activeRequestId),
+              onChange: handlers.updateActiveRequest,
+              onSend: handlers.sendActiveRequest,
+              onCopyResponse: handlers.copyActiveResponse,
+              onCreate: () => workspace.actions.createRequest(),
+            },
+            environment: {
+              list: environments.environments,
+              active: environments.active,
+              actions: environments.actions,
+            },
+            logs: { entries: logger.entries, onClear: logger.clear, onSave: handlers.saveLogs },
+            dock: {
+              detachedParts: dock.detachedParts,
+              detach: dock.actions.detach,
+              dockBack: dock.actions.dockBack,
+              applyPreset: dock.actions.applyPreset,
+            },
           }}
-          environment={{
-            list: environments.environments,
-            active: environments.active,
-            actions: environments.actions,
-          }}
-          logs={{ entries: logger.entries, onClear: logger.clear, onSave: handlers.saveLogs }}
-          layout={{ state: panels.layout, actions: panels.actions }}
+          onDockReady={dock.onReady}
         />
       </AppShell>
       <Toast message={toast.message} />

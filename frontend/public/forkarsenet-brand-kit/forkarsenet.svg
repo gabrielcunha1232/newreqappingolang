@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#064734"/>
+      <stop offset=".52" stop-color="#032B1A"/>
+      <stop offset="1" stop-color="#000F00"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="0" y1="0" x2=".85" y2="1">
+      <stop offset="0" stop-color="#F4FFF9"/>
+      <stop offset=".48" stop-color="#BFE8D4"/>
+      <stop offset="1" stop-color="#4BAF87"/>
+    </linearGradient>
+    <clipPath id="round"><rect x="0" y="0" width="1024" height="1024" rx="180"/></clipPath>
+  </defs>
+  <g clip-path="url(#round)">
+    <rect width="1024" height="1024" fill="url(#bg)"/>
+    <path d="M-80 260 L250 -70 L420 -70 L-80 430Z" fill="#0A6047" opacity=".18"/>
+    <path d="M590 110 L1120 -140 L1120 40 L460 1024 L280 1024Z" fill="#000F00" opacity=".24"/>
+    <rect x="16" y="16" width="992" height="992" rx="166" fill="none" stroke="#07865C" stroke-width="10" opacity=".72"/>
+    <!-- Main F / fork mark -->
+    <path d="M284 718 L284 505
+             C284 466 298 438 327 408
+             L421 312
+             C438 294 457 286 482 286
+             L835 286
+             C846 286 850 296 842 306
+             L792 366
+             C780 381 766 389 746 389
+             L487 389
+             C468 389 454 396 441 409
+             L390 461
+             C377 475 369 489 369 510
+             L369 752
+             C369 770 361 783 346 796
+             L306 831
+             C294 841 284 836 284 820Z"
+          fill="url(#mark)"/>
+    <path d="M284 718 L284 677
+             C284 654 292 636 309 618
+             L420 510
+             C439 491 458 483 485 483
+             L747 483
+             C758 483 763 493 755 503
+             L711 557
+             C699 572 686 579 666 579
+             L496 579
+             C477 579 464 585 450 599
+             L369 679
+             L369 752Z"
+          fill="url(#mark)"/>
+    <path d="M493 620 L700 620 L653 677 C643 690 630 696 612 696 L448 696Z"
+          fill="#07865C" opacity=".82"/>
+    <path d="M284 718 L284 505 C284 466 298 438 327 408 L421 312"
+          fill="none" stroke="#39C995" stroke-width="5" opacity=".65"/>
+  </g>
+</svg>

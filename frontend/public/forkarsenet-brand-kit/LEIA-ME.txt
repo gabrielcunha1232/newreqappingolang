@@ -1,0 +1,19 @@
+# Forkarsenet — pacote de identidade do ícone
+
+## Arquivos
+- `forkarsenet.svg`: vetor editável principal, com gradientes.
+- `forkarsenet-flat.svg`: versão simplificada, com cores sólidas.
+- `forkarsenet.ico`: ícone Windows com múltiplas resoluções.
+- `forkarsenet.icns`: ícone macOS (quando suportado pelo conversor).
+- `forkarsenet-original.png`: PNG original gerado, redimensionado para 1024×1024.
+- `forkarsenet-*.png`: exportações em 1024, 512, 256, 128, 64, 32 e 16 px.
+
+## Paleta
+- Verde principal: `#064734`
+- Verde secundário: `#053927`
+- Verde profundo: `#032B1A`
+- Verde escuro: `#021D0D`
+- Preto esverdeado: `#000F00`
+
+## Observação
+O SVG é uma reconstrução vetorial limpa inspirada no PNG, não uma conversão automática pixel a pixel. Para uso em produção, revise o desenho em um editor vetorial (Inkscape ou Illustrator), especialmente em tamanhos muito pequenos.

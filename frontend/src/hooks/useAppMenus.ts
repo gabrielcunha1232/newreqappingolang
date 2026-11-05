@@ -1,26 +1,21 @@
-import type { MenuDefinition, PanelId, SidebarView } from '../types';
+import { PRESET_LABELS, type LayoutPreset } from '../lib/dockLayout';
+import { MAIN_PANELS, PANEL_TITLES, REQUEST_PARTS } from '../lib/panels';
+import type { MenuDefinition, MenuEntry, SidebarView } from '../types';
 import type { useConsole } from './useConsole';
-import type { usePanelLayout } from './usePanelLayout';
+import type { DockLayout } from './useDockLayout';
 import type { useToast } from './useToast';
 import type { useWorkspace } from './useWorkspace';
 
-const PANEL_LABELS: Record<PanelId, string> = {
-  request: 'Requisição',
-  env: 'Ambiente',
-  response: 'Resposta',
-  console: 'Console',
-};
-
 interface Deps {
   workspace: ReturnType<typeof useWorkspace>;
-  panels: ReturnType<typeof usePanelLayout>;
+  dock: DockLayout;
   logger: ReturnType<typeof useConsole>;
   toast: ReturnType<typeof useToast>;
   onShowSidebar: (view: SidebarView) => void;
 }
 
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, panels, logger, toast, onShowSidebar }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -51,22 +46,31 @@ export function useAppMenus({ workspace, panels, logger, toast, onShowSidebar }:
     {
       label: 'Visualizar',
       items: [
-        ...(Object.keys(PANEL_LABELS) as PanelId[]).map((id) => {
-          const visible = !panels.layout.hidden.includes(id);
-          return {
-            label: `Painel ${PANEL_LABELS[id]}`,
-            checked: visible,
-            onSelect: () => panels.actions.setVisible(id, !visible),
-          };
-        }),
-        'separator' as const,
-        {
-          label: 'Restaurar layout',
-          onSelect: () => {
-            panels.actions.reset();
-            toast.show('Layout restaurado.');
-          },
-        },
+        ...MAIN_PANELS.map(
+          (id): MenuEntry => ({
+            label: `Painel ${PANEL_TITLES[id]}`,
+            checked: dock.openPanels.includes(id),
+            onSelect: () => dock.actions.toggle(id),
+          })
+        ),
+        'separator',
+        ...REQUEST_PARTS.map(
+          (part): MenuEntry => ({
+            label: `${PANEL_TITLES[part]} em painel próprio`,
+            checked: dock.detachedParts.includes(part),
+            onSelect: () => dock.actions.toggle(part),
+          })
+        ),
+        'separator',
+        ...(Object.keys(PRESET_LABELS) as LayoutPreset[]).map(
+          (preset): MenuEntry => ({
+            label: `Layout: ${PRESET_LABELS[preset]}`,
+            onSelect: () => {
+              dock.actions.applyPreset(preset);
+              toast.show(`Layout "${PRESET_LABELS[preset]}" aplicado.`);
+            },
+          })
+        ),
       ],
     },
     {

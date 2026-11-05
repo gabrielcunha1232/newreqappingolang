@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { BRAND_ICON } from '../../lib/brand';
 import type { MenuDefinition } from '../../types';
 import { MenuBar } from './MenuBar';
 
@@ -12,7 +13,8 @@ export function AppShell({ menus, sidebar, children }: AppShellProps) {
   return (
     <>
       <div className="topbar">
-        <span>▣ &nbsp; NewPostman — API Workbench</span>
+        <img className="topbar-icon" src={BRAND_ICON.small} alt="" />
+        <span>Forkarsenet — API Workbench</span>
       </div>
       <MenuBar menus={menus} />
       <div className="app">

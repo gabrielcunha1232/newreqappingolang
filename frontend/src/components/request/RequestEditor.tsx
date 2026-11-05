@@ -1,16 +1,19 @@
 import { useState } from 'react';
 import { HTTP_METHODS } from '../../lib/factories';
-import { tryParseJson } from '../../lib/json';
-import type { SavedRequest } from '../../types';
-import { AuthEditor } from './AuthEditor';
-import { KeyValueTable } from './KeyValueTable';
+import { PANEL_TITLES, isRequestPart } from '../../lib/panels';
+import type { RequestPart, SavedRequest } from '../../types';
+import { EmptyState } from '../common/EmptyState';
+import { REQUEST_PART_EDITORS } from './RequestParts';
 
-type SubTab = 'params' | 'auth' | 'headers' | 'body' | 'pre' | 'post';
+type SubTab = RequestPart | 'pre' | 'post';
 
 interface RequestEditorProps {
   request: SavedRequest;
   loading: boolean;
   error: string;
+  /** Partes abertas como painéis próprios (somem das sub-abas). */
+  detachedParts: RequestPart[];
+  onDetach: (part: RequestPart) => void;
   onChange: (changes: Partial<SavedRequest>) => void;
   onSend: () => void;
 }
@@ -19,21 +22,51 @@ function countEnabled(rows: SavedRequest['params']) {
   return rows.filter((r) => r.enabled && r.key.trim()).length;
 }
 
-export function RequestEditor({ request, loading, error, onChange, onSend }: RequestEditorProps) {
-  const [tab, setTab] = useState<SubTab>('params');
+export function RequestEditor({
+  request,
+  loading,
+  error,
+  detachedParts,
+  onDetach,
+  onChange,
+  onSend,
+}: RequestEditorProps) {
+  const [selected, setSelected] = useState<SubTab>('params');
 
-  const subTabs: Array<{ id: SubTab; label: string; badge?: number }> = [
-    { id: 'params', label: 'Parâmetros', badge: countEnabled(request.params) },
-    { id: 'auth', label: 'Autorização' },
-    { id: 'headers', label: 'Cabeçalhos', badge: countEnabled(request.headers) },
-    { id: 'body', label: 'Corpo' },
-    { id: 'pre', label: 'Pré-processamento' },
-    { id: 'post', label: 'Pós-processamento' },
-  ];
+  const subTabs = (
+    [
+      { id: 'params', label: PANEL_TITLES.params, badge: countEnabled(request.params) },
+      { id: 'auth', label: PANEL_TITLES.auth },
+      { id: 'headers', label: PANEL_TITLES.headers, badge: countEnabled(request.headers) },
+      { id: 'body', label: PANEL_TITLES.body },
+      { id: 'pre', label: 'Pré-processamento' },
+      { id: 'post', label: 'Pós-processamento' },
+    ] as Array<{ id: SubTab; label: string; badge?: number }>
+  ).filter((t) => !(isRequestPart(t.id) && detachedParts.includes(t.id)));
 
-  const formatBody = () => {
-    const parsed = tryParseJson(request.body);
-    if (parsed.ok) onChange({ body: JSON.stringify(parsed.value, null, 2) });
+  // Se a sub-aba selecionada foi destacada, mostra a primeira que sobrou.
+  const tab = subTabs.some((t) => t.id === selected) ? selected : subTabs[0]?.id;
+
+  const renderTab = () => {
+    if (!tab) return <EmptyState icon="⇱" title="Todas as partes estão destacadas em painéis" />;
+    if (isRequestPart(tab)) {
+      const Editor = REQUEST_PART_EDITORS[tab];
+      return <Editor request={request} onChange={onChange} />;
+    }
+    const field = tab === 'pre' ? 'preScript' : 'postScript';
+    return (
+      <textarea
+        className="code-input"
+        value={request[field]}
+        spellCheck={false}
+        placeholder={
+          tab === 'pre'
+            ? '// JavaScript executado antes da requisição (salvo com a requisição; execução ainda não suportada)'
+            : '// Testes executados após a resposta (salvo com a requisição; execução ainda não suportada)'
+        }
+        onChange={(event) => onChange({ [field]: event.target.value })}
+      />
+    );
   };
 
   return (
@@ -42,12 +75,6 @@ export function RequestEditor({ request, loading, error, onChange, onSend }: Req
       onSubmit={(event) => {
         event.preventDefault();
         if (!loading) onSend();
-      }}
-      onKeyDown={(event) => {
-        if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-          event.preventDefault();
-          if (!loading) onSend();
-        }
       }}
     >
       <div className="urlrow">
@@ -86,72 +113,26 @@ export function RequestEditor({ request, loading, error, onChange, onSend }: Req
             role="tab"
             aria-selected={tab === t.id}
             className={tab === t.id ? 'active' : ''}
-            onClick={() => setTab(t.id)}
+            onClick={() => setSelected(t.id)}
           >
             {t.label}
             {Boolean(t.badge) && <sup className="badge">{t.badge}</sup>}
           </button>
         ))}
-      </div>
-
-      <div className="tabcontent">
-        {tab === 'params' && (
-          <KeyValueTable
-            rows={request.params}
-            onChange={(params) => onChange({ params })}
-            addLabel="Adicionar parâmetro"
-          />
-        )}
-
-        {tab === 'auth' && <AuthEditor auth={request.auth} onChange={(auth) => onChange({ auth })} />}
-
-        {tab === 'headers' && (
-          <KeyValueTable
-            rows={request.headers}
-            onChange={(headers) => onChange({ headers })}
-            addLabel="Adicionar cabeçalho"
-            keyPlaceholder="Content-Type"
-            valuePlaceholder="application/json"
-          />
-        )}
-
-        {tab === 'body' && (
-          <>
-            <textarea
-              className="code-input"
-              value={request.body}
-              spellCheck={false}
-              placeholder={'{\n  "name": "Novo usuário"\n}'}
-              onChange={(event) => onChange({ body: event.target.value })}
-            />
-            <div className="editor-actions">
-              <button type="button" className="addrow" onClick={formatBody}>
-                ⇲ Formatar JSON
-              </button>
-            </div>
-          </>
-        )}
-
-        {tab === 'pre' && (
-          <textarea
-            className="code-input"
-            value={request.preScript}
-            spellCheck={false}
-            placeholder="// JavaScript executado antes da requisição (salvo com a requisição; execução ainda não suportada)"
-            onChange={(event) => onChange({ preScript: event.target.value })}
-          />
-        )}
-
-        {tab === 'post' && (
-          <textarea
-            className="code-input"
-            value={request.postScript}
-            spellCheck={false}
-            placeholder="// Testes executados após a resposta (salvo com a requisição; execução ainda não suportada)"
-            onChange={(event) => onChange({ postScript: event.target.value })}
-          />
+        {tab && isRequestPart(tab) && (
+          <button
+            type="button"
+            className="detach"
+            onClick={() => onDetach(tab)}
+            title={`Abrir ${PANEL_TITLES[tab]} em um painel próprio`}
+            aria-label={`Destacar ${PANEL_TITLES[tab]}`}
+          >
+            ⇱
+          </button>
         )}
       </div>
+
+      <div className="tabcontent">{renderTab()}</div>
     </form>
   );
 }

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { BRAND_ICON } from '../../lib/brand';
 import type { SidebarView } from '../../types';
 
 const VIEWS: Array<{ id: SidebarView; label: string }> = [
@@ -17,7 +18,7 @@ export function Sidebar({ view, onViewChange, children }: SidebarProps) {
   return (
     <aside className="sidebar">
       <div className="brand">
-        <div className="brandmark">N</div> NewPostman
+        <img className="brandmark" src={BRAND_ICON.medium} alt="" /> Forkarsenet
       </div>
       <div className="side-tabs" role="tablist">
         {VIEWS.map((item) => (

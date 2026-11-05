@@ -81,7 +81,10 @@ export interface LogEntry {
 
 export type SidebarView = 'collections' | 'history' | 'apis';
 
-export type PanelId = 'request' | 'env' | 'response' | 'console';
+/** Partes da requisição que podem ser destacadas como painéis próprios. */
+export type RequestPart = 'params' | 'auth' | 'headers' | 'body';
+
+export type PanelId = 'request' | 'env' | 'response' | 'console' | RequestPart;
 
 export type MenuEntry =
   | { label: string; onSelect: () => void; checked?: boolean; shortcut?: string; danger?: boolean }

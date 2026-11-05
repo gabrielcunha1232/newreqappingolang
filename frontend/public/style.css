@@ -1,23 +1,78 @@
 /* ==========================================================================
    NewPostman — API Workbench
-   Estilo baseado no protótipo newpostman-prototype.html.
+   Layout do protótipo newpostman-prototype.html; cores da marca Forkarsenet.
    ========================================================================== */
 
 /* ===== Tokens ===== */
 
 :root {
-  --bg: #090909;
-  --panel: #100e0c;
-  --panel2: #171411;
-  --line: #39312a;
-  --line2: #51402d;
-  --gold: #d6a15c;
-  --gold2: #f0b96b;
-  --text: #e7dfd5;
-  --muted: #958779;
-  --green: #83c78a;
-  --red: #d8756d;
+  /* Paleta Forkarsenet (forkarsenet-brand-kit/LEIA-ME.txt) */
+  --brand-500: #064734; /* verde principal */
+  --brand-600: #053927; /* verde secundário */
+  --brand-700: #032b1a; /* verde profundo */
+  --brand-800: #021d0d; /* verde escuro */
+  --brand-900: #000f00; /* preto esverdeado */
+
+  /* Tons claros da marca "F" do ícone (forkarsenet.svg) */
+  --mark-100: #f4fff9;
+  --mark-200: #d8f2e5;
+  --mark-300: #bfe8d4;
+  --mark-400: #a8dcc4;
+  --mark-500: #4baf87;
+  --mark-600: #07865c;
+  --mark-700: #0a6047;
+
+  /* Superfícies */
+  --bg: var(--brand-900);
+  --surface: var(--brand-800);
+  --surface-2: var(--brand-700);
+  --surface-3: var(--brand-600);
+  --input: var(--brand-900);
+  --hover: var(--brand-600);
+  --selected: var(--brand-500);
+  --line: var(--brand-500);
+  --line-strong: var(--mark-700);
+
+  /* Texto */
+  --text: var(--mark-200);
+  --text-strong: var(--mark-100);
+  --text-soft: var(--mark-300);
+  --muted: #7fa694;
+  --muted-2: #4f7a66;
+
+  /* Destaque */
+  --accent: var(--mark-500);
+  --accent-strong: var(--mark-400);
+  --accent-deep: var(--mark-600);
+  --on-accent: var(--brand-900);
+  --accent-alpha: rgba(75, 175, 135, 0.18);
+
+  /* Semânticas (independentes da marca) */
+  --green: #7bd8a4;
+  --red: #e0786e;
   --blue: #83b9d4;
+  --amber: #e3b66b;
+  --danger-bg: #2a1513;
+  --danger-line: #6b3430;
+  --danger-text: #f0b0a9;
+
+  /* Selos de método HTTP */
+  --m-get-bg: #1f5a3b;
+  --m-get-fg: #a5e0bd;
+  --m-post-bg: #59451e;
+  --m-post-fg: #f0c56e;
+  --m-put-bg: #263f58;
+  --m-put-fg: #9bc8ed;
+  --m-del-bg: #542b29;
+  --m-del-fg: #e99a91;
+
+  /* Realce de JSON */
+  --code-text: var(--mark-300);
+  --code-key: #8bc6dd;
+  --code-str: #e7a16b;
+  --code-num: #e4c46e;
+  --code-bool: #c99be0;
+
   --mono: Consolas, 'Courier New', monospace;
   --sans: Tahoma, Arial, sans-serif;
 
@@ -58,7 +113,7 @@ textarea {
 }
 
 button {
-  background: linear-gradient(#211c17, #17130f);
+  background: linear-gradient(var(--surface-3), var(--surface-2));
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 7px 11px;
@@ -66,8 +121,8 @@ button {
 }
 
 button:hover:not(:disabled) {
-  border-color: var(--gold);
-  color: #fff;
+  border-color: var(--accent);
+  color: var(--text-strong);
 }
 
 button:disabled {
@@ -76,15 +131,15 @@ button:disabled {
 }
 
 button.primary {
-  background: linear-gradient(#eab66f, #c99045);
-  color: #1b1208;
-  border-color: #e2ad64;
+  background: linear-gradient(var(--accent), var(--accent-deep));
+  color: var(--on-accent);
+  border-color: var(--accent);
   font-weight: bold;
   box-shadow: 0 2px 8px #0008;
 }
 
 button.primary:hover:not(:disabled) {
-  color: #1b1208;
+  color: var(--on-accent);
   filter: brightness(1.08);
 }
 
@@ -97,18 +152,18 @@ button.icon {
 }
 
 button.link {
-  color: var(--gold2);
+  color: var(--accent-strong);
 }
 
 button.link:hover:not(:disabled),
 button.icon:hover:not(:disabled) {
-  color: #fff;
+  color: var(--text-strong);
 }
 
 input,
 select,
 textarea {
-  background: #171512;
+  background: var(--input);
   border: 1px solid var(--line);
   border-radius: 4px;
   padding: 9px;
@@ -118,11 +173,11 @@ textarea {
 input:focus,
 textarea:focus,
 select:focus {
-  border-color: var(--gold);
+  border-color: var(--accent);
 }
 
 input[type='checkbox'] {
-  accent-color: var(--gold);
+  accent-color: var(--accent);
   padding: 0;
 }
 
@@ -132,13 +187,13 @@ input[type='checkbox'] {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2c251f;
+  background: var(--line);
   border: 2px solid var(--bg);
   border-radius: 6px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--line2);
+  background: var(--line-strong);
 }
 
 ::-webkit-scrollbar-track,
@@ -159,12 +214,18 @@ input[type='checkbox'] {
 
 .topbar {
   height: 34px;
-  background: #171b23;
-  border-bottom: 1px solid #333;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
   display: flex;
   align-items: center;
   padding: 0 12px;
-  color: #ddd;
+  color: var(--text);
+}
+
+.topbar-icon {
+  width: 16px;
+  height: 16px;
+  margin-right: 8px;
 }
 
 .menubar {
@@ -173,9 +234,9 @@ input[type='checkbox'] {
   align-items: center;
   gap: 20px;
   padding: 0 14px;
-  background: #100e0c;
+  background: var(--surface);
   border-bottom: 1px solid var(--line);
-  color: #c5b5a2;
+  color: var(--text-soft);
   position: relative;
   z-index: 60; /* acima do backdrop: permite trocar de menu passando o mouse */
 }
@@ -187,7 +248,7 @@ input[type='checkbox'] {
 
 .menubar > span[role='button']:hover,
 .menubar > span.open {
-  color: var(--gold);
+  color: var(--accent);
 }
 
 .menubar-right {
@@ -207,8 +268,8 @@ input[type='checkbox'] {
   max-height: 70vh;
   overflow: auto;
   padding: 5px;
-  background: #1a1612;
-  border: 1px solid var(--line2);
+  background: var(--surface-2);
+  border: 1px solid var(--line-strong);
   border-radius: 5px;
   box-shadow: 0 10px 25px #000a;
 }
@@ -222,12 +283,12 @@ input[type='checkbox'] {
   border: 0;
   background: none;
   text-align: left;
-  color: #d9c9b6;
+  color: var(--text);
 }
 
 .menu-item:hover:not(:disabled) {
-  background: #2a2118;
-  color: #fff;
+  background: var(--selected);
+  color: var(--text-strong);
 }
 
 .menu-item.danger {
@@ -236,7 +297,7 @@ input[type='checkbox'] {
 
 .menu-check {
   width: 14px;
-  color: var(--gold2);
+  color: var(--accent-strong);
 }
 
 .menu-text {
@@ -277,7 +338,7 @@ input[type='checkbox'] {
 /* ===== Sidebar ===== */
 
 .sidebar {
-  background: #0d0c0b;
+  background: var(--surface);
   border-right: 1px solid var(--line);
   display: flex;
   flex-direction: column;
@@ -306,13 +367,8 @@ input[type='checkbox'] {
 .brandmark {
   width: 28px;
   height: 28px;
-  background: linear-gradient(145deg, #edc486, #986b39);
   border-radius: 6px;
-  color: #21170d;
-  display: grid;
-  place-items: center;
-  font-weight: bold;
-  box-shadow: 0 3px 10px #c28a4b44;
+  box-shadow: 0 3px 10px rgba(7, 134, 92, 0.3);
 }
 
 .side-tabs {
@@ -332,8 +388,8 @@ input[type='checkbox'] {
 }
 
 .side-tabs button.active {
-  color: var(--gold2);
-  border-bottom: 2px solid var(--gold);
+  color: var(--accent-strong);
+  border-bottom: 2px solid var(--accent);
 }
 
 .side-tools {
@@ -372,7 +428,7 @@ input[type='checkbox'] {
 
 .tree-head {
   font-weight: bold;
-  color: #d9c9b6;
+  color: var(--text);
 }
 
 .tree-head.static {
@@ -380,12 +436,12 @@ input[type='checkbox'] {
 }
 
 .tree-head:hover:not(.static) {
-  background: #17130f;
+  background: var(--surface-2);
 }
 
 .tree-item {
   margin-left: 17px;
-  color: #c4b7a8;
+  color: var(--text-soft);
 }
 
 .tree-item.flat {
@@ -394,13 +450,13 @@ input[type='checkbox'] {
 
 .tree-item:hover,
 .tree-item.selected {
-  background: #2a2118;
-  color: #fff;
+  background: var(--selected);
+  color: var(--text-strong);
 }
 
 .tree-item:focus-visible,
 .tree-head:focus-visible {
-  outline: 1px solid var(--gold);
+  outline: 1px solid var(--accent);
 }
 
 .tree-chevron {
@@ -478,32 +534,32 @@ input[type='checkbox'] {
   font-weight: bold;
   padding: 2px 5px;
   border-radius: 3px;
-  background: #274b30;
-  color: #a5e0a9;
+  background: var(--m-get-bg);
+  color: var(--m-get-fg);
   min-width: 34px;
   text-align: center;
 }
 
 .method.post {
-  background: #59451e;
-  color: #f0c56e;
+  background: var(--m-post-bg);
+  color: var(--m-post-fg);
 }
 
 .method.put,
 .method.patch {
-  background: #263f58;
-  color: #9bc8ed;
+  background: var(--m-put-bg);
+  color: var(--m-put-fg);
 }
 
 .method.del {
-  background: #542b29;
-  color: #e99a91;
+  background: var(--m-del-bg);
+  color: var(--m-del-fg);
 }
 
 .method.head,
 .method.options {
-  background: #3a3027;
-  color: #c9b49a;
+  background: var(--surface-3);
+  color: var(--text-soft);
 }
 
 .history-status {
@@ -524,7 +580,7 @@ input[type='checkbox'] {
 
 .side-bottom button {
   width: 100%;
-  color: var(--gold2);
+  color: var(--accent-strong);
 }
 
 /* Scanner (aba APIs) */
@@ -557,10 +613,10 @@ input[type='checkbox'] {
 .inline-error {
   padding: 8px 10px;
   margin-bottom: 10px;
-  border: 1px solid #6b3430;
+  border: 1px solid var(--danger-line);
   border-radius: 4px;
-  background: #2a1513;
-  color: #f0b0a9;
+  background: var(--danger-bg);
+  color: var(--danger-text);
   font-size: 12px;
   overflow-wrap: anywhere;
 }
@@ -574,7 +630,8 @@ input[type='checkbox'] {
 .workspace {
   padding: 10px;
   min-width: 0;
-  overflow: auto;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 9px;
@@ -607,24 +664,24 @@ input[type='checkbox'] {
   flex: none;
   max-width: 220px;
   padding: 10px 13px;
-  background: #15110d;
+  background: var(--surface);
   border: 1px solid var(--line);
   border-bottom: 0;
   border-radius: 5px 5px 0 0;
-  color: #b9a58e;
+  color: var(--muted);
   cursor: pointer;
 }
 
 .request-tab.active {
-  background: #201a14;
-  border-color: var(--line2);
-  color: #f0d3ac;
-  box-shadow: inset 0 2px 0 var(--gold);
+  background: var(--surface-2);
+  border-color: var(--line-strong);
+  color: var(--accent-strong);
+  box-shadow: inset 0 2px 0 var(--accent);
 }
 
 .request-tab small {
-  background: #315b38;
-  color: #b3e5b6;
+  background: var(--m-get-bg);
+  color: var(--m-get-fg);
   padding: 3px 5px;
   border-radius: 3px;
   margin-right: 7px;
@@ -633,19 +690,19 @@ input[type='checkbox'] {
 }
 
 .request-tab small.m-post {
-  background: #59451e;
-  color: #f0c56e;
+  background: var(--m-post-bg);
+  color: var(--m-post-fg);
 }
 
 .request-tab small.m-put,
 .request-tab small.m-patch {
-  background: #263f58;
-  color: #9bc8ed;
+  background: var(--m-put-bg);
+  color: var(--m-put-fg);
 }
 
 .request-tab small.m-delete {
-  background: #542b29;
-  color: #e99a91;
+  background: var(--m-del-bg);
+  color: var(--m-del-fg);
 }
 
 .tab-title {
@@ -674,99 +731,103 @@ input[type='checkbox'] {
   white-space: nowrap;
 }
 
-/* ===== Grid de painéis ===== */
+/* ===== Painéis (dockview) ===== */
 
-.layout {
-  display: grid;
-  grid-template-columns: minmax(470px, 1fr) 265px;
-  gap: 9px;
-  min-height: 700px;
+.dock-host {
   flex: 1;
-}
-
-.panel {
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: var(--panel);
-  min-width: 0;
   min-height: 0;
   position: relative;
+}
+
+.dock-host > div {
+  height: 100%;
+}
+
+.dockview-theme-newpostman {
+  --dv-paneview-active-outline-color: var(--accent);
+  --dv-tabs-and-actions-container-font-size: 13px;
+  --dv-tabs-and-actions-container-height: 36px;
+  --dv-drag-over-background-color: var(--accent-alpha);
+  --dv-drag-over-border-color: var(--accent);
+  --dv-tabs-container-scrollbar-color: var(--line-strong);
+  --dv-icon-hover-background-color: var(--accent-alpha);
+  --dv-floating-box-shadow: 0 10px 25px #000a;
+  --dv-overlay-z-index: 40;
+  --dv-tab-font-size: inherit;
+  --dv-border-radius: 6px;
+  --dv-tab-margin: 0;
+  --dv-sash-color: transparent;
+  --dv-active-sash-color: var(--accent);
+  --dv-active-sash-transition-duration: 0.1s;
+  --dv-active-sash-transition-delay: 0.3s;
+  --dv-group-view-background-color: var(--surface);
+  --dv-tabs-and-actions-container-background-color: var(--surface);
+  --dv-activegroup-visiblepanel-tab-background-color: var(--surface-2);
+  --dv-activegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-inactivegroup-visiblepanel-tab-background-color: var(--surface);
+  --dv-inactivegroup-hiddenpanel-tab-background-color: transparent;
+  --dv-tab-divider-color: transparent;
+  --dv-activegroup-visiblepanel-tab-color: var(--accent-strong);
+  --dv-activegroup-hiddenpanel-tab-color: var(--muted);
+  --dv-inactivegroup-visiblepanel-tab-color: var(--text-soft);
+  --dv-inactivegroup-hiddenpanel-tab-color: var(--muted-2);
+  --dv-separator-border: transparent;
+  --dv-paneview-header-border-color: var(--line);
+  height: 100%;
+}
+
+/* Cada grupo tem a "moldura" dos painéis do protótipo. */
+.dockview-theme-newpostman .dv-groupview {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  overflow: hidden;
   box-shadow: 0 2px 7px #0005;
-  display: flex;
-  flex-direction: column;
 }
 
-.panel.dragging {
-  opacity: 0.5;
+.dockview-theme-newpostman .dv-groupview.dv-active-group {
+  border-color: var(--line-strong);
 }
 
-.panel.over {
-  outline: 2px dashed var(--gold);
+.dockview-theme-newpostman .dv-tabs-and-actions-container {
+  border-bottom: 1px solid var(--line-strong);
 }
 
-.panel-head {
-  height: 36px;
-  flex: none;
-  background: #21140f;
-  border-bottom: 1px solid var(--line2);
-  border-radius: 6px 6px 0 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+.dockview-theme-newpostman .dv-tab {
   padding: 0 12px;
-  color: #d9b58a;
+  text-transform: uppercase;
   letter-spacing: 0.4px;
-  cursor: grab;
-  user-select: none;
+  font-size: 12px;
 }
 
-.panel-head:active {
-  cursor: grabbing;
+.dockview-theme-newpostman .dv-tab.dv-active-tab {
+  box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-.panel-title {
-  white-space: nowrap;
+/* Barra de redimensionamento: aparece dourada ao passar o mouse. */
+.dockview-theme-newpostman .dv-sash:hover {
+  background-color: var(--line-strong);
 }
 
-.panel-head .actions {
+.dock-actions {
   display: flex;
   align-items: center;
   gap: 10px;
+  height: 100%;
+  padding: 0 10px;
   color: var(--muted);
-  cursor: default;
   white-space: nowrap;
-  min-width: 0;
 }
 
-.panel-body {
+.dock-actions button.icon {
+  font-size: 14px;
+}
+
+.dock-panel {
+  height: 100%;
   padding: 12px;
   overflow: auto;
-  min-height: 0;
-  flex: 1;
   display: flex;
   flex-direction: column;
-}
-
-.resize-grip {
-  position: absolute;
-  right: 2px;
-  bottom: 2px;
-  width: 13px;
-  height: 13px;
-  cursor: nwse-resize;
-  touch-action: none;
-  background: linear-gradient(
-    135deg,
-    transparent 45%,
-    #80603c 46%,
-    #80603c 54%,
-    transparent 55%,
-    transparent 68%,
-    #80603c 69%,
-    #80603c 77%,
-    transparent 78%
-  );
 }
 
 /* ===== Requisição ===== */
@@ -814,8 +875,26 @@ input[type='checkbox'] {
 }
 
 .subtabs button.active {
-  color: var(--gold2);
-  border-bottom: 2px solid var(--gold);
+  color: var(--accent-strong);
+  border-bottom: 2px solid var(--accent);
+}
+
+.subtabs::-webkit-scrollbar {
+  display: none;
+}
+
+.subtabs button.detach {
+  margin-left: auto;
+  position: sticky;
+  right: 0;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 15px;
+  padding: 6px 10px;
+}
+
+.subtabs button.detach:hover:not(:disabled) {
+  color: var(--accent-strong);
 }
 
 .badge {
@@ -838,7 +917,7 @@ input[type='checkbox'] {
 
 .gridtable th,
 .gridtable td {
-  border: 1px solid #302923;
+  border: 1px solid var(--line);
   padding: 8px;
   text-align: left;
 }
@@ -852,8 +931,8 @@ input[type='checkbox'] {
 }
 
 .gridtable th {
-  color: #c9b49a;
-  background: #17130f;
+  color: var(--text-soft);
+  background: var(--surface-2);
   font-weight: normal;
 }
 
@@ -865,7 +944,7 @@ input[type='checkbox'] {
 }
 
 .gridtable input:not([type='checkbox']):focus {
-  background: #1b1713;
+  background: var(--input);
 }
 
 .gridtable tr.disabled input:not([type='checkbox']) {
@@ -892,7 +971,7 @@ input[type='checkbox'] {
 
 .addrow {
   margin-top: 8px;
-  color: var(--gold2);
+  color: var(--accent-strong);
   background: none;
   border: 0;
   align-self: flex-start;
@@ -947,7 +1026,7 @@ input[type='checkbox'] {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  color: var(--gold2);
+  color: var(--accent-strong);
   margin: 0 0 10px;
 }
 
@@ -988,8 +1067,8 @@ input[type='checkbox'] {
 }
 
 .response-toolbar button.active {
-  border-color: var(--gold);
-  color: var(--gold2);
+  border-color: var(--accent);
+  color: var(--accent-strong);
 }
 
 .response-toolbar .spacer {
@@ -1025,14 +1104,14 @@ input[type='checkbox'] {
 }
 
 .codebox {
-  background: #0b0b0a;
-  border: 1px solid #302923;
+  background: var(--input);
+  border: 1px solid var(--line);
   border-radius: 4px;
   padding: 10px;
   font: 12px/1.7 var(--mono);
   white-space: pre;
   overflow: auto;
-  color: #b9d6dc;
+  color: var(--code-text);
   flex: 1;
   min-height: 0;
   user-select: text;
@@ -1047,28 +1126,28 @@ input[type='checkbox'] {
   width: 3.2em;
   padding-right: 1em;
   text-align: right;
-  color: #6e665d;
+  color: var(--muted-2);
   user-select: none;
 }
 
 .codebox .key {
-  color: #8bc6dd;
+  color: var(--code-key);
 }
 
 .codebox .str {
-  color: #e7a16b;
+  color: var(--code-str);
 }
 
 .codebox .num {
-  color: #e4c46e;
+  color: var(--code-num);
 }
 
 .codebox .bool {
-  color: #c99be0;
+  color: var(--code-bool);
 }
 
 .preview {
-  border: 1px solid #302923;
+  border: 1px solid var(--line);
   border-radius: 4px;
   overflow: auto;
   min-height: 0;
@@ -1078,8 +1157,8 @@ input[type='checkbox'] {
 .preview h4 {
   margin: 0;
   padding: 10px;
-  background: #17130f;
-  color: #d9bd98;
+  background: var(--surface-2);
+  color: var(--accent-strong);
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -1092,7 +1171,7 @@ input[type='checkbox'] {
 
 .preview td {
   padding: 9px;
-  border-bottom: 1px solid #302923;
+  border-bottom: 1px solid var(--line);
   max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1111,9 +1190,9 @@ input[type='checkbox'] {
   flex: 1;
   min-height: 120px;
   width: 100%;
-  border: 1px solid #302923;
+  border: 1px solid var(--line);
   border-radius: 4px;
-  background: #fff;
+  background: var(--text-strong);
 }
 
 /* ===== Console ===== */
@@ -1127,7 +1206,7 @@ input[type='checkbox'] {
 
 .console-lines {
   font: 12px/1.8 var(--mono);
-  color: #b9c9b5;
+  color: var(--text-soft);
   flex: 1;
   overflow: auto;
   min-height: 0;
@@ -1140,7 +1219,7 @@ input[type='checkbox'] {
 
 .console-lines .warn,
 .console-lines .info {
-  color: #e3b66b;
+  color: var(--amber);
 }
 
 .console-lines .error {
@@ -1164,7 +1243,7 @@ input[type='checkbox'] {
 }
 
 .console-actions button.link:hover:not(:disabled) {
-  color: var(--gold2);
+  color: var(--accent-strong);
 }
 
 .toggle {
@@ -1172,6 +1251,27 @@ input[type='checkbox'] {
   align-items: center;
   gap: 6px;
   cursor: pointer;
+}
+
+/* ===== Erros de renderização ===== */
+
+.error-boundary {
+  margin: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid var(--danger-line);
+  border-radius: 6px;
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+.error-boundary code {
+  font: 12px var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 /* ===== Estados vazios e toast ===== */
@@ -1190,13 +1290,13 @@ input[type='checkbox'] {
 
 .empty-state h3 {
   margin: 0;
-  color: #d9c9b6;
+  color: var(--text);
   font-size: 14px;
 }
 
 .empty-icon {
   font-size: 26px;
-  color: var(--line2);
+  color: var(--line-strong);
 }
 
 .empty-text {
@@ -1209,8 +1309,8 @@ input[type='checkbox'] {
   bottom: 18px;
   right: 20px;
   z-index: 80;
-  background: #2a2118;
-  border: 1px solid var(--gold);
+  background: var(--selected);
+  border: 1px solid var(--accent);
   padding: 10px 15px;
   border-radius: 5px;
   box-shadow: 0 5px 20px #0009;
@@ -1221,17 +1321,6 @@ input[type='checkbox'] {
 @media (max-width: 900px) {
   .app {
     grid-template-columns: 190px 1fr;
-  }
-
-  .layout {
-    grid-template-columns: 1fr;
-    grid-template-rows: none !important;
-    grid-auto-rows: minmax(260px, auto);
-  }
-
-  .layout .panel {
-    grid-column: 1 !important;
-    grid-row: auto !important;
   }
 
   .response-content.split {

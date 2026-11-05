@@ -42,7 +42,7 @@ export function RequestTabsBar({ tabs, activeId, onActivate, onClose, onAdd }: R
       <button className="addtab" onClick={onAdd} title="Nova requisição (Ctrl+T)">
         ＋
       </button>
-      <span className="hint tabs-hint">Dica: arraste os títulos dos painéis para reorganizar</span>
+      <span className="hint tabs-hint">Dica: arraste as abas dos painéis para reorganizar e as bordas para redimensionar</span>
     </div>
   );
 }
