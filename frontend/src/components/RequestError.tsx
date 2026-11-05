@@ -7,5 +7,10 @@ export function RequestError({ message }: RequestErrorProps) {
     return null;
   }
 
-  return <p className="request-error" role="alert">{message}</p>;
+  return (
+    <div className="request-error" role="alert">
+      <span aria-hidden="true">⚠</span>
+      {message}
+    </div>
+  );
 }

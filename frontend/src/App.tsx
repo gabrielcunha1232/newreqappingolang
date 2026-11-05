@@ -1,97 +1,145 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { Events, WML } from "@wailsio/runtime";
-import { HttpClientService } from "../bindings/changeme";
-import { Request, type Response } from "../bindings/changeme/internal/models";
-import { AppFooter } from "./components/AppFooter";
-import { AppHeader } from "./components/AppHeader";
-import { RequestError } from "./components/RequestError";
-import { RequestForm } from "./components/RequestForm";
-import { ResponsePanel } from "./components/ResponsePanel";
+import { useCallback, useEffect, useState } from 'react';
+import { Events } from "@wailsio/runtime";
+import type { Endpoint } from '../bindings/changeme/internal/models/models';
+import { Layout } from './components/Layout';
+import { HttpClient } from './components/HttpClient';
+import { ScannerPanel } from './components/ScannerPanel';
+import { Sidebar } from './components/Sidebar';
+import type { Tab } from './types';
+
+type View = 'client' | 'scanner' | 'history';
+
+function generateId() {
+  return Math.random().toString(36).slice(2, 9);
+}
+
+function newTab(): Tab {
+  return {
+    id: generateId(),
+    method: 'GET',
+    url: 'https://httpbin.org/get',
+    headers: '{}',
+    body: '',
+    response: null,
+    error: '',
+    loading: false,
+    title: 'Nova requisição',
+  };
+}
 
 function App() {
-  const [time, setTime] = useState<string>('Listening for Time event...');
-  const [method, setMethod] = useState('GET');
-  const [url, setUrl] = useState('https://httpbin.org/get');
-  const [headers, setHeaders] = useState('{}');
-  const [body, setBody] = useState('');
-  const [response, setResponse] = useState<Response | null>(null);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [view, setView] = useState<View>('client');
+  const [tabs, setTabs] = useState<Tab[]>([newTab()]);
+  const [activeTabId, setActiveTabId] = useState<string>(tabs[0].id);
 
-  const doRequest = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError('');
-    setResponse(null);
-
-    let parsedHeaders: unknown;
-    try {
-      parsedHeaders = JSON.parse(headers || '{}');
-    } catch {
-      setError('Headers must be valid JSON.');
-      return;
-    }
-
-    if (parsedHeaders === null || typeof parsedHeaders !== 'object' || Array.isArray(parsedHeaders)) {
-      setError('Headers must be a JSON object with string values.');
-      return;
-    }
-
-    const requestHeaders: Record<string, string> = {};
-    for (const [key, value] of Object.entries(parsedHeaders)) {
-      if (typeof value !== 'string') {
-        setError('Every header value must be a string.');
-        return;
-      }
-      requestHeaders[key] = value;
-    }
-
-    setLoading(true);
-    try {
-      const result = await HttpClientService.DoRequest(new Request({
-        method,
-        url,
-        headers: requestHeaders,
-        body,
-      }));
-      setResponse(result);
-    } catch (requestError) {
-      setError(requestError instanceof Error ? requestError.message : String(requestError));
-    } finally {
-      setLoading(false);
-    }
+  const onViewChange = (next: string) => {
+    setView(next as View);
   };
 
+  const addTab = useCallback(() => {
+    const tab = newTab();
+    setTabs((prev) => [...prev, tab]);
+    setActiveTabId(tab.id);
+  }, []);
+
+  const closeTab = useCallback(
+    (id: string) => {
+      setTabs((prev) => {
+        const next = prev.filter((t) => t.id !== id);
+        if (next.length === 0) {
+          const fresh = newTab();
+          return [fresh];
+        }
+        return next;
+      });
+      setActiveTabId((prev) => {
+        if (prev !== id) return prev;
+        const currentIndex = tabs.findIndex((t) => t.id === id);
+        const nextIndex =
+          currentIndex < tabs.length - 1 ? currentIndex : currentIndex - 1;
+        return tabs[nextIndex]?.id || '';
+      });
+    },
+    [tabs]
+  );
+
+  const setActiveTab = useCallback((id: string) => {
+    setActiveTabId(id);
+  }, []);
+
+  const updateTab = useCallback((id: string, updates: Partial<Tab>) => {
+    setTabs((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
+    );
+  }, []);
+
+  const handleEndpointSelect = useCallback(
+    (endpoint: Endpoint) => {
+      const tab = newTab();
+      tab.method = endpoint.method;
+      tab.url = endpoint.path;
+      tab.title = `${endpoint.method} ${endpoint.path}`;
+      setTabs((prev) => [...prev, tab]);
+      setActiveTabId(tab.id);
+      setView('client');
+    },
+    []
+  );
+
   useEffect(() => {
-    Events.On('time', (timeValue: any) => {
-      const full = timeValue.data;
-      const compact = (full.match(/\d{1,2}:\d{2}:\d{2}/) || [full])[0];
-      setTime(window.matchMedia('(max-width: 640px)').matches ? compact : full);
+    Events.On('time', () => {
+      // Evento de tempo registrado; pode ser reativado no footer futuramente.
     });
-    WML.Reload();
   }, []);
 
   return (
-    <>
-      <main className="container">
-        <AppHeader />
-        <RequestForm
-          method={method}
-          url={url}
-          headers={headers}
-          body={body}
-          loading={loading}
-          onMethodChange={setMethod}
-          onUrlChange={setUrl}
-          onHeadersChange={setHeaders}
-          onBodyChange={setBody}
-          onSubmit={doRequest}
-        />
-        <RequestError message={error} />
-        {response && <ResponsePanel response={response} />}
+    <Layout>
+      <Sidebar
+        view={view}
+        onViewChange={onViewChange}
+        onAddTab={addTab}
+      />
+      <main className="main">
+        {view === 'client' && (
+          <HttpClient
+            tabs={tabs}
+            activeTabId={activeTabId}
+            onTabClick={setActiveTab}
+            onTabClose={closeTab}
+            onUpdate={updateTab}
+          />
+        )}
+        {view === 'scanner' && (
+          <ScannerPanel onEndpointSelect={handleEndpointSelect} />
+        )}
+        {view === 'history' && (
+          <div className="view">
+            <div className="panel">
+              <div className="panel-header">
+                <span className="panel-title">Histórico</span>
+              </div>
+              <div className="panel-body empty-state">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="12 6 12 12 16 14" />
+                </svg>
+                <h3>Histórico vazio</h3>
+                <p>Suas requisições aparecerão aqui em breve.</p>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
-      <AppFooter time={time} />
-    </>
-  )
+    </Layout>
+  );
 }
 
-export default App
+export default App;

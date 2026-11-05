@@ -5,6 +5,35 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+export class Endpoint {
+    "method": string;
+    "path": string;
+    "source_file": string;
+
+    /** Creates a new Endpoint instance. */
+    constructor($$source: Partial<Endpoint> = {}) {
+        if (!("method" in $$source)) {
+            this["method"] = "";
+        }
+        if (!("path" in $$source)) {
+            this["path"] = "";
+        }
+        if (!("source_file" in $$source)) {
+            this["source_file"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new Endpoint instance from a string or object.
+     */
+    static createFrom($$source: any = {}): Endpoint {
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        return new Endpoint($$parsedSource as Partial<Endpoint>);
+    }
+}
+
 export class Request {
     "method": string;
     "url": string;
