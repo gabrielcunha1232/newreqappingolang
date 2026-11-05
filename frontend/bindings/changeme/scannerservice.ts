@@ -15,10 +15,6 @@ export function Scan(dir: string): $CancellablePromise<models$0.Endpoint[]> {
     });
 }
 
-/**
- * SelectDirectory abre o explorador de arquivos do sistema para o usuário
- * escolher um diretório. Retorna o caminho selecionado.
- */
 export function SelectDirectory(): $CancellablePromise<string> {
     return $Call.ByID(2876764966);
 }

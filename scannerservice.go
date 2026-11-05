@@ -18,8 +18,6 @@ func (s *ScannerService) Scan(dir string) ([]models.Endpoint, error) {
 	return scanner.Scan()
 }
 
-// SelectDirectory abre o explorador de arquivos do sistema para o usuário
-// escolher um diretório. Retorna o caminho selecionado.
 func (s *ScannerService) SelectDirectory() (string, error) {
 	app := application.Get()
 	if app == nil {

@@ -1,4 +1,3 @@
-import { TabBar } from './TabBar';
 import { RequestForm } from './RequestForm';
 import { ResponsePanel } from './ResponsePanel';
 import { RequestError } from './RequestError';
@@ -7,16 +6,12 @@ import type { Tab } from '../types';
 interface HttpClientProps {
   tabs: Tab[];
   activeTabId: string;
-  onTabClick: (id: string) => void;
-  onTabClose: (id: string) => void;
   onUpdate: (id: string, updates: Partial<Tab>) => void;
 }
 
 export function HttpClient({
   tabs,
   activeTabId,
-  onTabClick,
-  onTabClose,
   onUpdate,
 }: HttpClientProps) {
   const activeTab = tabs.find((t) => t.id === activeTabId) || tabs[0];
@@ -27,12 +22,6 @@ export function HttpClient({
 
   return (
     <div className="client-view">
-      <TabBar
-        tabs={tabs}
-        activeTabId={activeTabId}
-        onTabClick={onTabClick}
-        onTabClose={onTabClose}
-      />
       <div className="client-grid">
         <div className="panel">
           <RequestForm

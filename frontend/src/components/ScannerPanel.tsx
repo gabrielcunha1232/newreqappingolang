@@ -3,7 +3,13 @@ import { Scan, SelectDirectory } from '../../bindings/changeme/scannerservice';
 import type { Endpoint } from '../../bindings/changeme/internal/models/models';
 import { EndpointList } from './EndpointList';
 
-export function ScannerPanel({ onEndpointSelect }: { onEndpointSelect: (endpoint: Endpoint) => void }) {
+export function ScannerPanel({
+  onEndpointSelect,
+  onScanComplete,
+}: {
+  onEndpointSelect: (endpoint: Endpoint) => void;
+  onScanComplete?: (dir: string, endpoints: Endpoint[]) => void;
+}) {
   const [directory, setDirectory] = useState('');
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [loading, setLoading] = useState(false);
@@ -35,7 +41,9 @@ export function ScannerPanel({ onEndpointSelect }: { onEndpointSelect: (endpoint
     setLoading(true);
     try {
       const result = await Scan(directory);
-      setEndpoints(result || []);
+      const list = result || [];
+      setEndpoints(list);
+      onScanComplete?.(directory, list);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {

@@ -41,7 +41,8 @@ export function EndpointList({ endpoints, selectedEndpoint, onSelect }: Endpoint
         })}
       </div>
       <p className="endpoint-hint">
-        {endpoints.length} endpoint{endpoints.length > 1 ? 's' : ''} encontrado(s). Clique em um endpoint para carregá-lo no cliente HTTP.
+        {endpoints.length} endpoint{endpoints.length > 1 ? 's' : ''} encontrado(s) e
+        importado(s) para uma coleção. Clique em um endpoint para abri-lo no cliente HTTP.
       </p>
     </div>
   );
