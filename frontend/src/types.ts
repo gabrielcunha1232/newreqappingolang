@@ -4,6 +4,8 @@ export interface Collection {
   id: string;
   name: string;
   collapsed: boolean;
+  /** URL usada como prefixo de caminhos relativos (ex.: "/albums"). Vazio = sem base. */
+  baseUrl: string;
 }
 
 export interface Tab {

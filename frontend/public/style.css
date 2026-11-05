@@ -987,6 +987,19 @@ input, textarea, select {
   font-style: italic;
 }
 
+.collection-base-url {
+  padding: 0.1rem var(--s-1) 0.3rem calc(var(--s-1) + 18px + 4px);
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-base-url-edit {
+  padding: 0.2rem var(--s-1) 0.3rem calc(var(--s-1) + 18px + 4px);
+}
+
 .sidebar-tab-more {
   width: 20px;
   height: 20px;

@@ -22,6 +22,7 @@ interface SidebarProps {
   onMoveTab: (tabId: string, collectionId: string | null) => void;
   onAddCollection: (name: string) => void;
   onRenameCollection: (id: string, name: string) => void;
+  onSetCollectionBaseUrl: (id: string, baseUrl: string) => void;
   onDeleteCollection: (id: string) => void;
   onToggleCollection: (id: string) => void;
 }
@@ -48,12 +49,14 @@ export function Sidebar({
   onMoveTab,
   onAddCollection,
   onRenameCollection,
+  onSetCollectionBaseUrl,
   onDeleteCollection,
   onToggleCollection,
 }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [editingTabId, setEditingTabId] = useState<string | null>(null);
   const [editingCollectionId, setEditingCollectionId] = useState<string | null>(null);
+  const [editingBaseUrlId, setEditingBaseUrlId] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [creatingCollection, setCreatingCollection] = useState(false);
   const [openMenu, setOpenMenu] = useState<OpenMenu | null>(null);
@@ -75,13 +78,24 @@ export function Sidebar({
   };
 
   const startRenameTab = (tab: Tab) => {
+    setEditingCollectionId(null);
+    setEditingBaseUrlId(null);
     setEditingTabId(tab.id);
     setDraft(tab.title);
   };
 
   const startRenameCollection = (collection: Collection) => {
+    setEditingTabId(null);
+    setEditingBaseUrlId(null);
     setEditingCollectionId(collection.id);
     setDraft(collection.name);
+  };
+
+  const startEditBaseUrl = (collection: Collection) => {
+    setEditingTabId(null);
+    setEditingCollectionId(null);
+    setEditingBaseUrlId(collection.id);
+    setDraft(collection.baseUrl);
   };
 
   const commitRename = () => {
@@ -95,12 +109,19 @@ export function Sidebar({
       const value = draft.trim();
       if (value) onRenameCollection(editingCollectionId, value);
       setEditingCollectionId(null);
+      return;
+    }
+    if (editingBaseUrlId !== null) {
+      // URL base pode ser apagada (voltar a não ter prefixo).
+      onSetCollectionBaseUrl(editingBaseUrlId, draft.trim());
+      setEditingBaseUrlId(null);
     }
   };
 
   const cancelRename = () => {
     setEditingTabId(null);
     setEditingCollectionId(null);
+    setEditingBaseUrlId(null);
     setCreatingCollection(false);
   };
 
@@ -264,6 +285,15 @@ export function Sidebar({
       >
         Renomear
       </button>
+      <button
+        className="tab-menu-item"
+        onClick={() => {
+          setOpenMenu(null);
+          startEditBaseUrl(collection);
+        }}
+      >
+        Definir URL base
+      </button>
       <div className="tab-menu-sep" />
       <button
         className="tab-menu-item danger"
@@ -396,6 +426,26 @@ export function Sidebar({
                       </div>
                     )}
                   </div>
+
+                  {editingBaseUrlId === collection.id && (
+                    <div className="collection-base-url-edit">
+                      <input
+                        className="sidebar-tab-input collection-input"
+                        value={draft}
+                        autoFocus
+                        placeholder="https://api.exemplo.com"
+                        onFocus={(event) => event.target.select()}
+                        onChange={(event) => setDraft(event.target.value)}
+                        onBlur={commitRename}
+                        onKeyDown={handleRenameKey}
+                        aria-label="URL base da coleção"
+                      />
+                    </div>
+                  )}
+
+                  {collection.baseUrl && editingBaseUrlId !== collection.id && (
+                    <div className="collection-base-url">{collection.baseUrl}</div>
+                  )}
 
                   {!collection.collapsed && (
                     <div className="collection-body">

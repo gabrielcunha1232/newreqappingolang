@@ -8,9 +8,10 @@ export function ScannerPanel({
   onScanComplete,
 }: {
   onEndpointSelect: (endpoint: Endpoint) => void;
-  onScanComplete?: (dir: string, endpoints: Endpoint[]) => void;
+  onScanComplete?: (dir: string, endpoints: Endpoint[], baseUrl?: string) => void;
 }) {
   const [directory, setDirectory] = useState('');
+  const [baseUrl, setBaseUrl] = useState('');
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -43,7 +44,7 @@ export function ScannerPanel({
       const result = await Scan(directory);
       const list = result || [];
       setEndpoints(list);
-      onScanComplete?.(directory, list);
+      onScanComplete?.(directory, list, baseUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -80,6 +81,19 @@ export function ScannerPanel({
             <button className="scan-btn" onClick={handleScan} disabled={loading}>
               {loading ? 'Escaneando…' : 'Escanear'}
             </button>
+          </div>
+          <div className="scan-control scan-base">
+            <label className="base-url-label" htmlFor="scan-base-url">
+              URL base
+            </label>
+            <input
+              id="scan-base-url"
+              className="dir-input"
+              type="text"
+              value={baseUrl}
+              onChange={(event) => setBaseUrl(event.target.value)}
+              placeholder="http://localhost:8080 — prefixo dos caminhos importados (opcional)"
+            />
           </div>
           <EndpointList
             endpoints={endpoints}

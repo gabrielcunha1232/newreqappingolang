@@ -43,6 +43,11 @@ function collectionNameFromPath(dir: string): string {
   return parts[parts.length - 1] || 'Endpoints';
 }
 
+/** Guarda a URL base sem barra final ("http://x:8080/" → "http://x:8080"). */
+function normalizeBaseUrl(baseUrl: string | undefined | null): string {
+  return (baseUrl ?? '').trim().replace(/\/+$/, '');
+}
+
 function App() {
   const [view, setView] = useState<View>('client');
   const [collections, setCollections] = useState<Collection[]>([]);
@@ -77,7 +82,13 @@ function App() {
             loading: false,
           }));
 
-          setCollections(state.collections ?? []);
+          setCollections(
+            (state.collections ?? []).map((collection) => ({
+              ...collection,
+              // Arquivos antigos podem não ter o campo.
+              baseUrl: normalizeBaseUrl(collection.baseUrl),
+            }))
+          );
           if (restored.length > 0) {
             setTabs(restored);
             setActiveTabId(restored[0].id);
@@ -177,12 +188,17 @@ function App() {
 
   /* ===== Coleções ===== */
 
-  const addCollection = useCallback((name: string) => {
+  const addCollection = useCallback((name: string, baseUrl = '') => {
     const trimmed = name.trim();
     if (!trimmed) return;
     setCollections((prev) => [
       ...prev,
-      { id: generateId(), name: trimmed, collapsed: false },
+      {
+        id: generateId(),
+        name: trimmed,
+        collapsed: false,
+        baseUrl: normalizeBaseUrl(baseUrl),
+      },
     ]);
   }, []);
 
@@ -191,6 +207,14 @@ function App() {
     if (!trimmed) return;
     setCollections((prev) =>
       prev.map((c) => (c.id === id ? { ...c, name: trimmed } : c))
+    );
+  }, []);
+
+  const setCollectionBaseUrl = useCallback((id: string, baseUrl: string) => {
+    setCollections((prev) =>
+      prev.map((c) =>
+        c.id === id ? { ...c, baseUrl: normalizeBaseUrl(baseUrl) } : c
+      )
     );
   }, []);
 
@@ -212,7 +236,8 @@ function App() {
   // Ao escanear: cria (ou reutiliza) a coleção com o nome da pasta e importa
   // todos os endpoints encontrados como requisições, sem duplicar.
   const handleScanComplete = useCallback(
-    (dir: string, endpoints: Endpoint[]) => {
+    (dir: string, endpoints: Endpoint[], baseUrl?: string) => {
+      const base = normalizeBaseUrl(baseUrl);
       if (endpoints.length === 0) return;
 
       const name = collectionNameFromPath(dir);
@@ -236,8 +261,13 @@ function App() {
       if (!existing) {
         setCollections((prev) => [
           ...prev,
-          { id: collectionId, name, collapsed: false },
+          { id: collectionId, name, collapsed: false, baseUrl: base },
         ]);
+      } else if (base && base !== existing.baseUrl) {
+        // Reescaneou informando outra base: atualiza a coleção existente.
+        setCollections((prev) =>
+          prev.map((c) => (c.id === collectionId ? { ...c, baseUrl: base } : c))
+        );
       }
       if (imported.length > 0) {
         setTabs((prev) => [...prev, ...imported]);
@@ -288,6 +318,7 @@ function App() {
         onMoveTab={moveTabToCollection}
         onAddCollection={addCollection}
         onRenameCollection={renameCollection}
+        onSetCollectionBaseUrl={setCollectionBaseUrl}
         onDeleteCollection={deleteCollection}
         onToggleCollection={toggleCollection}
       />
@@ -295,6 +326,7 @@ function App() {
         {view === 'client' && (
           <HttpClient
             tabs={tabs}
+            collections={collections}
             activeTabId={activeTabId}
             onUpdate={updateTab}
           />
