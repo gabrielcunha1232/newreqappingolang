@@ -425,6 +425,7 @@ input[type='checkbox'] {
 }
 
 .tree-head {
+  gap: 6px;
   font-weight: bold;
   color: var(--text);
 }
@@ -457,9 +458,32 @@ input[type='checkbox'] {
   outline: 1px solid var(--accent);
 }
 
+.icon {
+  flex: none;
+  display: block;
+}
+
 .tree-chevron {
-  width: 10px;
+  color: var(--muted-2);
+  transition: transform 0.12s ease;
+}
+
+.tree-chevron.open {
+  transform: rotate(90deg);
+}
+
+.tree-folder {
   color: var(--muted);
+}
+
+.tree-head:hover .tree-folder,
+.tree-head:hover .tree-chevron {
+  color: var(--text-soft);
+}
+
+/* Coleção aberta: pasta em destaque. */
+.tree-chevron.open + .tree-folder {
+  color: var(--text-soft);
 }
 
 .tree-label {
@@ -496,7 +520,7 @@ input[type='checkbox'] {
 }
 
 .tree-base-url {
-  margin: -3px 0 3px 36px;
+  margin: -3px 0 3px 48px; /* alinhada ao nome: padding + seta + pasta + espaços */
   font: 11px var(--mono);
   color: var(--blue);
   overflow: hidden;
@@ -521,8 +545,8 @@ input[type='checkbox'] {
 }
 
 .base-url-input {
-  width: calc(100% - 36px);
-  margin-left: 36px;
+  width: calc(100% - 48px);
+  margin-left: 48px;
   font: 12px var(--mono);
 }
 

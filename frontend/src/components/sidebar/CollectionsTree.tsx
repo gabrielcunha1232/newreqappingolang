@@ -10,6 +10,7 @@ import {
   menuPositionFor,
   type MenuPosition,
 } from '../common/ContextMenu';
+import { Icon } from '../common/Icon';
 import { InlineInput } from '../common/InlineInput';
 
 type Editing =
@@ -176,8 +177,8 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
                 className="tree-head"
                 onClick={() => actions.setCollectionCollapsed(collection.id, !collection.collapsed)}
               >
-                <span className="tree-chevron">{expanded ? '⌄' : '›'}</span>
-                <span aria-hidden="true">📁</span>
+                <Icon name="chevron" size={12} className={'tree-chevron' + (expanded ? ' open' : '')} />
+                <Icon name={expanded ? 'folder-open' : 'folder'} className="tree-folder" />
                 {isEditing('collection', collection.id) ? (
                   <InlineInput
                     className="tree-input"
@@ -241,7 +242,8 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
         {orphans.length > 0 && (
           <div className="tree-group">
             <div className="tree-head static">
-              <span className="tree-chevron">⌄</span>
+              <Icon name="chevron" size={12} className="tree-chevron open" />
+              <Icon name="tray" className="tree-folder" />
               <span className="tree-label muted">Sem grupo</span>
               <span className="tree-count">{orphans.length}</span>
             </div>
