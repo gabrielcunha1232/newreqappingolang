@@ -11,8 +11,10 @@ var verbosEcho = map[string]string {
 	"ANY":     "ANY",
 }
 
+var _ Parser = (*EchoParser)(nil)
+
 type EchoParser struct {
-	baseParser BaseParser
+	BaseParser
 }
 
 func NewEchoParser() *EchoParser {

@@ -11,8 +11,10 @@ var verbosFiber = map[string]string {
 	"ANY":     "ANY",
 }
 
+var _ Parser = (*FiberParser)(nil)
+
 type FiberParser struct {
-	baseParser BaseParser
+	BaseParser
 }
 
 func NewFiberParser() *FiberParser {

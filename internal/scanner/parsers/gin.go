@@ -11,12 +11,14 @@ var verbosGin = map[string]string {
 		"ANY":     "ANY",
 	}
 
+var _ Parser = (*GinParser)(nil)
+
 type GinParser struct{
-	baseParser BaseParser
+	BaseParser
 }
 
 func NewGinParser() *GinParser {
 	return &GinParser{
-		*NewBaseParser(verbosChi),
+		*NewBaseParser(verbosGin),
 	}
 }

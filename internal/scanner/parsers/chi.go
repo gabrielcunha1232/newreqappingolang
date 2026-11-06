@@ -11,8 +11,10 @@ var verbosChi = map[string]string {
 	"ANY":     "ANY",
 }
 
+var _ Parser = (*ChiParser)(nil)
+
 type ChiParser struct {
-	baseParser BaseParser
+	BaseParser
 }
 
 func NewChiParser() *ChiParser {
