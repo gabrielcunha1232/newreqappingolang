@@ -93,7 +93,7 @@ func (b *BaseParser) inspectNode(n ast.Node, sourceFile string) (models.Endpoint
 		return models.Endpoint{}, false
 	}
 
-	verboHttp, existe := verbosChi[strings.ToUpper(selector.Sel.Name)]
+	verboHttp, existe := b.verbos[strings.ToUpper(selector.Sel.Name)]
 	if !existe || len(callExpr.Args) == 0 {
 		return models.Endpoint{}, false
 	}

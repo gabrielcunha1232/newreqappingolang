@@ -25,6 +25,7 @@ interface CollectionsTreeProps {
   requests: SavedRequest[];
   activeRequestId: string | null;
   actions: WorkspaceActions;
+  onShowDocs: (collectionId: string) => void;
 }
 
 function matches(request: SavedRequest, term: string) {
@@ -36,7 +37,7 @@ function matches(request: SavedRequest, term: string) {
   );
 }
 
-export function CollectionsTree({ collections, requests, activeRequestId, actions }: CollectionsTreeProps) {
+export function CollectionsTree({ collections, requests, activeRequestId, actions, onShowDocs }: CollectionsTreeProps) {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Editing>(null);
   const [menu, setMenu] = useState<OpenMenu>(null);
@@ -125,6 +126,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
     <>
       <MenuLabel>Coleção</MenuLabel>
       <MenuItem onSelect={() => actions.createRequest(collection.id)}>Nova requisição aqui</MenuItem>
+      <MenuItem onSelect={() => onShowDocs(collection.id)}>Ver documentação</MenuItem>
       <MenuItem onSelect={() => setEditing({ kind: 'collection', id: collection.id })}>Renomear</MenuItem>
       <MenuItem onSelect={() => setEditing({ kind: 'baseUrl', id: collection.id })}>Definir URL base</MenuItem>
       <MenuSeparator />

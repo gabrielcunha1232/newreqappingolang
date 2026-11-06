@@ -17,6 +17,8 @@ interface RequestEditorProps {
   variableNames: string[];
   onChange: (changes: Partial<SavedRequest>) => void;
   onSend: () => void;
+  /** Abre a documentação da coleção já no endpoint desta requisição. */
+  onShowDocs: () => void;
 }
 
 function countEnabled(rows: SavedRequest['params']) {
@@ -32,6 +34,7 @@ export function RequestEditor({
   variableNames,
   onChange,
   onSend,
+  onShowDocs,
 }: RequestEditorProps) {
   const [selected, setSelected] = useState<SubTab>('params');
 
@@ -96,6 +99,15 @@ export function RequestEditor({
           spellCheck={false}
           onChange={(event) => onChange({ url: event.target.value })}
         />
+        <button
+          type="button"
+          className="docs-link"
+          onClick={onShowDocs}
+          title="Ver na documentação da coleção"
+          aria-label="Ver na documentação da coleção"
+        >
+          ☰
+        </button>
         <button className="primary send" type="submit" disabled={loading}>
           {loading ? 'Enviando…' : '➤ Enviar'}
         </button>

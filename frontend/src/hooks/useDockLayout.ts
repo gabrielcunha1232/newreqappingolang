@@ -76,6 +76,8 @@ export function useDockLayout() {
     };
     return {
       toggle: (id: PanelId) => run((api) => (api.getPanel(id) ? closePanel(api, id) : openPanel(api, id))),
+      /** Abre o painel ou, se já estiver aberto, traz ele para frente. */
+      open: (id: PanelId) => run((api) => openPanel(api, id)),
       detach: (part: RequestPart) => run((api) => openPanel(api, part)),
       dockBack: (part: RequestPart) => run((api) => closePanel(api, part)),
       applyPreset: (preset: LayoutPreset) => run((api) => applyPreset(api, preset)),

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { AppShell } from './components/layout/AppShell';
+import { DocsTabsHost } from './components/docs/DocsTabsHost';
 import { ApiScanner } from './components/sidebar/ApiScanner';
 import { CollectionsTree } from './components/sidebar/CollectionsTree';
 import { HistoryList } from './components/sidebar/HistoryList';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { Toast } from './components/common/Toast';
 import { Workspace } from './components/workspace/Workspace';
+import { useApiDocs } from './hooks/useApiDocs';
 import { useAppMenus } from './hooks/useAppMenus';
 import { useConsole } from './hooks/useConsole';
 import { useDockLayout } from './hooks/useDockLayout';
@@ -34,10 +36,12 @@ function App() {
   const dock = useDockLayout();
   const runner = useRequestRunner({ log: logger.log, onComplete: history.actions.add });
 
+  const docs = useApiDocs({ workspace, dockActions: dock.actions });
+
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
   usePersistence(handlers.snapshot, handlers.hydrate);
   useKeyboardShortcuts(handlers.shortcuts);
-  const menus = useAppMenus({ workspace, dock, logger, toast, onShowSidebar: setSidebarView });
+  const menus = useAppMenus({ workspace, dock, logger, toast, onShowSidebar: setSidebarView, onShowDocs: docs.showForActiveRequest });
 
   const { state } = workspace;
 
@@ -53,6 +57,7 @@ function App() {
                 requests={state.requests}
                 activeRequestId={state.activeRequestId}
                 actions={workspace.actions}
+                onShowDocs={docs.show}
               />
             </div>
             <div className="side-view" hidden={sidebarView !== 'history'}>
@@ -70,18 +75,36 @@ function App() {
       >
         <Workspace
           tabs={{
-            open: handlers.openTabs,
-            activeId: state.activeRequestId,
-            onActivate: workspace.actions.activateTab,
-            onClose: workspace.actions.closeTab,
-            onAdd: () => workspace.actions.createRequest(),
+            requests: {
+              open: handlers.openTabs,
+              activeId: state.activeRequestId,
+              onActivate: workspace.actions.activateTab,
+              onClose: workspace.actions.closeTab,
+              onAdd: () => workspace.actions.createRequest(),
+            },
+            docs: {
+              open: docs.scopes,
+              activeId: docs.activeId,
+              onActivate: workspace.actions.openDocs,
+              onClose: workspace.actions.closeDocs,
+            },
           }}
+          docsContent={
+            <DocsTabsHost
+              scopes={docs.scopes}
+              activeId={docs.activeId}
+              requests={state.requests}
+              focus={docs.focus}
+              onTryIt={docs.tryIt}
+            />
+          }
           workbench={{
             request: {
               active: workspace.activeRequest,
               runtime: runner.get(state.activeRequestId),
               onChange: handlers.updateActiveRequest,
               onSend: handlers.sendActiveRequest,
+              onShowDocs: docs.showForActiveRequest,
               onCopyResponse: handlers.copyActiveResponse,
               onCreate: () => workspace.actions.createRequest(),
             },

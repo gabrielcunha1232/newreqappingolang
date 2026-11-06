@@ -727,6 +727,21 @@ input[type='checkbox'] {
   color: var(--m-del-fg);
 }
 
+.request-tab small.tab-docs {
+  background: var(--surface-3);
+  color: var(--accent-strong);
+  letter-spacing: 0.04em;
+}
+
+.tabs-divider {
+  flex: none;
+  align-self: center;
+  width: 1px;
+  height: 20px;
+  margin: 0 4px;
+  background: var(--line-strong);
+}
+
 .tab-title {
   overflow: hidden;
   text-overflow: ellipsis;
@@ -755,10 +770,42 @@ input[type='checkbox'] {
 
 /* ===== Painéis (dockview) ===== */
 
+.workspace-body {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
 .dock-host {
   flex: 1;
   min-height: 0;
   position: relative;
+}
+
+/* Coberto por uma aba de documentação: continua com tamanho, só fica invisível. */
+.dock-host.covered {
+  visibility: hidden;
+}
+
+.docs-host {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+}
+
+.docs-tab-content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 16px 20px;
 }
 
 .dock-host > div {
@@ -863,7 +910,7 @@ input[type='checkbox'] {
 
 .urlrow {
   display: grid;
-  grid-template-columns: 112px minmax(120px, 1fr) 120px;
+  grid-template-columns: 112px minmax(120px, 1fr) 40px 120px;
   gap: 9px;
   margin-bottom: 12px;
 }
@@ -872,6 +919,16 @@ input[type='checkbox'] {
 .urlrow input {
   height: 40px;
   min-width: 0;
+}
+
+.urlrow .docs-link {
+  padding: 0;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.urlrow .docs-link:hover:not(:disabled) {
+  color: var(--accent-strong);
 }
 
 .urlrow .send {
@@ -1376,6 +1433,286 @@ input[type='checkbox'] {
   font: 12px var(--mono);
   white-space: pre-wrap;
   overflow-wrap: anywhere;
+}
+
+/* ===== Documentação da API ===== */
+
+.docs-view {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 0;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.docs-header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.docs-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.docs-search {
+  flex: 0 1 320px;
+  min-width: 180px;
+}
+
+.docs-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--text-strong);
+}
+
+.docs-base-url {
+  font: 12px var(--mono);
+  color: var(--blue);
+  overflow-wrap: anywhere;
+}
+
+.docs-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.docs-group-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  text-align: left;
+}
+
+.docs-group-head h3 {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-strong);
+}
+
+.docs-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+}
+
+.docs-endpoint {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: var(--surface);
+  overflow: hidden;
+  scroll-margin-top: 8px;
+  transition: box-shadow 0.3s ease;
+}
+
+.docs-endpoint.open {
+  border-color: var(--line-strong);
+}
+
+/* Endpoint aberto a partir do editor ("Ver na documentação"). */
+.docs-endpoint.highlighted {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.docs-endpoint.deprecated {
+  opacity: 0.6;
+}
+
+.docs-endpoint-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+}
+
+.docs-endpoint-head:hover:not(:disabled) {
+  background: var(--hover);
+}
+
+.docs-endpoint.open .docs-endpoint-head {
+  background: var(--surface-2);
+}
+
+.docs-method {
+  min-width: 60px;
+  font-size: 11px;
+  padding: 4px 6px;
+}
+
+.docs-path {
+  font: 13px var(--mono);
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.docs-path-param {
+  color: var(--code-key);
+}
+
+.docs-path-var {
+  color: var(--code-bool);
+}
+
+.docs-summary {
+  flex: 1;
+  min-width: 0;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.docs-chevron {
+  margin-left: auto;
+  color: var(--muted-2);
+  transition: transform 0.12s ease;
+}
+
+.docs-chevron.open {
+  transform: rotate(90deg);
+}
+
+.docs-details {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.docs-description {
+  margin: 0;
+  color: var(--text-soft);
+}
+
+.docs-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.docs-section p {
+  margin: 0;
+}
+
+.docs-section .codebox {
+  max-height: 280px;
+}
+
+.docs-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.docs-section-head h4 {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.docs-section-aside {
+  font: 11px var(--mono);
+  color: var(--text-soft);
+}
+
+.docs-params td {
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
+.docs-params code {
+  font: 12px var(--mono);
+  overflow-wrap: anywhere;
+}
+
+.docs-param-name {
+  color: var(--text-strong);
+}
+
+.docs-required {
+  margin-left: 3px;
+  color: var(--red);
+  font-weight: bold;
+}
+
+.docs-param-type,
+.docs-param-in {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.docs-responses {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.docs-response-status {
+  margin-right: 8px;
+  font-weight: bold;
+  color: var(--green);
+}
+
+.docs-source {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 4px 12px;
+  margin: 0;
+  font-size: 12px;
+}
+
+.docs-source dt {
+  color: var(--muted);
+}
+
+.docs-source dd {
+  margin: 0;
+  min-width: 0;
+}
+
+.docs-source code {
+  font: 12px var(--mono);
+  overflow-wrap: anywhere;
+}
+
+.docs-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* ===== Estados vazios e toast ===== */

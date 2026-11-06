@@ -1,15 +1,12 @@
 import { useState } from 'react';
 import type { Endpoint } from '../../../bindings/changeme/internal/models/models';
+import { fileName } from '../../lib/endpointSource';
 import { methodClass, methodShort } from '../../lib/format';
 import { pickDirectory, scanEndpoints } from '../../services/scannerService';
 
 interface ApiScannerProps {
   onScanComplete: (dir: string, endpoints: Endpoint[], baseUrl: string) => void;
   onEndpointSelect: (endpoint: Endpoint) => void;
-}
-
-function fileName(path: string) {
-  return path.split(/[\\/]/).pop() || path;
 }
 
 /** Escaneia um projeto Go e importa os endpoints encontrados para uma coleção. */

@@ -69,6 +69,7 @@ function RequestPanel() {
           variableNames={variableNames}
           onChange={request.onChange}
           onSend={request.onSend}
+          onShowDocs={request.onShowDocs}
         />
       ) : (
         <NoActiveRequest />

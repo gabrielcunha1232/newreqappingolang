@@ -12,10 +12,12 @@ interface Deps {
   logger: ReturnType<typeof useConsole>;
   toast: ReturnType<typeof useToast>;
   onShowSidebar: (view: SidebarView) => void;
+  /** Documentação da coleção da requisição ativa. */
+  onShowDocs: () => void;
 }
 
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -33,7 +35,7 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar }: D
           },
         },
         'separator',
-        { label: 'Fechar aba', shortcut: 'Ctrl+W', onSelect: () => activeId && actions.closeTab(activeId) },
+        { label: 'Fechar aba', shortcut: 'Ctrl+W', onSelect: actions.closeActiveTab },
       ],
     },
     {
@@ -79,6 +81,8 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar }: D
         { label: 'Coleções', onSelect: () => onShowSidebar('collections') },
         { label: 'Histórico', onSelect: () => onShowSidebar('history') },
         { label: 'APIs (scanner)', onSelect: () => onShowSidebar('apis') },
+        'separator',
+        { label: 'Documentação da API', onSelect: onShowDocs },
       ],
     },
     {

@@ -28,7 +28,7 @@ func (s *Scanner) Scan() ([]models.Endpoint, error) {
 	}
 
 	parsersMap := map[Framework]parsers.Parser{
-		FrameworkGin:   parsers.NewChiParser(),
+		FrameworkGin:   parsers.NewGinParser(),
 		FrameworkFiber: parsers.NewFiberParser(),
 		FrameworkEcho:  parsers.NewEchoParser(),
 		FrameworkChi:   parsers.NewChiParser(),

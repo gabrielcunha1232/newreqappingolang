@@ -1,4 +1,5 @@
 import { Load, Save } from '../../bindings/changeme/collectionservice';
+import { UNGROUPED_SCOPE } from '../lib/apiDocsScope';
 import { defaultAuth, newKeyValue } from '../lib/factories';
 import { reconcileParams } from '../lib/query';
 import { normalizeBaseUrl } from '../lib/url';
@@ -16,6 +17,8 @@ export interface AppSnapshot {
   requests: SavedRequest[];
   openRequestIds: string[];
   activeRequestId: string | null;
+  openDocIds: string[];
+  activeDocId: string | null;
   environments: Environment[];
   activeEnvironmentId: string | null;
   history: HistoryEntry[];
@@ -54,6 +57,7 @@ function deserialize(state: Partial<PersistedState>): AppSnapshot {
       body: request.body ?? '',
       preScript: request.preScript ?? '',
       postScript: request.postScript ?? '',
+      source: request.source,
     })
   );
 
@@ -67,14 +71,23 @@ function deserialize(state: Partial<PersistedState>): AppSnapshot {
       ? state.activeRequestId
       : openRequestIds[0] ?? null;
 
+  const collections = (state.collections ?? []).map((collection) => ({
+    ...collection,
+    baseUrl: normalizeBaseUrl(collection.baseUrl),
+  }));
+
+  // Abas de documentação de coleções que não existem mais são descartadas.
+  const docScopes = new Set([...collections.map((c) => c.id), UNGROUPED_SCOPE]);
+  const openDocIds = (state.openDocIds ?? []).filter((id) => docScopes.has(id));
+  const activeDocId = state.activeDocId && openDocIds.includes(state.activeDocId) ? state.activeDocId : null;
+
   return {
-    collections: (state.collections ?? []).map((collection) => ({
-      ...collection,
-      baseUrl: normalizeBaseUrl(collection.baseUrl),
-    })),
+    collections,
     requests,
     openRequestIds,
     activeRequestId,
+    openDocIds,
+    activeDocId,
     environments: state.environments ?? [],
     activeEnvironmentId: state.activeEnvironmentId ?? null,
     history: state.history ?? [],

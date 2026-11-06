@@ -1,5 +1,6 @@
 import type { Endpoint } from '../../bindings/changeme/internal/models/models';
 import type { Environment, KeyValue, RequestAuth, SavedRequest } from '../types';
+import { sourceFromScan } from './endpointSource';
 import { generateId } from './id';
 
 export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'OPTIONS'];
@@ -42,6 +43,7 @@ export function requestFromEndpoint(endpoint: Endpoint, collectionId: string | n
     method: endpoint.method,
     url: endpoint.path,
     title: `${endpoint.method} ${endpoint.path}`,
+    source: sourceFromScan(endpoint),
   };
 }
 

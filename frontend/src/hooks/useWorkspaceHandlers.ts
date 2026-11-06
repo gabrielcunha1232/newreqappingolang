@@ -46,9 +46,16 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
           requests: loaded.requests,
           openRequestIds: loaded.openRequestIds,
           activeRequestId: loaded.activeRequestId,
+          openDocIds: loaded.openDocIds,
+          activeDocId: loaded.activeDocId,
         });
       } else {
-        actions.hydrate({ ...initialWorkspace(), collections: loaded.collections });
+        actions.hydrate({
+          ...initialWorkspace(),
+          collections: loaded.collections,
+          openDocIds: loaded.openDocIds,
+          activeDocId: loaded.activeDocId,
+        });
       }
       environments.actions.hydrate(loaded.environments, loaded.activeEnvironmentId);
       history.actions.hydrate(loaded.history);
@@ -138,9 +145,9 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
   const shortcuts = useMemo(
     () => ({
       newRequest: () => actions.createRequest(),
-      closeTab: () => state.activeRequestId && actions.closeTab(state.activeRequestId),
+      closeTab: actions.closeActiveTab,
     }),
-    [actions, state.activeRequestId]
+    [actions]
   );
 
   return {

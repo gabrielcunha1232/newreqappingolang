@@ -13,6 +13,8 @@ export interface WorkbenchValue {
     runtime: RequestRuntime;
     onChange: (changes: Partial<SavedRequest>) => void;
     onSend: () => void;
+    /** Abre a documentação da coleção da requisição ativa, no endpoint dela. */
+    onShowDocs: () => void;
     onCopyResponse: () => void;
     onCreate: () => void;
   };

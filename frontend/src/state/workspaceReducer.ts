@@ -1,4 +1,5 @@
 import type { Endpoint } from '../../bindings/changeme/internal/models/models';
+import { sourceFromScan } from '../lib/endpointSource';
 import { newRequest, requestFromEndpoint } from '../lib/factories';
 import { generateId } from '../lib/id';
 import { applyRequestChanges, reconcileParams } from '../lib/query';
@@ -11,6 +12,10 @@ export interface WorkspaceState {
   /** Requisições abertas como abas, na ordem da barra de abas. */
   openRequestIds: string[];
   activeRequestId: string | null;
+  /** Abas de documentação abertas: id da coleção ou UNGROUPED_SCOPE. */
+  openDocIds: string[];
+  /** Aba de documentação em primeiro plano; null = a requisição ativa está em primeiro plano. */
+  activeDocId: string | null;
 }
 
 export type WorkspaceAction =
@@ -23,6 +28,9 @@ export type WorkspaceAction =
   | { type: 'tab/open'; id: string }
   | { type: 'tab/close'; id: string }
   | { type: 'tab/activate'; id: string }
+  | { type: 'tab/close-active' }
+  | { type: 'docs/open'; id: string }
+  | { type: 'docs/close'; id: string }
   | { type: 'collection/create'; collection: Collection }
   | { type: 'collection/update'; id: string; changes: Partial<Collection> }
   | { type: 'collection/delete'; id: string }
@@ -35,9 +43,12 @@ export function initialWorkspace(): WorkspaceState {
     requests: [request],
     openRequestIds: [request.id],
     activeRequestId: request.id,
+    openDocIds: [],
+    activeDocId: null,
   };
 }
 
+/** Abrir ou ativar uma requisição sempre a traz para frente da documentação. */
 function openTab(state: WorkspaceState, id: string): WorkspaceState {
   return {
     ...state,
@@ -45,7 +56,27 @@ function openTab(state: WorkspaceState, id: string): WorkspaceState {
       ? state.openRequestIds
       : [...state.openRequestIds, id],
     activeRequestId: id,
+    activeDocId: null,
   };
+}
+
+function openDocs(state: WorkspaceState, id: string): WorkspaceState {
+  return {
+    ...state,
+    openDocIds: state.openDocIds.includes(id) ? state.openDocIds : [...state.openDocIds, id],
+    activeDocId: id,
+  };
+}
+
+/** Fechar a documentação ativa ativa a vizinha; sem vizinha, volta para a requisição. */
+function closeDocs(state: WorkspaceState, id: string): WorkspaceState {
+  const index = state.openDocIds.indexOf(id);
+  if (index === -1) return state;
+
+  const openDocIds = state.openDocIds.filter((x) => x !== id);
+  const activeDocId =
+    state.activeDocId === id ? openDocIds[Math.min(index, openDocIds.length - 1)] ?? null : state.activeDocId;
+  return { ...state, openDocIds, activeDocId };
 }
 
 function closeTab(state: WorkspaceState, id: string): WorkspaceState {
@@ -75,17 +106,28 @@ function importEndpoints(
   const existing = state.collections.find((c) => c.name.toLowerCase() === name.toLowerCase());
   const collectionId = existing?.id ?? generateId();
 
+  const findImported = (endpoint: Endpoint) =>
+    state.requests.find(
+      (r) => r.collectionId === collectionId && r.method === endpoint.method && r.url === endpoint.path
+    );
+
   const imported = endpoints
-    .filter(
-      (endpoint) =>
-        !state.requests.some(
-          (r) =>
-            r.collectionId === collectionId &&
-            r.method === endpoint.method &&
-            r.url === endpoint.path
-        )
-    )
+    .filter((endpoint) => !findImported(endpoint))
     .map((endpoint) => requestFromEndpoint(endpoint, collectionId));
+
+  // Requisições importadas antes de existir a origem (arquivo/linguagem) ganham ela ao reescanear.
+  const sourceById = new Map(
+    endpoints.flatMap((endpoint) => {
+      const existingRequest = findImported(endpoint);
+      return existingRequest && !existingRequest.source
+        ? [[existingRequest.id, sourceFromScan(endpoint)] as const]
+        : [];
+    })
+  );
+  const requests = state.requests.map((r) => {
+    const source = sourceById.get(r.id);
+    return source ? { ...r, source } : r;
+  });
 
   let collections = state.collections;
   if (!existing) {
@@ -95,7 +137,7 @@ function importEndpoints(
     collections = collections.map((c) => (c.id === collectionId ? { ...c, baseUrl: base } : c));
   }
 
-  return { ...state, collections, requests: [...state.requests, ...imported] };
+  return { ...state, collections, requests: [...requests, ...imported] };
 }
 
 export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction): WorkspaceState {
@@ -147,7 +189,17 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
       return closeTab(state, action.id);
 
     case 'tab/activate':
-      return { ...state, activeRequestId: action.id };
+      return { ...state, activeRequestId: action.id, activeDocId: null };
+
+    case 'tab/close-active':
+      if (state.activeDocId) return closeDocs(state, state.activeDocId);
+      return state.activeRequestId ? closeTab(state, state.activeRequestId) : state;
+
+    case 'docs/open':
+      return openDocs(state, action.id);
+
+    case 'docs/close':
+      return closeDocs(state, action.id);
 
     case 'collection/create':
       return { ...state, collections: [...state.collections, action.collection] };
@@ -163,7 +215,7 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
     case 'collection/delete':
       // As requisições da coleção excluída vão para "Sem grupo".
       return {
-        ...state,
+        ...closeDocs(state, action.id),
         collections: state.collections.filter((c) => c.id !== action.id),
         requests: state.requests.map((r) =>
           r.collectionId === action.id ? { ...r, collectionId: null } : r

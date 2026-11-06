@@ -32,6 +32,20 @@ export interface Collection {
   baseUrl: string;
 }
 
+/**
+ * De onde o endpoint foi descoberto pelo scanner de código. Independente de
+ * linguagem: o scanner só preenche o que conseguir extrair.
+ */
+export interface ApiEndpointSource {
+  file: string;
+  line?: number;
+  /** "go", "java", "php"... */
+  language?: string;
+  /** "gin", "echo", "spring", "laravel"... */
+  framework?: string;
+  handler?: string;
+}
+
 /** Requisição salva (aparece na árvore de coleções e pode estar aberta em uma aba). */
 export interface SavedRequest {
   id: string;
@@ -46,6 +60,75 @@ export interface SavedRequest {
   body: string;
   preScript: string;
   postScript: string;
+  /** Presente quando a requisição veio do scanner de código. */
+  source?: ApiEndpointSource;
+}
+
+/* ===== Documentação da API (modelo neutro, estilo OpenAPI) ===== */
+
+/**
+ * Todas as fontes de endpoints (scanner, import OpenAPI/cURL, requisições
+ * manuais) são convertidas para este modelo; a documentação só lê ele.
+ */
+export type ApiParamLocation = 'path' | 'query' | 'header';
+
+export interface ApiParam {
+  name: string;
+  in: ApiParamLocation;
+  required: boolean;
+  /** Tipo declarado (string, integer...), quando a fonte souber. */
+  type?: string;
+  description?: string;
+  example?: string;
+}
+
+/** Subconjunto livre de JSON Schema, preenchido quando a fonte souber. */
+export type JsonSchema = Record<string, unknown>;
+
+export interface ApiRequestBody {
+  contentType: string;
+  example?: string;
+  schema?: JsonSchema;
+}
+
+export interface ApiResponseDoc {
+  /** "200", "404", "default"... */
+  status: string;
+  description?: string;
+  contentType?: string;
+  example?: string;
+  schema?: JsonSchema;
+}
+
+export interface ApiSecurity {
+  type: Exclude<AuthType, 'none'>;
+  /** Nome do cabeçalho, para API key. */
+  name?: string;
+}
+
+export interface ApiEndpoint {
+  id: string;
+  method: string;
+  /** Caminho como escrito na fonte, sem origem e sem query ("/users/:id"). */
+  path: string;
+  /** Origem ou variável usada como base ("http://localhost:8080", "{{baseUrl}}"). */
+  baseUrl?: string;
+  summary?: string;
+  description?: string;
+  tags: string[];
+  params: ApiParam[];
+  requestBody?: ApiRequestBody;
+  responses: ApiResponseDoc[];
+  security?: ApiSecurity;
+  deprecated?: boolean;
+  source?: ApiEndpointSource;
+  /** Requisição salva correspondente, usada pelo "Testar". */
+  requestId?: string;
+}
+
+export interface ApiEndpointGroup {
+  tag: string;
+  endpoints: ApiEndpoint[];
 }
 
 /** Estado transitório de execução de uma requisição (não é persistido). */
@@ -110,6 +193,8 @@ export interface PersistedState {
   requests: Array<Partial<Omit<SavedRequest, 'headers'>> & { id: string; headers?: KeyValue[] | string }>;
   openRequestIds?: string[];
   activeRequestId?: string | null;
+  openDocIds?: string[];
+  activeDocId?: string | null;
   environments?: Environment[];
   activeEnvironmentId?: string | null;
   history?: HistoryEntry[];

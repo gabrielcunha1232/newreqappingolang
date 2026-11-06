@@ -1,9 +1,9 @@
+import type { ReactNode } from 'react';
 import { DockviewReact, type DockviewReadyEvent, type DockviewTheme } from 'dockview';
-import type { SavedRequest } from '../../types';
 import { DockHeaderActions } from './DockHeaderActions';
 import { DOCK_COMPONENTS, DockWatermark } from './DockPanels';
-import { RequestTabsBar } from './RequestTabsBar';
 import { WorkbenchProvider, type WorkbenchValue } from './WorkbenchContext';
+import { WorkspaceTabsBar, type DocsTabsProps, type RequestTabsProps } from './WorkspaceTabsBar';
 
 const THEME: DockviewTheme = {
   name: 'forkarsenet',
@@ -13,38 +13,40 @@ const THEME: DockviewTheme = {
 
 export interface WorkspaceProps {
   tabs: {
-    open: SavedRequest[];
-    activeId: string | null;
-    onActivate: (id: string) => void;
-    onClose: (id: string) => void;
-    onAdd: () => void;
+    requests: RequestTabsProps;
+    docs: DocsTabsProps;
   };
+  /** Conteúdo das abas de documentação (mostrado no lugar dos painéis quando uma delas está ativa). */
+  docsContent: ReactNode;
   workbench: WorkbenchValue;
   onDockReady: (event: DockviewReadyEvent) => void;
 }
 
-export function Workspace({ tabs, workbench, onDockReady }: WorkspaceProps) {
+export function Workspace({ tabs, docsContent, workbench, onDockReady }: WorkspaceProps) {
+  const showingDocs = tabs.docs.activeId !== null;
+
   return (
     <main className="workspace">
-      <RequestTabsBar
-        tabs={tabs.open}
-        activeId={tabs.activeId}
-        onActivate={tabs.onActivate}
-        onClose={tabs.onClose}
-        onAdd={tabs.onAdd}
-      />
+      <WorkspaceTabsBar requests={tabs.requests} docs={tabs.docs} />
 
-      <WorkbenchProvider value={workbench}>
-        <div className="dock-host">
-          <DockviewReact
-            theme={THEME}
-            components={DOCK_COMPONENTS}
-            rightHeaderActionsComponent={DockHeaderActions}
-            watermarkComponent={DockWatermark}
-            onReady={onDockReady}
-          />
+      <div className="workspace-body">
+        {/* Os painéis continuam montados e com tamanho: escondê-los com display:none desmontaria o layout do dockview. */}
+        <WorkbenchProvider value={workbench}>
+          <div className={'dock-host' + (showingDocs ? ' covered' : '')} aria-hidden={showingDocs}>
+            <DockviewReact
+              theme={THEME}
+              components={DOCK_COMPONENTS}
+              rightHeaderActionsComponent={DockHeaderActions}
+              watermarkComponent={DockWatermark}
+              onReady={onDockReady}
+            />
+          </div>
+        </WorkbenchProvider>
+
+        <div className="docs-host" hidden={!showingDocs}>
+          {docsContent}
         </div>
-      </WorkbenchProvider>
+      </div>
     </main>
   );
 }
