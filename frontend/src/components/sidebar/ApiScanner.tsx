@@ -7,10 +7,12 @@ import { pickDirectory, scanEndpoints } from '../../services/scannerService';
 interface ApiScannerProps {
   onScanComplete: (dir: string, endpoints: Endpoint[], baseUrl: string) => void;
   onEndpointSelect: (endpoint: Endpoint) => void;
+  /** Alternativa ao scanner: importar uma especificação OpenAPI/Swagger. */
+  onImportSpec: () => void;
 }
 
 /** Escaneia um projeto Go e importa os endpoints encontrados para uma coleção. */
-export function ApiScanner({ onScanComplete, onEndpointSelect }: ApiScannerProps) {
+export function ApiScanner({ onScanComplete, onEndpointSelect, onImportSpec }: ApiScannerProps) {
   const [directory, setDirectory] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
@@ -74,6 +76,12 @@ export function ApiScanner({ onScanComplete, onEndpointSelect }: ApiScannerProps
           {loading ? 'Escaneando…' : '⌕ Escanear endpoints'}
         </button>
         {error && <div className="inline-error" role="alert">⚠ {error}</div>}
+        <div className="scanner-alt">
+          <span className="muted">ou</span>
+          <button type="button" onClick={onImportSpec}>
+            ⤒ Importar OpenAPI / Swagger
+          </button>
+        </div>
       </div>
 
       <div className="tree">

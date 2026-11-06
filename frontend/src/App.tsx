@@ -7,6 +7,7 @@ import { HistoryList } from './components/sidebar/HistoryList';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { Toast } from './components/common/Toast';
 import { Workspace } from './components/workspace/Workspace';
+import { ImportOpenApiDialog } from './components/import/ImportOpenApiDialog';
 import { useApiDocs } from './hooks/useApiDocs';
 import { useAppMenus } from './hooks/useAppMenus';
 import { useConsole } from './hooks/useConsole';
@@ -14,6 +15,7 @@ import { useDockLayout } from './hooks/useDockLayout';
 import { useEnvironments } from './hooks/useEnvironments';
 import { useHistory } from './hooks/useHistory';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
+import { useOpenApiImport } from './hooks/useOpenApiImport';
 import { usePersistence } from './hooks/usePersistence';
 import { useRequestRunner } from './hooks/useRequestRunner';
 import { useToast } from './hooks/useToast';
@@ -36,12 +38,28 @@ function App() {
   const dock = useDockLayout();
   const runner = useRequestRunner({ log: logger.log, onComplete: history.actions.add });
 
-  const docs = useApiDocs({ workspace, dockActions: dock.actions });
+  const docs = useApiDocs({
+    workspace,
+    dockActions: dock.actions,
+    variables: environments.variables,
+    log: logger.log,
+    notify: toast.show,
+  });
+
+  const openApiImport = useOpenApiImport({ workspace, log: logger.log, notify: toast.show });
 
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
   usePersistence(handlers.snapshot, handlers.hydrate);
   useKeyboardShortcuts(handlers.shortcuts);
-  const menus = useAppMenus({ workspace, dock, logger, toast, onShowSidebar: setSidebarView, onShowDocs: docs.showForActiveRequest });
+  const menus = useAppMenus({
+    workspace,
+    dock,
+    logger,
+    toast,
+    onShowSidebar: setSidebarView,
+    onShowDocs: docs.showForActiveRequest,
+    onImportSpec: openApiImport.openDialog,
+  });
 
   const { state } = workspace;
 
@@ -68,7 +86,11 @@ function App() {
               />
             </div>
             <div className="side-view" hidden={sidebarView !== 'apis'}>
-              <ApiScanner onScanComplete={handlers.importScan} onEndpointSelect={handlers.openEndpoint} />
+              <ApiScanner
+                onScanComplete={handlers.importScan}
+                onEndpointSelect={handlers.openEndpoint}
+                onImportSpec={openApiImport.openDialog}
+              />
             </div>
           </Sidebar>
         }
@@ -96,6 +118,7 @@ function App() {
               requests={state.requests}
               focus={docs.focus}
               onTryIt={docs.tryIt}
+              onExportOpenApi={docs.exportOpenApi}
             />
           }
           workbench={{
@@ -124,6 +147,13 @@ function App() {
           onDockReady={dock.onReady}
         />
       </AppShell>
+      {openApiImport.dialogOpen && (
+        <ImportOpenApiDialog
+          onClose={openApiImport.closeDialog}
+          onImportText={openApiImport.importText}
+          onImportUrl={openApiImport.importUrl}
+        />
+      )}
       <Toast message={toast.message} />
     </>
   );

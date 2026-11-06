@@ -10,13 +10,14 @@ interface DocsTabsHostProps {
   requests: SavedRequest[];
   focus: DocsFocus | null;
   onTryIt: (requestId: string) => void;
+  onExportOpenApi: (scope: DocsScope) => void;
 }
 
 /**
  * Conteúdo das abas de documentação. Todas ficam montadas (só a ativa
  * aparece), para cada aba manter rolagem, filtro e endpoints expandidos.
  */
-export function DocsTabsHost({ scopes, activeId, requests, focus, onTryIt }: DocsTabsHostProps) {
+export function DocsTabsHost({ scopes, activeId, requests, focus, onTryIt, onExportOpenApi }: DocsTabsHostProps) {
   return (
     <>
       {scopes.map((scope) => (
@@ -27,6 +28,7 @@ export function DocsTabsHost({ scopes, activeId, requests, focus, onTryIt }: Doc
               requests={requests}
               focus={focus}
               onTryIt={onTryIt}
+              onExport={() => onExportOpenApi(scope)}
             />
           </ErrorBoundary>
         </div>

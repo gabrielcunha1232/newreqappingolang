@@ -774,6 +774,9 @@ input[type='checkbox'] {
   flex: 1;
   min-height: 0;
   position: relative;
+  /* Contexto de empilhamento próprio: os z-index altos do dockview (99, 999, 9999)
+     ficam confinados aqui e não passam por cima de modais e menus. */
+  isolation: isolate;
   display: flex;
   flex-direction: column;
 }
@@ -1713,6 +1716,102 @@ input[type='checkbox'] {
 .docs-actions {
   display: flex;
   justify-content: flex-end;
+}
+
+/* ===== Modal ===== */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.modal {
+  width: 100%;
+  max-height: calc(100vh - 32px);
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  box-shadow: 0 12px 40px #000c;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-strong);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  overflow: auto;
+}
+
+.modal-body .hint {
+  margin: 0;
+}
+
+.modal-body .inline-error {
+  margin: 0;
+}
+
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 14px;
+  border-top: 1px solid var(--line);
+}
+
+/* ===== Importação ===== */
+
+.import-file {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.import-paste {
+  min-height: 220px;
+}
+
+.scanner-alt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.scanner-alt button {
+  flex: 1;
 }
 
 /* ===== Estados vazios e toast ===== */

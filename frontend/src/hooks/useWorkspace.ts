@@ -4,7 +4,7 @@ import { newRequest } from '../lib/factories';
 import { generateId } from '../lib/id';
 import { normalizeBaseUrl } from '../lib/url';
 import { initialWorkspace, workspaceReducer, type WorkspaceState } from '../state/workspaceReducer';
-import type { SavedRequest } from '../types';
+import type { Collection, SavedRequest } from '../types';
 
 /** Estado de coleções, requisições e abas abertas, com ações nomeadas. */
 export function useWorkspace() {
@@ -51,6 +51,10 @@ export function useWorkspace() {
       setCollectionCollapsed: (id: string, collapsed: boolean) =>
         dispatch({ type: 'collection/update', id, changes: { collapsed } }),
       deleteCollection: (id: string) => dispatch({ type: 'collection/delete', id }),
+
+      /** Adiciona uma coleção já montada (ex.: importada de uma spec OpenAPI). */
+      importCollection: (collection: Collection, requests: SavedRequest[]) =>
+        dispatch({ type: 'collection/import', collection, requests }),
 
       importEndpoints: (dir: string, endpoints: Endpoint[], baseUrl = '') =>
         dispatch({ type: 'scanner/import', dir, endpoints, baseUrl }),

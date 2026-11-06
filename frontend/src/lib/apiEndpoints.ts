@@ -68,14 +68,41 @@ function headerParams(request: SavedRequest, security: ApiSecurity | undefined):
 
 function requestBody(request: SavedRequest): ApiRequestBody | undefined {
   const example = request.body.trim();
-  if (!example || !METHODS_WITH_BODY.has(request.method.toUpperCase())) return undefined;
+  const schema = request.doc?.requestSchema;
+  if ((!example && !schema) || !METHODS_WITH_BODY.has(request.method.toUpperCase())) return undefined;
 
   const contentTypeHeader = named(request.headers).find(
     (row) => row.enabled && row.key.trim().toLowerCase() === 'content-type'
   );
   const contentType =
     optionalText(contentTypeHeader?.value ?? '') ?? (request.bodyType === 'json' ? 'application/json' : 'text/plain');
-  return { contentType, example };
+  return { contentType, example: example || undefined, schema };
+}
+
+function paramKey(param: ApiParam): string {
+  // Nomes de cabeçalho não diferenciam maiúsculas.
+  return `${param.in}:${param.in === 'header' ? param.name.toLowerCase() : param.name}`;
+}
+
+/**
+ * Completa os parâmetros da requisição com o que a origem declarou (tipo,
+ * obrigatoriedade, descrição). A requisição manda: parâmetro removido dela
+ * some da documentação.
+ */
+function withDeclared(params: ApiParam[], declared: ApiParam[] = []): ApiParam[] {
+  const byKey = new Map(declared.map((param) => [paramKey(param), param]));
+  return params.map((param) => {
+    const info = byKey.get(paramKey(param));
+    if (!info) return param;
+    return {
+      ...param,
+      type: param.type ?? info.type,
+      schema: param.schema ?? info.schema,
+      required: param.in === 'path' ? param.required : info.required,
+      description: param.description ?? info.description,
+      example: param.example ?? info.example,
+    };
+  });
 }
 
 /** Só o tipo e o nome do cabeçalho: tokens e senhas nunca vão para a documentação. */
@@ -102,6 +129,8 @@ function summary(request: SavedRequest): string | undefined {
 export function endpointFromRequest(request: SavedRequest, collection?: Collection): ApiEndpoint {
   const { base, path } = splitBaseAndPath(request.url);
   const auth = security(request);
+  const { doc } = request;
+  const params = [...pathParams(path), ...queryParams(request), ...headerParams(request, auth)];
 
   return {
     id: request.id,
@@ -109,10 +138,12 @@ export function endpointFromRequest(request: SavedRequest, collection?: Collecti
     path,
     baseUrl: base || collection?.baseUrl || undefined,
     summary: summary(request),
-    tags: [tagFromPath(path)],
-    params: [...pathParams(path), ...queryParams(request), ...headerParams(request, auth)],
+    description: doc?.description,
+    tags: doc?.tags?.length ? doc.tags : [tagFromPath(path)],
+    params: withDeclared(params, doc?.params),
     requestBody: requestBody(request),
-    responses: [],
+    responses: doc?.responses ?? [],
+    deprecated: doc?.deprecated,
     security: auth,
     source: request.source,
     requestId: request.id,

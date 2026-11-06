@@ -14,10 +14,11 @@ interface Deps {
   onShowSidebar: (view: SidebarView) => void;
   /** Documentação da coleção da requisição ativa. */
   onShowDocs: () => void;
+  onImportSpec: () => void;
 }
 
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -34,6 +35,7 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
             toast.show('Coleção criada. Dê um duplo clique no nome para renomear.');
           },
         },
+        { label: 'Importar OpenAPI / Swagger…', onSelect: onImportSpec },
         'separator',
         { label: 'Fechar aba', shortcut: 'Ctrl+W', onSelect: actions.closeActiveTab },
       ],

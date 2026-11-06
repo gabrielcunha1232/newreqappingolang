@@ -58,6 +58,7 @@ function deserialize(state: Partial<PersistedState>): AppSnapshot {
       preScript: request.preScript ?? '',
       postScript: request.postScript ?? '',
       source: request.source,
+      doc: request.doc,
     })
   );
 

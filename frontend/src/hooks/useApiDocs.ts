@@ -1,6 +1,10 @@
 import { useCallback, useMemo, useState } from 'react';
-import { docsScopeId, resolveDocsScopes } from '../lib/apiDocsScope';
+import { docsScopeId, endpointsForScope, resolveDocsScopes, type DocsScope } from '../lib/apiDocsScope';
+import { downloadText } from '../lib/download';
+import { buildOpenApiDocument, openApiFileName } from '../lib/openapi/exportOpenApi';
+import type { Logger } from './useConsole';
 import type { DockLayout } from './useDockLayout';
+import type { ShowToast } from './useToast';
 import type { useWorkspace } from './useWorkspace';
 
 /**
@@ -15,10 +19,14 @@ export interface DocsFocus {
 interface Deps {
   workspace: ReturnType<typeof useWorkspace>;
   dockActions: DockLayout['actions'];
+  /** Variáveis do ambiente ativo (resolvem {{baseUrl}} no export). */
+  variables: Record<string, string>;
+  log: Logger;
+  notify: ShowToast;
 }
 
 /** Abas de documentação e a ligação delas com as abas de requisição. */
-export function useApiDocs({ workspace, dockActions }: Deps) {
+export function useApiDocs({ workspace, dockActions, variables, log, notify }: Deps) {
   const { state, actions, activeRequest } = workspace;
   const [focus, setFocus] = useState<DocsFocus | null>(null);
 
@@ -51,7 +59,26 @@ export function useApiDocs({ workspace, dockActions }: Deps) {
     [actions, dockActions]
   );
 
-  return { scopes, activeId: state.activeDocId, focus, show, showForActiveRequest, tryIt };
+  /** Baixa a documentação da aba como OpenAPI 3 (JSON); avisos vão para o console. */
+  const exportOpenApi = useCallback(
+    (scope: DocsScope) => {
+      const endpoints = endpointsForScope(scope, state.requests);
+      const { document, warnings } = buildOpenApiDocument({ title: scope.label, endpoints, variables });
+      const fileName = openApiFileName(scope.label);
+
+      downloadText(fileName, JSON.stringify(document, null, 2));
+      log('ok', `OpenAPI: ${Object.keys(document.paths).length} caminho(s) de "${scope.label}" exportados para ${fileName}`);
+      warnings.forEach((warning) => log('warn', `OpenAPI: ${warning}`));
+      notify(
+        warnings.length > 0
+          ? `OpenAPI exportado com ${warnings.length} aviso(s). Veja o console.`
+          : 'OpenAPI exportado.'
+      );
+    },
+    [state.requests, variables, log, notify]
+  );
+
+  return { scopes, activeId: state.activeDocId, focus, show, showForActiveRequest, tryIt, exportOpenApi };
 }
 
 export type ApiDocs = ReturnType<typeof useApiDocs>;

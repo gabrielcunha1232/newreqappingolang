@@ -34,6 +34,7 @@ export type WorkspaceAction =
   | { type: 'collection/create'; collection: Collection }
   | { type: 'collection/update'; id: string; changes: Partial<Collection> }
   | { type: 'collection/delete'; id: string }
+  | { type: 'collection/import'; collection: Collection; requests: SavedRequest[] }
   | { type: 'scanner/import'; dir: string; endpoints: Endpoint[]; baseUrl: string };
 
 export function initialWorkspace(): WorkspaceState {
@@ -220,6 +221,13 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         requests: state.requests.map((r) =>
           r.collectionId === action.id ? { ...r, collectionId: null } : r
         ),
+      };
+
+    case 'collection/import':
+      return {
+        ...state,
+        collections: [...state.collections, action.collection],
+        requests: [...state.requests, ...action.requests],
       };
 
     case 'scanner/import':

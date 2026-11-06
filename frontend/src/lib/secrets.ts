@@ -1,6 +1,11 @@
 const SENSITIVE_HEADER = /auth|token|secret|password|cookie|api[-_]?key|session/i;
 const VISIBLE_CHARS = 4;
 
+/** Nome de cabeçalho/parâmetro que costuma carregar credencial (token, senha, chave...). */
+export function isSensitiveName(name: string): boolean {
+  return SENSITIVE_HEADER.test(name);
+}
+
 function maskValue(value: string): string {
   if (value.length <= VISIBLE_CHARS) return '••••';
   return `${value.slice(0, VISIBLE_CHARS)}…`;

@@ -62,6 +62,23 @@ export interface SavedRequest {
   postScript: string;
   /** Presente quando a requisição veio do scanner de código. */
   source?: ApiEndpointSource;
+  /** Documentação declarada pela origem (spec OpenAPI importada, scanner...). */
+  doc?: ApiDocMetadata;
+}
+
+/**
+ * O que a origem declarou sobre o endpoint e a requisição não guarda:
+ * tipos, descrições, schemas e respostas. A requisição continua sendo a
+ * fonte do método, da URL e dos exemplos; isto só complementa a documentação.
+ */
+export interface ApiDocMetadata {
+  description?: string;
+  tags?: string[];
+  deprecated?: boolean;
+  /** Parâmetros declarados (casados com os da requisição por local + nome). */
+  params?: ApiParam[];
+  requestSchema?: JsonSchema;
+  responses?: ApiResponseDoc[];
 }
 
 /* ===== Documentação da API (modelo neutro, estilo OpenAPI) ===== */
@@ -76,8 +93,10 @@ export interface ApiParam {
   name: string;
   in: ApiParamLocation;
   required: boolean;
-  /** Tipo declarado (string, integer...), quando a fonte souber. */
+  /** Tipo para exibição ("integer (int64)", "array<string>"), quando a fonte souber. */
   type?: string;
+  /** Schema declarado pela fonte (usado no export OpenAPI). */
+  schema?: JsonSchema;
   description?: string;
   example?: string;
 }

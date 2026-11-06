@@ -12,13 +12,15 @@ interface ApiDocsViewProps {
   /** Endpoint a destacar (vindo do botão "Documentação" do editor). */
   focus: DocsFocus | null;
   onTryIt: (requestId: string) => void;
+  /** Exporta esta documentação como OpenAPI. */
+  onExport: () => void;
 }
 
 /**
  * Documentação no estilo Swagger UI de uma coleção. Funciona com qualquer
  * origem de endpoints: scanner, importação ou requisições criadas à mão.
  */
-export function ApiDocsView({ scope, requests, focus, onTryIt }: ApiDocsViewProps) {
+export function ApiDocsView({ scope, requests, focus, onTryIt, onExport }: ApiDocsViewProps) {
   const [search, setSearch] = useState('');
 
   const endpoints = useMemo(() => endpointsForScope(scope, requests), [scope, requests]);
@@ -55,6 +57,13 @@ export function ApiDocsView({ scope, requests, focus, onTryIt }: ApiDocsViewProp
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
+        <button
+          onClick={onExport}
+          disabled={endpoints.length === 0}
+          title="Baixar como OpenAPI 3 (JSON), compatível com Swagger UI e outras ferramentas"
+        >
+          ⤓ Exportar OpenAPI
+        </button>
       </header>
 
       {groups.length > 0 ? (
