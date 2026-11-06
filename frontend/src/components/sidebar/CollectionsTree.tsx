@@ -26,6 +26,7 @@ interface CollectionsTreeProps {
   activeRequestId: string | null;
   actions: WorkspaceActions;
   onShowDocs: (collectionId: string) => void;
+  onCopyCurl: (requestId: string) => void;
 }
 
 function matches(request: SavedRequest, term: string) {
@@ -37,7 +38,7 @@ function matches(request: SavedRequest, term: string) {
   );
 }
 
-export function CollectionsTree({ collections, requests, activeRequestId, actions, onShowDocs }: CollectionsTreeProps) {
+export function CollectionsTree({ collections, requests, activeRequestId, actions, onShowDocs, onCopyCurl }: CollectionsTreeProps) {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Editing>(null);
   const [menu, setMenu] = useState<OpenMenu>(null);
@@ -116,6 +117,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
       <MenuSeparator />
       <MenuItem onSelect={() => setEditing({ kind: 'request', id: request.id })}>Renomear</MenuItem>
       <MenuItem onSelect={() => actions.duplicateRequest(request.id)}>Duplicar</MenuItem>
+      <MenuItem onSelect={() => onCopyCurl(request.id)}>Copiar como cURL</MenuItem>
       <MenuItem danger onSelect={() => actions.deleteRequest(request.id)}>
         Excluir
       </MenuItem>

@@ -1,6 +1,7 @@
 import { DoRequest } from '../../bindings/changeme/httpclientservice';
 import { Request, type Response } from '../../bindings/changeme/internal/models/models';
 import { findJsonError } from '../lib/jsonBody';
+import { fillPathParams } from '../lib/pathTemplate';
 import { encodeQuery } from '../lib/query';
 import { resolveUrl } from '../lib/url';
 import { findUnresolved, interpolate } from '../lib/variables';
@@ -41,9 +42,13 @@ export function buildHttpRequest(
 ): BuildResult {
   const sub = (text: string) => interpolate(text, vars);
 
-  const { url: resolved, error } = resolveUrl(sub(saved.url), collection);
+  const { url: base, error } = resolveUrl(sub(saved.url), collection);
   if (error) return { ok: false, error };
-  if (!resolved) return { ok: false, error: 'Informe a URL da requisição.' };
+  if (!base) return { ok: false, error: 'Informe a URL da requisição.' };
+
+  // ":id" / "{id}" recebem os valores da tabela de variáveis de caminho.
+  const pathValues = Object.fromEntries(Object.entries(saved.pathValues).map(([name, value]) => [name, sub(value)]));
+  const { url: resolved, missing } = fillPathParams(base, pathValues);
 
   // Os parâmetros já estão na URL (sincronizados com a tabela); só codifica.
   const url = encodeQuery(resolved);
@@ -76,6 +81,7 @@ export function buildHttpRequest(
     vars
   )
     .map((name) => `Variável {{${name}}} não definida no ambiente ativo.`)
+    .concat(missing.map((name) => `Variável de caminho "${name}" sem valor: preencha na aba Parâmetros.`))
     .concat(bodyWarnings);
 
   return {

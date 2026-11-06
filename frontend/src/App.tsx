@@ -8,9 +8,11 @@ import { Sidebar } from './components/sidebar/Sidebar';
 import { Toast } from './components/common/Toast';
 import { Workspace } from './components/workspace/Workspace';
 import { ImportOpenApiDialog } from './components/import/ImportOpenApiDialog';
+import { ImportCurlDialog } from './components/import/ImportCurlDialog';
 import { useApiDocs } from './hooks/useApiDocs';
 import { useAppMenus } from './hooks/useAppMenus';
 import { useConsole } from './hooks/useConsole';
+import { useCurl } from './hooks/useCurl';
 import { useDockLayout } from './hooks/useDockLayout';
 import { useEnvironments } from './hooks/useEnvironments';
 import { useHistory } from './hooks/useHistory';
@@ -47,6 +49,7 @@ function App() {
   });
 
   const openApiImport = useOpenApiImport({ workspace, log: logger.log, notify: toast.show });
+  const curl = useCurl({ workspace, variables: environments.variables, log: logger.log, notify: toast.show });
 
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
   usePersistence(handlers.snapshot, handlers.hydrate);
@@ -59,6 +62,8 @@ function App() {
     onShowSidebar: setSidebarView,
     onShowDocs: docs.showForActiveRequest,
     onImportSpec: openApiImport.openDialog,
+    onImportCurl: curl.openDialog,
+    onCopyCurl: () => curl.copyAsCurl(workspace.state.activeRequestId),
   });
 
   const { state } = workspace;
@@ -76,6 +81,7 @@ function App() {
                 activeRequestId={state.activeRequestId}
                 actions={workspace.actions}
                 onShowDocs={docs.show}
+                onCopyCurl={curl.copyAsCurl}
               />
             </div>
             <div className="side-view" hidden={sidebarView !== 'history'}>
@@ -128,6 +134,8 @@ function App() {
               onChange: handlers.updateActiveRequest,
               onSend: handlers.sendActiveRequest,
               onShowDocs: docs.showForActiveRequest,
+              onPasteCurl: curl.pasteIntoActive,
+              onCopyCurl: () => curl.copyAsCurl(state.activeRequestId),
               onCopyResponse: handlers.copyActiveResponse,
               onCreate: () => workspace.actions.createRequest(),
             },
@@ -154,6 +162,7 @@ function App() {
           onImportUrl={openApiImport.importUrl}
         />
       )}
+      {curl.dialogOpen && <ImportCurlDialog onClose={curl.closeDialog} onImport={curl.importAsNew} />}
       <Toast message={toast.message} />
     </>
   );

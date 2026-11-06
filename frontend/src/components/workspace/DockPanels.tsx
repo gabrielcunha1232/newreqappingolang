@@ -70,6 +70,8 @@ function RequestPanel() {
           onChange={request.onChange}
           onSend={request.onSend}
           onShowDocs={request.onShowDocs}
+          onPasteCurl={request.onPasteCurl}
+          onCopyCurl={request.onCopyCurl}
         />
       ) : (
         <NoActiveRequest />

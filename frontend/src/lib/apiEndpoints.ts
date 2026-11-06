@@ -31,12 +31,13 @@ function optionalText(text: string): string | undefined {
   return trimmed || undefined;
 }
 
-function pathParams(path: string): ApiParam[] {
+function pathParams(path: string, values: Record<string, string>): ApiParam[] {
   return extractPathParams(path).map((param) => ({
     name: param.name,
     in: 'path',
     required: !param.optional,
     description: param.wildcard ? 'Curinga: casa com o restante do caminho.' : undefined,
+    example: optionalText(values[param.name] ?? ''),
   }));
 }
 
@@ -130,7 +131,7 @@ export function endpointFromRequest(request: SavedRequest, collection?: Collecti
   const { base, path } = splitBaseAndPath(request.url);
   const auth = security(request);
   const { doc } = request;
-  const params = [...pathParams(path), ...queryParams(request), ...headerParams(request, auth)];
+  const params = [...pathParams(path, request.pathValues), ...queryParams(request), ...headerParams(request, auth)];
 
   return {
     id: request.id,

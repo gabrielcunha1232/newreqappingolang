@@ -1,8 +1,11 @@
+import { useMemo } from 'react';
 import { findJsonError, formatJsonBody } from '../../lib/jsonBody';
+import { extractPathParams, splitBaseAndPath } from '../../lib/pathTemplate';
 import type { BodyType, RequestPart, SavedRequest } from '../../types';
 import { CodeEditor } from '../editor/CodeEditor';
 import { AuthEditor } from './AuthEditor';
 import { KeyValueTable } from './KeyValueTable';
+import { PathVariablesTable } from './PathVariablesTable';
 
 export interface RequestPartProps {
   request: SavedRequest;
@@ -12,8 +15,36 @@ export interface RequestPartProps {
 }
 
 export function ParamsPart({ request, onChange }: RequestPartProps) {
-  return (
+  const pathParams = useMemo(() => extractPathParams(splitBaseAndPath(request.url).path), [request.url]);
+  const descriptions = useMemo(
+    () =>
+      Object.fromEntries(
+        (request.doc?.params ?? []).filter((p) => p.in === 'path').map((p) => [p.name, p.description])
+      ),
+    [request.doc]
+  );
+
+  const queryTable = (
     <KeyValueTable rows={request.params} onChange={(params) => onChange({ params })} addLabel="Adicionar parâmetro" />
+  );
+  if (pathParams.length === 0) return queryTable;
+
+  return (
+    <div className="params-sections">
+      <section>
+        <h4 className="part-heading">Variáveis de caminho</h4>
+        <PathVariablesTable
+          params={pathParams}
+          values={request.pathValues}
+          descriptions={descriptions}
+          onChange={(pathValues) => onChange({ pathValues })}
+        />
+      </section>
+      <section>
+        <h4 className="part-heading">Parâmetros de query</h4>
+        {queryTable}
+      </section>
+    </div>
   );
 }
 

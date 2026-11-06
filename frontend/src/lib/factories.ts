@@ -28,6 +28,7 @@ export function newRequest(collectionId: string | null = null): SavedRequest {
     method: 'GET',
     url: 'https://httpbin.org/get',
     params: [],
+    pathValues: {},
     headers: [newKeyValue({ key: 'Accept', value: 'application/json' })],
     auth: defaultAuth(),
     bodyType: 'json',

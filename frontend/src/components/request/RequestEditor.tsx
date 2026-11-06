@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { looksLikeCurl } from '../../lib/curl/parseCurl';
 import { HTTP_METHODS } from '../../lib/factories';
 import { PANEL_TITLES, isRequestPart } from '../../lib/panels';
 import type { RequestPart, SavedRequest } from '../../types';
@@ -19,6 +20,9 @@ interface RequestEditorProps {
   onSend: () => void;
   /** Abre a documentação da coleção já no endpoint desta requisição. */
   onShowDocs: () => void;
+  /** Comando curl colado no campo de URL. */
+  onPasteCurl: (command: string) => void;
+  onCopyCurl: () => void;
 }
 
 function countEnabled(rows: SavedRequest['params']) {
@@ -35,6 +39,8 @@ export function RequestEditor({
   onChange,
   onSend,
   onShowDocs,
+  onPasteCurl,
+  onCopyCurl,
 }: RequestEditorProps) {
   const [selected, setSelected] = useState<SubTab>('params');
 
@@ -98,10 +104,26 @@ export function RequestEditor({
           placeholder="https://api.exemplo.com/recurso  ou  /recurso  ou  {{base_url}}/recurso"
           spellCheck={false}
           onChange={(event) => onChange({ url: event.target.value })}
+          onPaste={(event) => {
+            const text = event.clipboardData.getData('text');
+            if (looksLikeCurl(text)) {
+              event.preventDefault();
+              onPasteCurl(text);
+            }
+          }}
         />
         <button
           type="button"
-          className="docs-link"
+          className="url-action"
+          onClick={onCopyCurl}
+          title="Copiar como cURL"
+          aria-label="Copiar como cURL"
+        >
+          {'</>'}
+        </button>
+        <button
+          type="button"
+          className="url-action"
           onClick={onShowDocs}
           title="Ver na documentação da coleção"
           aria-label="Ver na documentação da coleção"

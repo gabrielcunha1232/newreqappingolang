@@ -54,6 +54,8 @@ export interface SavedRequest {
   method: string;
   url: string;
   params: KeyValue[];
+  /** Valores das variáveis de caminho da URL (":id", "{id}"), por nome. */
+  pathValues: Record<string, string>;
   headers: KeyValue[];
   auth: RequestAuth;
   bodyType: BodyType;

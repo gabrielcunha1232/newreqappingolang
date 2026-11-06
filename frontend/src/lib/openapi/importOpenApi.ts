@@ -399,6 +399,9 @@ function buildRequest(
     method: METHOD,
     url: pathPrefix + path,
     params: [...documented.filter((p) => p.in === 'query').map(paramRow), ...authQuery],
+    pathValues: Object.fromEntries(
+      documented.filter((p) => p.in === 'path' && p.example !== undefined).map((p) => [p.name, p.example ?? ''])
+    ),
     headers: [...headerRows, ...documented.filter((p) => p.in === 'header').map(paramRow)],
     auth,
     bodyType: body.bodyType,

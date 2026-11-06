@@ -51,6 +51,7 @@ function deserialize(state: Partial<PersistedState>): AppSnapshot {
       method: request.method ?? 'GET',
       url: request.url ?? '',
       params: request.params ?? [],
+      pathValues: request.pathValues ?? {},
       headers: migrateHeaders(request.headers),
       auth: { ...defaultAuth(), ...request.auth },
       bodyType: request.bodyType ?? 'json',

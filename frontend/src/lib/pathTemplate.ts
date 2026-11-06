@@ -65,22 +65,65 @@ export function extractPathParams(path: string): PathParamInfo[] {
 }
 
 /**
- * Remove query e hash. O "?" de parâmetro opcional (":id?" no fim de um
- * segmento, "{id?}") faz parte do caminho, não inicia a query.
+ * Índice onde começam a query e o hash. O "?" de parâmetro opcional (":id?"
+ * no fim de um segmento, "{id?}") faz parte do caminho, não inicia a query.
  */
-function stripQuery(url: string): string {
+function queryStart(url: string): number {
   let depth = 0;
   for (let i = 0; i < url.length; i++) {
     const char = url[i];
     if (char === '{') depth++;
     else if (char === '}') depth = Math.max(0, depth - 1);
-    else if (depth === 0 && char === '#') return url.slice(0, i);
+    else if (depth === 0 && char === '#') return i;
     else if (depth === 0 && char === '?') {
       const optionalMarker = /:[A-Za-z_]\w*$/.test(url.slice(0, i)) && /^(\/|$)/.test(url.slice(i + 1));
-      if (!optionalMarker) return url.slice(0, i);
+      if (!optionalMarker) return i;
     }
   }
-  return url;
+  return url.length;
+}
+
+/** Remove query e hash. */
+function stripQuery(url: string): string {
+  return url.slice(0, queryStart(url));
+}
+
+/** Codifica o valor de um segmento; aceita valores já codificados ("a%20b"). */
+function encodeSegment(value: string): string {
+  let decoded = value;
+  try {
+    decoded = decodeURIComponent(value);
+  } catch {
+    // "%" solto: codifica como está.
+  }
+  return encodeURIComponent(decoded);
+}
+
+/**
+ * Troca as variáveis de caminho da URL pelos valores ("/users/:id" + {id: 7}
+ * → "/users/7"). Curingas mantêm as barras do valor; opcionais sem valor
+ * somem; obrigatórios sem valor ficam como estão e são listados em `missing`.
+ */
+export function fillPathParams(url: string, values: Record<string, string>): { url: string; missing: string[] } {
+  const end = queryStart(url);
+  const missing: string[] = [];
+  // A origem ("http://user:senha@host:8080") nunca tem variáveis de caminho.
+  const origin = /^[a-z][a-z\d+.-]*:\/\/[^/]*/i.exec(url)?.[0] ?? '';
+
+  const path = tokenizePath(url.slice(origin.length, end))
+    .map((token) => {
+      if (token.kind !== 'param') return token.text;
+      const value = values[token.name]?.trim() ?? '';
+      if (value) return token.wildcard ? value.split('/').map(encodeSegment).join('/') : encodeSegment(value);
+      if (token.optional) return '';
+      missing.push(token.name);
+      return token.text;
+    })
+    .join('')
+    // Opcional removido no meio do caminho deixa "//".
+    .replace(/\/{2,}/g, '/');
+
+  return { url: origin + path + url.slice(end), missing };
 }
 
 /** Separa a base ("http://host:8080", "{{baseUrl}}") do caminho, sem query nem hash. */

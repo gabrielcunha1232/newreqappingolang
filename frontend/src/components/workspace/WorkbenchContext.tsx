@@ -15,6 +15,8 @@ export interface WorkbenchValue {
     onSend: () => void;
     /** Abre a documentação da coleção da requisição ativa, no endpoint dela. */
     onShowDocs: () => void;
+    onPasteCurl: (command: string) => void;
+    onCopyCurl: () => void;
     onCopyResponse: () => void;
     onCreate: () => void;
   };
