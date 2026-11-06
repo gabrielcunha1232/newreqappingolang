@@ -29,6 +29,8 @@ export type WorkspaceAction =
   | { type: 'tab/close'; id: string }
   | { type: 'tab/activate'; id: string }
   | { type: 'tab/close-active' }
+  | { type: 'tab/close-many'; ids: string[] }
+  | { type: 'docs/close-many'; ids: string[] }
   | { type: 'docs/open'; id: string }
   | { type: 'docs/close'; id: string }
   | { type: 'collection/create'; collection: Collection }
@@ -195,6 +197,12 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
     case 'tab/close-active':
       if (state.activeDocId) return closeDocs(state, state.activeDocId);
       return state.activeRequestId ? closeTab(state, state.activeRequestId) : state;
+
+    case 'tab/close-many':
+      return action.ids.reduce(closeTab, state);
+
+    case 'docs/close-many':
+      return action.ids.reduce(closeDocs, state);
 
     case 'docs/open':
       return openDocs(state, action.id);

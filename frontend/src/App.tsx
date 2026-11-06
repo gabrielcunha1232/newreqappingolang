@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AppShell } from './components/layout/AppShell';
 import { DocsTabsHost } from './components/docs/DocsTabsHost';
+import type { EndpointActions } from './components/docs/endpointActions';
 import { ApiScanner } from './components/sidebar/ApiScanner';
 import { CollectionsTree } from './components/sidebar/CollectionsTree';
+import type { TreeCommands } from './components/sidebar/CollectionsTreeMenus';
 import { HistoryList } from './components/sidebar/HistoryList';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { Toast } from './components/common/Toast';
@@ -38,7 +40,11 @@ function App() {
   const logger = useConsole();
   const toast = useToast();
   const dock = useDockLayout();
-  const runner = useRequestRunner({ log: logger.log, onComplete: history.actions.add });
+  const runner = useRequestRunner({
+    log: logger.log,
+    onComplete: history.actions.add,
+    onEnvironmentChanges: environments.actions.applyChanges,
+  });
 
   const docs = useApiDocs({
     workspace,
@@ -68,6 +74,23 @@ function App() {
 
   const { state } = workspace;
 
+  const endpointActions = useMemo<EndpointActions>(
+    () => ({ tryIt: docs.tryIt, copyCurl: curl.copyAsCurl, copyText: handlers.copyText }),
+    [docs.tryIt, curl.copyAsCurl, handlers.copyText]
+  );
+
+  const treeCommands = useMemo<TreeCommands>(
+    () => ({
+      showDocs: docs.show,
+      exportOpenApi: docs.exportCollection,
+      copyCurl: curl.copyAsCurl,
+      copyText: handlers.copyText,
+      importSpec: openApiImport.openDialog,
+      importCurl: curl.openDialog,
+    }),
+    [docs.show, docs.exportCollection, curl.copyAsCurl, curl.openDialog, handlers.copyText, openApiImport.openDialog]
+  );
+
   return (
     <>
       <AppShell
@@ -80,14 +103,16 @@ function App() {
                 requests={state.requests}
                 activeRequestId={state.activeRequestId}
                 actions={workspace.actions}
-                onShowDocs={docs.show}
-                onCopyCurl={curl.copyAsCurl}
+                commands={treeCommands}
               />
             </div>
             <div className="side-view" hidden={sidebarView !== 'history'}>
               <HistoryList
                 entries={history.entries}
                 onOpen={handlers.openHistoryEntry}
+                onOpenAsNew={handlers.openHistoryAsNew}
+                onRemove={history.actions.remove}
+                onCopyText={handlers.copyText}
                 onClear={history.actions.clear}
               />
             </div>
@@ -96,6 +121,7 @@ function App() {
                 onScanComplete={handlers.importScan}
                 onEndpointSelect={handlers.openEndpoint}
                 onImportSpec={openApiImport.openDialog}
+                onCopyText={handlers.copyText}
               />
             </div>
           </Sidebar>
@@ -108,13 +134,19 @@ function App() {
               activeId: state.activeRequestId,
               onActivate: workspace.actions.activateTab,
               onClose: workspace.actions.closeTab,
+              onCloseMany: workspace.actions.closeTabs,
               onAdd: () => workspace.actions.createRequest(),
+              onDuplicate: workspace.actions.duplicateRequest,
+              onCopyCurl: curl.copyAsCurl,
+              onShowDocs: (request) => docs.show(request.collectionId, request.id),
             },
             docs: {
               open: docs.scopes,
               activeId: docs.activeId,
               onActivate: workspace.actions.openDocs,
               onClose: workspace.actions.closeDocs,
+              onCloseMany: workspace.actions.closeManyDocs,
+              onExport: docs.exportOpenApi,
             },
           }}
           docsContent={
@@ -123,7 +155,7 @@ function App() {
               activeId={docs.activeId}
               requests={state.requests}
               focus={docs.focus}
-              onTryIt={docs.tryIt}
+              endpointActions={endpointActions}
               onExportOpenApi={docs.exportOpenApi}
             />
           }

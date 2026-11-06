@@ -2,11 +2,13 @@ import { useMemo, useState } from 'react';
 import type { Response } from '../../../bindings/changeme/internal/models/models';
 import { formatBytes, statusClass, statusLabel } from '../../lib/format';
 import { findTabularData, tryParseJson } from '../../lib/json';
+import type { TestResult } from '../../lib/scripts/types';
 import { EmptyState } from '../common/EmptyState';
 import { DataTable } from './DataTable';
 import { JsonCode } from './JsonCode';
+import { TestResults } from './TestResults';
 
-type Mode = 'pretty' | 'raw' | 'preview' | 'table';
+type Mode = 'pretty' | 'raw' | 'preview' | 'table' | 'tests';
 
 const MODES: Array<{ id: Mode; label: string }> = [
   { id: 'pretty', label: 'Pretty' },
@@ -41,10 +43,16 @@ interface ResponseViewerProps {
   response: Response | null;
   error: string;
   loading: boolean;
+  /** Resultados do pós-processamento; null = a requisição não tem script. */
+  tests: TestResult[] | null;
+  scriptError: string;
 }
 
-export function ResponseViewer({ response, error, loading }: ResponseViewerProps) {
-  const [mode, setMode] = useState<Mode>('pretty');
+export function ResponseViewer({ response, error, loading, tests, scriptError }: ResponseViewerProps) {
+  const [selected, setSelected] = useState<Mode>('pretty');
+  // Sem script de pós-processamento a aba Testes some; volta para o modo padrão.
+  const mode = selected === 'tests' && tests === null ? 'pretty' : selected;
+  const failed = tests?.filter((t) => !t.passed).length ?? 0;
 
   const body = response?.body ?? '';
   const parsed = useMemo(() => tryParseJson(body), [body]);
@@ -69,9 +77,11 @@ export function ResponseViewer({ response, error, loading }: ResponseViewerProps
   }
 
   const renderContent = () => {
-    if (!body) return <EmptyState icon="∅" title="Corpo vazio" />;
+    if (!body && mode !== 'tests') return <EmptyState icon="∅" title="Corpo vazio" />;
 
     switch (mode) {
+      case 'tests':
+        return <TestResults tests={tests ?? []} scriptError={scriptError} />;
       case 'raw':
         return <JsonCode text={body} highlight={false} />;
       case 'preview':
@@ -105,10 +115,18 @@ export function ResponseViewer({ response, error, loading }: ResponseViewerProps
     <div className="response-viewer">
       <div className="response-toolbar">
         {MODES.map((m) => (
-          <button key={m.id} className={mode === m.id ? 'active' : ''} onClick={() => setMode(m.id)}>
+          <button key={m.id} className={mode === m.id ? 'active' : ''} onClick={() => setSelected(m.id)}>
             {m.label}
           </button>
         ))}
+        {tests !== null && (
+          <button
+            className={'tests-tab' + (mode === 'tests' ? ' active' : '') + (failed > 0 || scriptError ? ' failing' : ' passing')}
+            onClick={() => setSelected('tests')}
+          >
+            Testes ({tests.length - failed}/{tests.length})
+          </button>
+        )}
         <span className="spacer" />
         <span className="hint">{isJson ? 'JSON' : 'Texto'} ▾</span>
       </div>

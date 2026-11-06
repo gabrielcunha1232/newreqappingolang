@@ -1,4 +1,5 @@
 import type { KeyValue } from '../types';
+import { newKeyValue } from './factories';
 
 const VARIABLE_PATTERN = /\{\{\s*([\w.-]+)\s*\}\}/g;
 
@@ -10,6 +11,24 @@ export function variablesToMap(variables: KeyValue[]): Record<string, string> {
     }
   }
   return map;
+}
+
+/**
+ * Aplica alterações feitas por scripts (pm.environment.set/unset) nas linhas
+ * do ambiente: atualiza a linha existente, cria uma nova ou remove (null).
+ */
+export function mergeVariableChanges(rows: KeyValue[], changes: Record<string, string | null>): KeyValue[] {
+  let next = [...rows];
+  for (const [name, value] of Object.entries(changes)) {
+    if (value === null) {
+      next = next.filter((row) => row.key.trim() !== name);
+      continue;
+    }
+    const index = next.findIndex((row) => row.key.trim() === name);
+    if (index === -1) next.push(newKeyValue({ key: name, value }));
+    else next[index] = { ...next[index], value, enabled: true };
+  }
+  return next;
 }
 
 /** Substitui {{nome}} pelo valor da variável; variáveis desconhecidas ficam como estão. */

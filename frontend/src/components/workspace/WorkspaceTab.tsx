@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { MouseEvent, ReactNode } from 'react';
 
 interface WorkspaceTabProps {
   label: string;
@@ -9,10 +9,20 @@ interface WorkspaceTabProps {
   className?: string;
   onActivate: () => void;
   onClose: () => void;
+  onContextMenu?: (event: MouseEvent<HTMLDivElement>) => void;
 }
 
 /** Aba da barra superior: ativa com clique ou Enter, fecha com × ou clique do meio. */
-export function WorkspaceTab({ label, active, leading, tooltip, className = '', onActivate, onClose }: WorkspaceTabProps) {
+export function WorkspaceTab({
+  label,
+  active,
+  leading,
+  tooltip,
+  className = '',
+  onActivate,
+  onClose,
+  onContextMenu,
+}: WorkspaceTabProps) {
   return (
     <div
       role="tab"
@@ -23,6 +33,7 @@ export function WorkspaceTab({ label, active, leading, tooltip, className = '', 
       onClick={onActivate}
       onKeyDown={(event) => event.key === 'Enter' && onActivate()}
       onAuxClick={(event) => event.button === 1 && onClose()}
+      onContextMenu={onContextMenu}
     >
       {leading}
       <span className="tab-title">{label}</span>

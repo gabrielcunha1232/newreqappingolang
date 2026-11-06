@@ -1,4 +1,5 @@
 import type { Response } from '../bindings/changeme/internal/models/models';
+import type { TestResult } from './lib/scripts/types';
 
 /* ===== Domínio ===== */
 
@@ -157,6 +158,10 @@ export interface RequestRuntime {
   response: Response | null;
   error: string;
   loading: boolean;
+  /** Resultados do pm.test no pós-processamento; null = não houve script. */
+  tests: TestResult[] | null;
+  /** Erro que interrompeu o script de pós-processamento. */
+  scriptError: string;
 }
 
 export interface Environment {

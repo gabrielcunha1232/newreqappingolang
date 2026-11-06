@@ -100,7 +100,24 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     toast.show('Logs salvos.');
   }, [logger.entries, toast]);
 
+  /** Copia para a área de transferência e confirma ("URL copiada."). */
+  const copyText = useCallback(
+    (text: string, label: string) => {
+      navigator.clipboard
+        .writeText(text)
+        .then(() => toast.show(`${label} copiado.`))
+        .catch(() => toast.show('Não foi possível copiar para a área de transferência.'));
+    },
+    [toast]
+  );
+
   /* ===== Histórico e scanner ===== */
+
+  const openHistoryAsNew = useCallback(
+    (entry: HistoryEntry) =>
+      actions.createRequest(null, { method: entry.method, url: entry.url, title: `${entry.method} ${entry.url}` }),
+    [actions]
+  );
 
   const openHistoryEntry = useCallback(
     (entry: HistoryEntry) => {
@@ -158,7 +175,9 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     sendActiveRequest,
     copyActiveResponse,
     saveLogs,
+    copyText,
     openHistoryEntry,
+    openHistoryAsNew,
     importScan,
     openEndpoint,
     shortcuts,

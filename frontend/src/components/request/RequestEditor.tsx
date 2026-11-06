@@ -5,6 +5,7 @@ import { PANEL_TITLES, isRequestPart } from '../../lib/panels';
 import type { RequestPart, SavedRequest } from '../../types';
 import { EmptyState } from '../common/EmptyState';
 import { REQUEST_PART_EDITORS } from './RequestParts';
+import { ScriptEditor } from './ScriptEditor';
 
 type SubTab = RequestPart | 'pre' | 'post';
 
@@ -50,9 +51,9 @@ export function RequestEditor({
       { id: 'auth', label: PANEL_TITLES.auth },
       { id: 'headers', label: PANEL_TITLES.headers, badge: countEnabled(request.headers) },
       { id: 'body', label: PANEL_TITLES.body },
-      { id: 'pre', label: 'Pré-processamento' },
-      { id: 'post', label: 'Pós-processamento' },
-    ] as Array<{ id: SubTab; label: string; badge?: number }>
+      { id: 'pre', label: 'Pré-processamento', dot: Boolean(request.preScript.trim()) },
+      { id: 'post', label: 'Pós-processamento', dot: Boolean(request.postScript.trim()) },
+    ] as Array<{ id: SubTab; label: string; badge?: number; dot?: boolean }>
   ).filter((t) => !(isRequestPart(t.id) && detachedParts.includes(t.id)));
 
   // Se a sub-aba selecionada foi destacada, mostra a primeira que sobrou.
@@ -65,19 +66,7 @@ export function RequestEditor({
       return <Editor request={request} onChange={onChange} variableNames={variableNames} />;
     }
     const field = tab === 'pre' ? 'preScript' : 'postScript';
-    return (
-      <textarea
-        className="code-input"
-        value={request[field]}
-        spellCheck={false}
-        placeholder={
-          tab === 'pre'
-            ? '// JavaScript executado antes da requisição (salvo com a requisição; execução ainda não suportada)'
-            : '// Testes executados após a resposta (salvo com a requisição; execução ainda não suportada)'
-        }
-        onChange={(event) => onChange({ [field]: event.target.value })}
-      />
-    );
+    return <ScriptEditor phase={tab} value={request[field]} onChange={(value) => onChange({ [field]: value })} />;
   };
 
   return (
@@ -153,6 +142,11 @@ export function RequestEditor({
           >
             {t.label}
             {Boolean(t.badge) && <sup className="badge">{t.badge}</sup>}
+            {t.dot && (
+              <sup className="badge" title="Tem script">
+                ●
+              </sup>
+            )}
           </button>
         ))}
         {tab && isRequestPart(tab) && (

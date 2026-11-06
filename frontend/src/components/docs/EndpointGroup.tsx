@@ -3,15 +3,16 @@ import type { DocsFocus } from '../../hooks/useApiDocs';
 import type { ApiEndpointGroup } from '../../types';
 import { Icon } from '../common/Icon';
 import { EndpointItem } from './EndpointItem';
+import type { EndpointActions } from './endpointActions';
 
 interface EndpointGroupProps {
   group: ApiEndpointGroup;
   focus: DocsFocus | null;
-  onTryIt: (requestId: string) => void;
+  actions: EndpointActions;
 }
 
 /** Seção de endpoints com a mesma tag (recurso), recolhível. */
-export function EndpointGroup({ group, focus, onTryIt }: EndpointGroupProps) {
+export function EndpointGroup({ group, focus, actions }: EndpointGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
   const listId = useId();
   const focusedHere = focus !== null && group.endpoints.some((e) => e.id === focus.endpointId);
@@ -41,7 +42,7 @@ export function EndpointGroup({ group, focus, onTryIt }: EndpointGroupProps) {
               key={endpoint.id}
               endpoint={endpoint}
               focusNonce={focus?.endpointId === endpoint.id ? focus.nonce : undefined}
-              onTryIt={onTryIt}
+              actions={actions}
             />
           ))}
         </div>

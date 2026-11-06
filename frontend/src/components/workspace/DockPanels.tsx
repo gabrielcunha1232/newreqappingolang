@@ -115,6 +115,8 @@ function ResponsePanel() {
         response={request.runtime.response}
         error={request.runtime.error}
         loading={request.runtime.loading}
+        tests={request.runtime.tests}
+        scriptError={request.runtime.scriptError}
       />
     </PanelFrame>
   );

@@ -5,13 +5,14 @@ import { groupEndpoints, matchesEndpoint } from '../../lib/apiEndpoints';
 import type { SavedRequest } from '../../types';
 import { EmptyState } from '../common/EmptyState';
 import { EndpointGroup } from './EndpointGroup';
+import type { EndpointActions } from './endpointActions';
 
 interface ApiDocsViewProps {
   scope: DocsScope;
   requests: SavedRequest[];
   /** Endpoint a destacar (vindo do botão "Documentação" do editor). */
   focus: DocsFocus | null;
-  onTryIt: (requestId: string) => void;
+  endpointActions: EndpointActions;
   /** Exporta esta documentação como OpenAPI. */
   onExport: () => void;
 }
@@ -20,7 +21,7 @@ interface ApiDocsViewProps {
  * Documentação no estilo Swagger UI de uma coleção. Funciona com qualquer
  * origem de endpoints: scanner, importação ou requisições criadas à mão.
  */
-export function ApiDocsView({ scope, requests, focus, onTryIt, onExport }: ApiDocsViewProps) {
+export function ApiDocsView({ scope, requests, focus, endpointActions, onExport }: ApiDocsViewProps) {
   const [search, setSearch] = useState('');
 
   const endpoints = useMemo(() => endpointsForScope(scope, requests), [scope, requests]);
@@ -69,7 +70,7 @@ export function ApiDocsView({ scope, requests, focus, onTryIt, onExport }: ApiDo
       {groups.length > 0 ? (
         <div className="docs-groups">
           {groups.map((group) => (
-            <EndpointGroup key={group.tag} group={group} focus={focused} onTryIt={onTryIt} />
+            <EndpointGroup key={group.tag} group={group} focus={focused} actions={endpointActions} />
           ))}
         </div>
       ) : term ? (

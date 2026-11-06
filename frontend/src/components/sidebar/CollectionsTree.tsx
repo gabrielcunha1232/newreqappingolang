@@ -1,32 +1,34 @@
-import { useState, type MouseEvent as ReactMouseEvent } from 'react';
+import { useState } from 'react';
+import { useContextMenu } from '../../hooks/useContextMenu';
 import type { WorkspaceActions } from '../../hooks/useWorkspace';
 import { methodClass, methodShort } from '../../lib/format';
 import type { Collection, SavedRequest } from '../../types';
-import {
-  ContextMenu,
-  MenuItem,
-  MenuLabel,
-  MenuSeparator,
-  menuPositionFor,
-  type MenuPosition,
-} from '../common/ContextMenu';
+import { ContextMenu } from '../common/ContextMenu';
 import { Icon } from '../common/Icon';
 import { InlineInput } from '../common/InlineInput';
+import {
+  CollectionMenu,
+  RequestMenu,
+  TreeBackgroundMenu,
+  UngroupedMenu,
+  type TreeCommands,
+  type TreeEdit,
+} from './CollectionsTreeMenus';
 
-type Editing =
-  | { kind: 'request' | 'collection' | 'baseUrl'; id: string }
-  | { kind: 'newCollection' }
-  | null;
+type Editing = TreeEdit | null;
 
-type OpenMenu = { kind: 'request' | 'collection'; id: string; position: MenuPosition } | null;
+/** Sobre o que o menu de contexto foi aberto. */
+type MenuTarget =
+  | { kind: 'request' | 'collection'; id: string }
+  | { kind: 'ungrouped' }
+  | { kind: 'background' };
 
 interface CollectionsTreeProps {
   collections: Collection[];
   requests: SavedRequest[];
   activeRequestId: string | null;
   actions: WorkspaceActions;
-  onShowDocs: (collectionId: string) => void;
-  onCopyCurl: (requestId: string) => void;
+  commands: TreeCommands;
 }
 
 function matches(request: SavedRequest, term: string) {
@@ -38,19 +40,14 @@ function matches(request: SavedRequest, term: string) {
   );
 }
 
-export function CollectionsTree({ collections, requests, activeRequestId, actions, onShowDocs, onCopyCurl }: CollectionsTreeProps) {
+export function CollectionsTree({ collections, requests, activeRequestId, actions, commands }: CollectionsTreeProps) {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Editing>(null);
-  const [menu, setMenu] = useState<OpenMenu>(null);
+  const { menu, openAt, openBelow, close } = useContextMenu<MenuTarget>();
 
   const term = search.trim().toLowerCase();
   const visible = requests.filter((r) => matches(r, term));
   const orphans = visible.filter((r) => !r.collectionId);
-
-  const openMenu = (event: ReactMouseEvent<HTMLElement>, kind: 'request' | 'collection', id: string) => {
-    event.stopPropagation();
-    setMenu(menu?.kind === kind && menu.id === id ? null : { kind, id, position: menuPositionFor(event) });
-  };
 
   const isEditing = (kind: 'request' | 'collection' | 'baseUrl', id: string) =>
     editing !== null && editing.kind === kind && 'id' in editing && editing.id === id;
@@ -81,6 +78,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
         title={`${request.method} ${request.url}`}
         onClick={() => actions.openTab(request.id)}
         onDoubleClick={() => setEditing({ kind: 'request', id: request.id })}
+        onContextMenu={(event) => openAt(event, { kind: 'request', id: request.id })}
         onKeyDown={(event) => {
           if (event.key === 'Enter') actions.openTab(request.id);
           if (event.key === 'F2') setEditing({ kind: 'request', id: request.id });
@@ -90,7 +88,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
         <span className="tree-label">{request.title}</span>
         <button
           className="tree-more"
-          onClick={(event) => openMenu(event, 'request', request.id)}
+          onClick={(event) => openBelow(event, { kind: 'request', id: request.id })}
           aria-label={`Opções de ${request.title}`}
         >
           ⋯
@@ -99,47 +97,24 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
     );
   };
 
-  const renderRequestMenu = (request: SavedRequest) => (
-    <>
-      <MenuLabel>Mover para</MenuLabel>
-      {collections.map((collection) => (
-        <MenuItem
-          key={collection.id}
-          checked={request.collectionId === collection.id}
-          onSelect={() => actions.moveRequest(request.id, collection.id)}
-        >
-          {collection.name}
-        </MenuItem>
-      ))}
-      <MenuItem checked={!request.collectionId} onSelect={() => actions.moveRequest(request.id, null)}>
-        Sem grupo
-      </MenuItem>
-      <MenuSeparator />
-      <MenuItem onSelect={() => setEditing({ kind: 'request', id: request.id })}>Renomear</MenuItem>
-      <MenuItem onSelect={() => actions.duplicateRequest(request.id)}>Duplicar</MenuItem>
-      <MenuItem onSelect={() => onCopyCurl(request.id)}>Copiar como cURL</MenuItem>
-      <MenuItem danger onSelect={() => actions.deleteRequest(request.id)}>
-        Excluir
-      </MenuItem>
-    </>
-  );
+  const menuContext = { actions, commands, onEdit: setEditing };
 
-  const renderCollectionMenu = (collection: Collection) => (
-    <>
-      <MenuLabel>Coleção</MenuLabel>
-      <MenuItem onSelect={() => actions.createRequest(collection.id)}>Nova requisição aqui</MenuItem>
-      <MenuItem onSelect={() => onShowDocs(collection.id)}>Ver documentação</MenuItem>
-      <MenuItem onSelect={() => setEditing({ kind: 'collection', id: collection.id })}>Renomear</MenuItem>
-      <MenuItem onSelect={() => setEditing({ kind: 'baseUrl', id: collection.id })}>Definir URL base</MenuItem>
-      <MenuSeparator />
-      <MenuItem danger onSelect={() => actions.deleteCollection(collection.id)}>
-        Excluir coleção
-      </MenuItem>
-    </>
-  );
-
-  const menuRequest = menu?.kind === 'request' ? requests.find((r) => r.id === menu.id) : undefined;
-  const menuCollection = menu?.kind === 'collection' ? collections.find((c) => c.id === menu.id) : undefined;
+  const renderMenu = (target: MenuTarget) => {
+    switch (target.kind) {
+      case 'request': {
+        const request = requests.find((r) => r.id === target.id);
+        return request && <RequestMenu request={request} collections={collections} {...menuContext} />;
+      }
+      case 'collection': {
+        const collection = collections.find((c) => c.id === target.id);
+        return collection && <CollectionMenu collection={collection} {...menuContext} />;
+      }
+      case 'ungrouped':
+        return <UngroupedMenu actions={actions} commands={commands} />;
+      case 'background':
+        return <TreeBackgroundMenu collections={collections} {...menuContext} />;
+    }
+  };
 
   return (
     <>
@@ -155,7 +130,14 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
         </button>
       </div>
 
-      <div className="tree">
+      <div
+        className="tree"
+        onContextMenu={(event) => {
+          // Em campos de texto (renomear, nova coleção) fica o menu nativo de copiar/colar.
+          if ((event.target as HTMLElement).closest('input, textarea')) return;
+          openAt(event, { kind: 'background' });
+        }}
+      >
         {editing?.kind === 'newCollection' && (
           <InlineInput
             className="tree-input"
@@ -180,6 +162,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
               <div
                 className="tree-head"
                 onClick={() => actions.setCollectionCollapsed(collection.id, !collection.collapsed)}
+                onContextMenu={(event) => openAt(event, { kind: 'collection', id: collection.id })}
               >
                 <Icon name="chevron" size={12} className={'tree-chevron' + (expanded ? ' open' : '')} />
                 <Icon name={expanded ? 'folder-open' : 'folder'} className="tree-folder" />
@@ -209,7 +192,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
                 <span className="tree-count">{items.length}</span>
                 <button
                   className="tree-more"
-                  onClick={(event) => openMenu(event, 'collection', collection.id)}
+                  onClick={(event) => openBelow(event, { kind: 'collection', id: collection.id })}
                   aria-label={`Opções da coleção ${collection.name}`}
                 >
                   ⋯
@@ -245,7 +228,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
 
         {orphans.length > 0 && (
           <div className="tree-group">
-            <div className="tree-head static">
+            <div className="tree-head static" onContextMenu={(event) => openAt(event, { kind: 'ungrouped' })}>
               <Icon name="chevron" size={12} className="tree-chevron open" />
               <Icon name="tray" className="tree-folder" />
               <span className="tree-label muted">Sem grupo</span>
@@ -265,9 +248,9 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
         <button onClick={() => setEditing({ kind: 'newCollection' })}>＋ Nova Coleção</button>
       </div>
 
-      {menu && (menuRequest || menuCollection) && (
-        <ContextMenu position={menu.position} onClose={() => setMenu(null)}>
-          {menuRequest ? renderRequestMenu(menuRequest) : renderCollectionMenu(menuCollection!)}
+      {menu && (
+        <ContextMenu position={menu.position} onClose={close}>
+          {renderMenu(menu.target)}
         </ContextMenu>
       )}
     </>

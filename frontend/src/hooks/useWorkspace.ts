@@ -27,12 +27,15 @@ export function useWorkspace() {
       openTab: (id: string) => dispatch({ type: 'tab/open', id }),
       closeTab: (id: string) => dispatch({ type: 'tab/close', id }),
       activateTab: (id: string) => dispatch({ type: 'tab/activate', id }),
+      /** Fecha várias abas de requisição ("fechar outras", "fechar à direita"...). */
+      closeTabs: (ids: string[]) => dispatch({ type: 'tab/close-many', ids }),
       /** Fecha a aba em primeiro plano (documentação ou requisição). */
       closeActiveTab: () => dispatch({ type: 'tab/close-active' }),
 
       /** Abre (ou traz para frente) a aba de documentação de uma coleção ou de UNGROUPED_SCOPE. */
       openDocs: (scopeId: string) => dispatch({ type: 'docs/open', id: scopeId }),
       closeDocs: (scopeId: string) => dispatch({ type: 'docs/close', id: scopeId }),
+      closeManyDocs: (scopeIds: string[]) => dispatch({ type: 'docs/close-many', ids: scopeIds }),
 
       createCollection: (name: string, baseUrl = '') => {
         const trimmed = name.trim();

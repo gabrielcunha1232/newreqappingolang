@@ -13,7 +13,9 @@ export function useHistory() {
     );
   }, []);
 
+  const remove = useCallback((id: string) => setEntries((prev) => prev.filter((e) => e.id !== id)), []);
+
   const clear = useCallback(() => setEntries([]), []);
 
-  return { entries, actions: { hydrate: setEntries, add, clear } };
+  return { entries, actions: { hydrate: setEntries, add, remove, clear } };
 }

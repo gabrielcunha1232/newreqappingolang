@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { defaultEnvironments } from '../lib/factories';
 import { generateId } from '../lib/id';
-import { variablesToMap } from '../lib/variables';
+import { mergeVariableChanges, variablesToMap } from '../lib/variables';
 import type { Environment, KeyValue } from '../types';
 
 export function useEnvironments() {
@@ -38,12 +38,24 @@ export function useEnvironments() {
     setEnvironments((prev) => prev.map((e) => (e.id === id ? { ...e, variables } : e)));
   }, []);
 
+  /** Alterações feitas por scripts; retorna false se não há ambiente ativo para guardá-las. */
+  const applyChanges = useCallback(
+    (changes: Record<string, string | null>): boolean => {
+      if (!activeId) return false;
+      setEnvironments((prev) =>
+        prev.map((e) => (e.id === activeId ? { ...e, variables: mergeVariableChanges(e.variables, changes) } : e))
+      );
+      return true;
+    },
+    [activeId]
+  );
+
   return {
     environments,
     activeId,
     active,
     variables,
-    actions: { hydrate, select: setActiveId, create, rename, remove, setVariables },
+    actions: { hydrate, select: setActiveId, create, rename, remove, setVariables, applyChanges },
   };
 }
 

@@ -78,7 +78,16 @@ export function useApiDocs({ workspace, dockActions, variables, log, notify }: D
     [state.requests, variables, log, notify]
   );
 
-  return { scopes, activeId: state.activeDocId, focus, show, showForActiveRequest, tryIt, exportOpenApi };
+  /** Exporta direto da árvore de coleções, sem abrir a documentação. */
+  const exportCollection = useCallback(
+    (collectionId: string | null) => {
+      const [scope] = resolveDocsScopes([docsScopeId(collectionId)], state.collections);
+      if (scope) exportOpenApi(scope);
+    },
+    [state.collections, exportOpenApi]
+  );
+
+  return { scopes, activeId: state.activeDocId, focus, show, showForActiveRequest, tryIt, exportOpenApi, exportCollection };
 }
 
 export type ApiDocs = ReturnType<typeof useApiDocs>;

@@ -1,18 +1,22 @@
 import { useState } from 'react';
 import type { Endpoint } from '../../../bindings/changeme/internal/models/models';
+import { useContextMenu } from '../../hooks/useContextMenu';
 import { fileName } from '../../lib/endpointSource';
 import { methodClass, methodShort } from '../../lib/format';
 import { pickDirectory, scanEndpoints } from '../../services/scannerService';
+import { ContextMenu, MenuItem, MenuSeparator } from '../common/ContextMenu';
 
 interface ApiScannerProps {
   onScanComplete: (dir: string, endpoints: Endpoint[], baseUrl: string) => void;
   onEndpointSelect: (endpoint: Endpoint) => void;
   /** Alternativa ao scanner: importar uma especificação OpenAPI/Swagger. */
   onImportSpec: () => void;
+  onCopyText: (text: string, label: string) => void;
 }
 
 /** Escaneia um projeto Go e importa os endpoints encontrados para uma coleção. */
-export function ApiScanner({ onScanComplete, onEndpointSelect, onImportSpec }: ApiScannerProps) {
+export function ApiScanner({ onScanComplete, onEndpointSelect, onImportSpec, onCopyText }: ApiScannerProps) {
+  const { menu, openAt, close } = useContextMenu<Endpoint>();
   const [directory, setDirectory] = useState('');
   const [baseUrl, setBaseUrl] = useState('');
   const [endpoints, setEndpoints] = useState<Endpoint[]>([]);
@@ -95,6 +99,7 @@ export function ApiScanner({ onScanComplete, onEndpointSelect, onImportSpec }: A
             title={endpoint.source_file}
             onClick={() => onEndpointSelect(endpoint)}
             onKeyDown={(event) => event.key === 'Enter' && onEndpointSelect(endpoint)}
+            onContextMenu={(event) => openAt(event, endpoint)}
           >
             <span className={methodClass(endpoint.method)}>{methodShort(endpoint.method)}</span>
             <span className="tree-label">{endpoint.path}</span>
@@ -107,6 +112,17 @@ export function ApiScanner({ onScanComplete, onEndpointSelect, onImportSpec }: A
         <div className="side-bottom hint">
           {endpoints.length} endpoint{endpoints.length > 1 ? 's' : ''} importado(s) para a coleção. Clique para abrir.
         </div>
+      )}
+
+      {menu && (
+        <ContextMenu position={menu.position} onClose={close}>
+          <MenuItem onSelect={() => onEndpointSelect(menu.target)}>Abrir</MenuItem>
+          <MenuSeparator />
+          <MenuItem onSelect={() => onCopyText(menu.target.path, 'Caminho')}>Copiar caminho</MenuItem>
+          <MenuItem onSelect={() => onCopyText(menu.target.source_file, 'Arquivo de origem')}>
+            Copiar arquivo de origem
+          </MenuItem>
+        </ContextMenu>
       )}
     </div>
   );

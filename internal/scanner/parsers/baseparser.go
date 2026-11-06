@@ -17,6 +17,11 @@ type BaseParser struct {
 	verbos map[string]string
 }
 
+type nodeGroup struct {
+	Prefix string
+	ReceiverName string
+}
+
 func NewBaseParser(verbos map[string]string) *BaseParser {
 	return &BaseParser{
 		fset:   token.NewFileSet(),
@@ -107,4 +112,72 @@ func (b *BaseParser) inspectNode(n ast.Node, sourceFile string) (models.Endpoint
 	}
 
 	return models.Endpoint{}, false
+}
+
+func resolvePrefix(v string, m map[string]nodeGroup) string {
+	info, encontrado := m[v]
+	if !encontrado {
+		return ""
+	}
+	prefixoPai := resolvePrefix(info.ReceiverName, m)
+	return prefixoPai + info.Prefix
+}
+
+func collectGroups(fileAst *ast.File) map[string]nodeGroup{
+	groups := map[string]nodeGroup{}
+
+	ast.Inspect(fileAst, func(n ast.Node) bool {
+		assign, ok := n.(*ast.AssignStmt)
+		if !ok {
+			return true
+		}
+
+		if len(assign.Lhs) != 1 || len(assign.Rhs) != 1  {
+			return true
+		}
+		
+		callExpr, ok := assign.Rhs[0].(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+
+		selector, ok := callExpr.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return true
+		}
+
+		if selector.Sel.Name != "Group" {
+			return true
+		}
+		
+		paiIdent, ok := selector.X.(*ast.Ident)
+		if !ok {
+			return true
+		}
+
+		novaVariavelIdent, ok := assign.Lhs[0].(*ast.Ident)
+		if !ok {
+			return true
+		}
+
+		if len(callExpr.Args) == 0 {
+			return true
+		}
+
+		basicLit, ok := callExpr.Args[0].(*ast.BasicLit)
+		if !ok || basicLit.Kind != token.STRING {
+			return true
+		}
+
+		fragmentoPath := strings.Trim(basicLit.Value, "\"`")
+
+		groups[novaVariavelIdent.Name] = nodeGroup{
+			ReceiverName: paiIdent.Name,
+			Prefix:       fragmentoPath,
+		}
+
+		return true
+	})
+
+	return groups
 }
