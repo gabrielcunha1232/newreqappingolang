@@ -2108,6 +2108,29 @@ input[type='checkbox'] {
   width: 84px;
 }
 
+.secret-tools {
+  white-space: nowrap;
+}
+
+.row-tool,
+.row-tool:hover {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 3px;
+  background: none;
+  border: 0;
+  color: var(--muted-2);
+  vertical-align: middle;
+}
+
+.row-tool:hover {
+  color: var(--text-strong);
+}
+
+.row-tool.on {
+  color: var(--text-soft);
+}
+
 .global-search {
   display: flex;
   flex-direction: column;

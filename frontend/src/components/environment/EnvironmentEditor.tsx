@@ -73,6 +73,7 @@ export function EnvironmentEditor({ environments, active, actions }: Environment
           keyPlaceholder="nova variável"
           valuePlaceholder="valor"
           showDescription={false}
+          allowSecret
         />
       ) : (
         <p className="hint">Selecione ou crie um ambiente para definir variáveis usadas como {'{{nome}}'}.</p>

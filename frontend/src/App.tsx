@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { AppShell } from './components/layout/AppShell';
 import { DocsTabsHost } from './components/docs/DocsTabsHost';
 import type { EndpointActions } from './components/docs/endpointActions';
@@ -36,7 +36,8 @@ import { useToast } from './hooks/useToast';
 import { useWorkspace } from './hooks/useWorkspace';
 import { useWorkspaceHandlers } from './hooks/useWorkspaceHandlers';
 import { buildSearchItems } from './lib/globalSearch';
-import type { SidebarView } from './types';
+import { hideSecrets } from './lib/secrets';
+import type { HistoryEntry, LogLevel, SidebarView } from './types';
 
 /**
  * Composição da aplicação: liga os hooks de estado (camada de estado/serviços)
@@ -53,27 +54,37 @@ function App() {
   const dock = useDockLayout();
   const [authTarget, setAuthTarget] = useState<AuthTarget | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const secretsRef = useRef(environments.secrets);
+  secretsRef.current = environments.secrets;
+  const mask = useCallback((text: string) => hideSecrets(text, secretsRef.current), []);
+  const logMasked = useCallback((level: LogLevel, message: string) => logger.log(level, mask(message)), [logger.log, mask]);
+  const addHistory = history.actions.add;
+  const recordHistory = useCallback(
+    (entry: Omit<HistoryEntry, 'id' | 'timestamp'>) => addHistory({ ...entry, url: mask(entry.url) }),
+    [addHistory, mask]
+  );
   const runner = useRequestRunner({
     onAuthRenewed: workspace.actions.storeRenewedAuth,
-    log: logger.log,
-    onComplete: history.actions.add,
+    log: logMasked,
+    mask,
+    onComplete: recordHistory,
     onEnvironmentChanges: environments.actions.applyChanges,
   });
 
   const docs = useApiDocs({
     workspace,
     dockActions: dock.actions,
-    variables: environments.variables,
+    variables: environments.shareable,
     log: logger.log,
     notify: toast.show,
   });
 
   const openApiImport = useOpenApiImport({ workspace, log: logger.log, notify: toast.show });
-  const curl = useCurl({ workspace, variables: environments.variables, log: logger.log, notify: toast.show });
+  const curl = useCurl({ workspace, variables: environments.shareable, log: logger.log, notify: toast.show });
 
   const collectionImport = useCollectionImport({ workspace, environments, log: logger.log, notify: toast.show });
-  const codeGeneration = useCodeGeneration({ workspace, variables: environments.variables, notify: toast.show });
-  const collectionRunner = useCollectionRunner({ workspace, variables: environments.variables, runner, log: logger.log });
+  const codeGeneration = useCodeGeneration({ workspace, variables: environments.shareable, notify: toast.show });
+  const collectionRunner = useCollectionRunner({ workspace, variables: environments.variables, runner, log: logMasked });
 
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
   usePersistence(handlers.snapshot, handlers.hydrate);

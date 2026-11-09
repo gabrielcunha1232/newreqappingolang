@@ -39,13 +39,14 @@ interface RunnerDeps {
   onEnvironmentChanges: (changes: Record<string, string | null>) => boolean;
   /** Grava na requisição o token OAuth2 renovado no envio. */
   onAuthRenewed: (requestId: string, auth: RequestAuth) => void;
+  mask: (text: string) => string;
 }
 
 /**
  * Executa requisições: pré-processamento → montagem → envio → pós-processamento.
  * Guarda resposta, erro, carregamento e testes por requisição.
  */
-export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuthRenewed }: RunnerDeps) {
+export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuthRenewed, mask }: RunnerDeps) {
   const [runtime, setRuntime] = useState<Record<string, RequestRuntime>>({});
 
   const patch = useCallback((id: string, changes: Partial<RequestRuntime>) => {
@@ -93,7 +94,8 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         ...changes,
       });
 
-      const fail = (message: string): RunResult => {
+      const fail = (raw: string): RunResult => {
+        const message = mask(raw);
         patch(saved.id, { error: message, response: null, loading: false });
         log('error', message);
         return result({ error: message });
@@ -197,18 +199,18 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         });
         reportScript('pós', output);
         applyEnvironment(output.environmentChanges);
-        tests = output.tests;
+        tests = output.tests.map((test) => (test.error ? { ...test, error: mask(test.error) } : test));
         tests.forEach((test) =>
           log(test.passed ? 'ok' : 'error', `Teste ${test.passed ? '✓' : '✗'} ${test.name}${test.error ? ` — ${test.error}` : ''}`)
         );
-        scriptError = output.error ? `Erro no script de pós-processamento: ${output.error}` : '';
+        scriptError = output.error ? mask(`Erro no script de pós-processamento: ${output.error}`) : '';
         if (scriptError) log('error', scriptError);
         patch(saved.id, { tests, scriptError });
       }
 
       return result({ status: response.status_code, timeSpent: response.time_spent, tests, scriptError });
     },
-    [log, onComplete, onEnvironmentChanges, onAuthRenewed, patch, reportScript, logRequest]
+    [log, onComplete, onEnvironmentChanges, onAuthRenewed, mask, patch, reportScript, logRequest]
   );
 
   const get = useCallback((id: string | null) => (id && runtime[id]) || IDLE, [runtime]);

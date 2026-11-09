@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { defaultEnvironments } from '../lib/factories';
 import { generateId } from '../lib/id';
+import { secretEntries, shareableVariables } from '../lib/secrets';
 import { mergeVariableChanges, variablesToMap } from '../lib/variables';
 import type { Environment, KeyValue } from '../types';
 
@@ -10,6 +11,8 @@ export function useEnvironments() {
 
   const active = environments.find((e) => e.id === activeId) ?? null;
   const variables = useMemo(() => variablesToMap(active?.variables ?? []), [active]);
+  const shareable = useMemo(() => shareableVariables(variables, active?.variables ?? []), [variables, active]);
+  const secrets = useMemo(() => secretEntries(environments.flatMap((e) => e.variables)), [environments]);
 
   const hydrate = useCallback((list: Environment[], id: string | null) => {
     const next = list.length > 0 ? list : defaultEnvironments();
@@ -62,6 +65,8 @@ export function useEnvironments() {
     activeId,
     active,
     variables,
+    shareable,
+    secrets,
     actions: { hydrate, select: setActiveId, create, add, rename, remove, setVariables, applyChanges },
   };
 }

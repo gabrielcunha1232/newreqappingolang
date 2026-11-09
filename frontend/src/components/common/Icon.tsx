@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type IconName = 'folder' | 'folder-open' | 'chevron' | 'tray';
+export type IconName = 'folder' | 'folder-open' | 'chevron' | 'tray' | 'lock' | 'lock-open' | 'eye' | 'eye-off';
 
 /* Ícones de traço (24×24) que herdam a cor do texto (currentColor). */
 const PATHS: Record<IconName, ReactNode> = {
@@ -30,6 +30,32 @@ const PATHS: Record<IconName, ReactNode> = {
         fillOpacity={0.12}
       />
       <path d="M3 13h5l1.5 2.5h5L16 13h5" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x={5} y={11} width={14} height={9.5} rx={1.5} fill="currentColor" fillOpacity={0.12} />
+      <path d="M8 11V7.5a4 4 0 0 1 8 0V11" />
+    </>
+  ),
+  'lock-open': (
+    <>
+      <rect x={5} y={11} width={14} height={9.5} rx={1.5} fill="currentColor" fillOpacity={0.12} />
+      <path d="M8 11V7.5a4 4 0 0 1 7.6-1.7" />
+    </>
+  ),
+  eye: (
+    <>
+      <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="currentColor" fillOpacity={0.12} />
+      <circle cx={12} cy={12} r={2.8} />
+    </>
+  ),
+  'eye-off': (
+    <>
+      <path d="M9.9 5.8a9 9 0 0 1 2.1-.3c6 0 9.5 6.5 9.5 6.5a16 16 0 0 1-2.7 3.5" />
+      <path d="M6.3 7.4A15.5 15.5 0 0 0 2.5 12s3.5 6.5 9.5 6.5a9.2 9.2 0 0 0 4.6-1.3" />
+      <path d="M10 10a2.8 2.8 0 0 0 4 4" />
+      <path d="M4 4l16 16" />
     </>
   ),
 };

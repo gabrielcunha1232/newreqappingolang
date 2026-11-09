@@ -10,6 +10,7 @@ export interface KeyValue {
   key: string;
   value: string;
   description: string;
+  secret?: boolean;
 }
 
 export type AuthType = 'none' | 'inherit' | 'bearer' | 'basic' | 'apikey' | 'oauth2';
