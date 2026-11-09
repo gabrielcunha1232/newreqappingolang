@@ -24,6 +24,7 @@ const STATE_LABEL: Record<RunItem['state'], string> = {
 };
 
 const MAX_DATA_BYTES = 20 * 1024 * 1024;
+const MAX_SCHEMA_DETAILS = 5;
 
 function outcome({ state, result, runs }: RunItem, multiple: boolean): string {
   if (!result) return STATE_LABEL[state];
@@ -39,20 +40,24 @@ function outcome({ state, result, runs }: RunItem, multiple: boolean): string {
 }
 
 function failureDetails({ runs }: RunItem, multiple: boolean): string[] {
-  return runs.flatMap(({ iteration, passed, result }) => {
+  return runs.flatMap(({ iteration, passed, result, schemaIssues }) => {
     if (passed) return [];
+    const schema = schemaIssues.slice(0, MAX_SCHEMA_DETAILS).map((issue) => `Schema ${issue.path}: ${issue.message}`);
+    const extra = schemaIssues.length - schema.length;
     const details = [
       result.error,
       result.scriptError,
       ...result.tests.filter((t) => !t.passed).map((t) => `${t.name}${t.error ? `: ${t.error}` : ''}`),
-      ...(result.tests.length === 0 && !result.error && !result.scriptError && multiple ? [`Status ${result.status}`] : []),
+      ...schema,
+      ...(extra > 0 ? [`Schema: mais ${extra} divergência(s)`] : []),
+      ...(result.tests.length === 0 && !result.error && !result.scriptError && schemaIssues.length === 0 && multiple ? [`Status ${result.status}`] : []),
     ].filter(Boolean);
     return multiple ? details.map((detail) => `Linha ${iteration + 1}: ${detail}`) : details;
   });
 }
 
 export function CollectionRunnerDialog({ session, controls, onSaveReport }: CollectionRunnerDialogProps) {
-  const { items, running, finished, delayMs, stopOnFailure, title, data } = session;
+  const { items, running, finished, delayMs, stopOnFailure, title, data, validateSchema } = session;
   const [dataError, setDataError] = useState('');
   const selected = items.filter((item) => item.selected).length;
   const runs = items.flatMap((item) => item.runs);
@@ -99,6 +104,15 @@ export function CollectionRunnerDialog({ session, controls, onSaveReport }: Coll
                 onChange={(event) => controls.setOptions({ stopOnFailure: event.target.checked })}
               />
               Parar na primeira falha
+            </label>
+            <label>
+              <input
+                type="checkbox"
+                checked={validateSchema}
+                disabled={running}
+                onChange={(event) => controls.setOptions({ validateSchema: event.target.checked })}
+              />
+              Reprovar se divergir do schema
             </label>
             <label>
               Dados (CSV/JSON)

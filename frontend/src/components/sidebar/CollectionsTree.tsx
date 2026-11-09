@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useRef, useState, type DragEvent } from 'react';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import type { WorkspaceActions } from '../../hooks/useWorkspace';
 import { methodClass, methodShort } from '../../lib/format';
-import { requestsInTreeOrder, treeChildren, type TreeNode } from '../../lib/tree';
+import { reorderTree, requestsInTreeOrder, treeChildren, type TreeDragNode, type TreeDropTarget, type TreeNode } from '../../lib/tree';
 import type { Collection, Folder, SavedRequest } from '../../types';
 import { ContextMenu } from '../common/ContextMenu';
 import { Icon } from '../common/Icon';
@@ -18,6 +18,8 @@ import {
 } from './CollectionsTreeMenus';
 
 type Editing = TreeEdit | null;
+
+type DropZone = 'before' | 'after' | 'into';
 
 /** Sobre o que o menu de contexto foi aberto. */
 type MenuTarget =
@@ -47,6 +49,8 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Editing>(null);
   const { menu, openAt, openBelow, close } = useContextMenu<MenuTarget>();
+  const dragged = useRef<TreeDragNode | null>(null);
+  const [dropHint, setDropHint] = useState<{ id: string; zone: DropZone } | null>(null);
 
   const term = search.trim().toLowerCase();
   const visible = requests.filter((r) => matches(r, term));
@@ -54,6 +58,57 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
 
   const isEditing = (kind: 'request' | 'collection' | 'baseUrl' | 'folder' | 'folderBaseUrl', id: string) =>
     editing !== null && editing.kind === kind && 'id' in editing && editing.id === id;
+
+  const canDrag = !term && editing === null;
+
+  const dragProps = (node: TreeDragNode) => ({
+    draggable: canDrag,
+    onDragStart: (event: DragEvent) => {
+      dragged.current = node;
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', node.id);
+    },
+    onDragEnd: () => {
+      dragged.current = null;
+      setDropHint(null);
+    },
+  });
+
+  const zoneAt = (event: DragEvent, zones: DropZone[]): DropZone => {
+    if (zones.length === 1) return zones[0];
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = (event.clientY - rect.top) / rect.height;
+    if (zones.includes('into') && ratio >= 0.25 && ratio <= 0.75) return 'into';
+    return ratio < 0.5 ? 'before' : 'after';
+  };
+
+  const dropProps = (id: string, zones: DropZone[], targetFor: (zone: DropZone) => TreeDropTarget) => {
+    const validTarget = (event: DragEvent) => {
+      if (!dragged.current || term) return null;
+      const zone = zoneAt(event, zones);
+      const target = targetFor(zone);
+      return reorderTree(folders, requests, dragged.current, target) ? { zone, target } : null;
+    };
+    return {
+      onDragOver: (event: DragEvent) => {
+        const valid = validTarget(event);
+        if (!valid) return;
+        event.preventDefault();
+        event.dataTransfer.dropEffect = 'move';
+        setDropHint((hint) => (hint?.id === id && hint.zone === valid.zone ? hint : { id, zone: valid.zone }));
+      },
+      onDragLeave: () => setDropHint((hint) => (hint?.id === id ? null : hint)),
+      onDrop: (event: DragEvent) => {
+        event.preventDefault();
+        const valid = validTarget(event);
+        if (valid && dragged.current) actions.reorderTree(dragged.current, valid.target);
+        dragged.current = null;
+        setDropHint(null);
+      },
+    };
+  };
+
+  const dropClass = (id: string) => (dropHint?.id === id ? ` drop-${dropHint.zone}` : '');
 
   const renderRequest = (request: SavedRequest) => {
     if (isEditing('request', request.id)) {
@@ -77,8 +132,15 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
         key={request.id}
         role="button"
         tabIndex={0}
-        className={'tree-item' + (request.id === activeRequestId ? ' selected' : '')}
+        className={'tree-item' + (request.id === activeRequestId ? ' selected' : '') + dropClass(request.id)}
         title={`${request.method} ${request.url}`}
+        {...dragProps({ kind: 'request', id: request.id })}
+        {...dropProps(request.id, ['before', 'after'], (zone) => ({
+          collectionId: request.collectionId ?? null,
+          parentId: request.folderId ?? null,
+          anchorId: request.id,
+          after: zone === 'after',
+        }))}
         onClick={() => actions.openTab(request.id)}
         onDoubleClick={() => setEditing({ kind: 'request', id: request.id })}
         onContextMenu={(event) => openAt(event, { kind: 'request', id: request.id })}
@@ -109,7 +171,13 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
     return (
       <div key={folder.id} className="tree-group">
         <div
-          className="tree-head folder"
+          className={'tree-head folder' + dropClass(folder.id)}
+          {...dragProps({ kind: 'folder', id: folder.id })}
+          {...dropProps(folder.id, ['before', 'into', 'after'], (zone) =>
+            zone === 'into'
+              ? { collectionId: folder.collectionId, parentId: folder.id, anchorId: null, after: false }
+              : { collectionId: folder.collectionId, parentId: folder.parentId, anchorId: folder.id, after: zone === 'after' }
+          )}
           onClick={() => actions.setFolderCollapsed(folder.id, !folder.collapsed)}
           onContextMenu={(event) => openAt(event, { kind: 'folder', id: folder.id })}
         >
@@ -244,7 +312,13 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
           return (
             <div key={collection.id} className="tree-group">
               <div
-                className="tree-head"
+                className={'tree-head' + dropClass(collection.id)}
+                {...dropProps(collection.id, ['into'], () => ({
+                  collectionId: collection.id,
+                  parentId: null,
+                  anchorId: null,
+                  after: false,
+                }))}
                 onClick={() => actions.setCollectionCollapsed(collection.id, !collection.collapsed)}
                 onContextMenu={(event) => openAt(event, { kind: 'collection', id: collection.id })}
               >
@@ -312,13 +386,17 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
 
         {orphans.length > 0 && (
           <div className="tree-group">
-            <div className="tree-head static" onContextMenu={(event) => openAt(event, { kind: 'ungrouped' })}>
+            <div
+              className={'tree-head static' + dropClass('ungrouped')}
+              {...dropProps('ungrouped', ['into'], () => ({ collectionId: null, parentId: null, anchorId: null, after: false }))}
+              onContextMenu={(event) => openAt(event, { kind: 'ungrouped' })}
+            >
               <Icon name="chevron" size={12} className="tree-chevron open" />
               <Icon name="tray" className="tree-folder" />
               <span className="tree-label muted">Sem grupo</span>
               <span className="tree-count">{orphans.length}</span>
             </div>
-            {orphans.map(renderRequest)}
+            {treeChildren(null, null, folders, orphans).map(renderNode)}
           </div>
         )}
 

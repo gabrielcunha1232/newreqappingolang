@@ -11,6 +11,7 @@ import type {
   KeyValue,
   PersistedState,
   SavedRequest,
+  StoredResponse,
 } from '../types';
 
 export interface AppSnapshot {
@@ -24,6 +25,7 @@ export interface AppSnapshot {
   environments: Environment[];
   activeEnvironmentId: string | null;
   history: HistoryEntry[];
+  responses: Record<string, StoredResponse>;
 }
 
 /** Arquivos antigos guardavam os cabeçalhos como objeto JSON em string. */
@@ -68,6 +70,7 @@ export function deserialize(state: Partial<PersistedState>): AppSnapshot {
       graphqlVariables: request.graphqlVariables,
       preScript: request.preScript ?? '',
       postScript: request.postScript ?? '',
+      extractions: request.extractions,
       source: request.source,
       doc: request.doc,
     })
@@ -104,6 +107,7 @@ export function deserialize(state: Partial<PersistedState>): AppSnapshot {
     environments: state.environments ?? [],
     activeEnvironmentId: state.activeEnvironmentId ?? null,
     history: state.history ?? [],
+    responses: Object.fromEntries(Object.entries(state.responses ?? {}).filter(([id]) => ids.has(id))),
   };
 }
 

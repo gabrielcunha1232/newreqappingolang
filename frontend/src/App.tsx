@@ -18,6 +18,7 @@ import { ImportCollectionDialog } from './components/import/ImportCollectionDial
 import { RestoreBackupDialog } from './components/import/RestoreBackupDialog';
 import { CollectionRunnerDialog } from './components/runner/CollectionRunnerDialog';
 import { GenerateCodeDialog } from './components/request/GenerateCodeDialog';
+import { CompareEnvironmentsDialog } from './components/request/CompareEnvironmentsDialog';
 import { useApiDocs } from './hooks/useApiDocs';
 import { GLOBAL_SEARCH_LABEL, useAppMenus } from './hooks/useAppMenus';
 import { useConsole } from './hooks/useConsole';
@@ -27,6 +28,7 @@ import { useCollectionRunner } from './hooks/useCollectionRunner';
 import { useCurl } from './hooks/useCurl';
 import { useDataTransfer } from './hooks/useDataTransfer';
 import { useDockLayout } from './hooks/useDockLayout';
+import { useEnvironmentCompare } from './hooks/useEnvironmentCompare';
 import { useEnvironments } from './hooks/useEnvironments';
 import { useHistory } from './hooks/useHistory';
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts';
@@ -86,6 +88,7 @@ function App() {
 
   const collectionImport = useCollectionImport({ workspace, environments, log: logger.log, notify: toast.show });
   const codeGeneration = useCodeGeneration({ workspace, variables: environments.shareable, notify: toast.show });
+  const environmentCompare = useEnvironmentCompare(workspace);
   const collectionRunner = useCollectionRunner({ workspace, variables: environments.variables, runner, log: logMasked });
 
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
@@ -113,6 +116,7 @@ function App() {
     onRestoreBackup: dataTransfer.openRestore,
     onGlobalSearch: () => setSearchOpen(true),
     onHelp: (topic = 'inicio') => setHelpTopic(topic),
+    onCompareEnvironments: () => environmentCompare.open(workspace.state.activeRequestId),
   });
 
   const { state } = workspace;
@@ -162,6 +166,7 @@ function App() {
       exportPostman: dataTransfer.exportPostman,
       copyCurl: curl.copyAsCurl,
       generateCode: codeGeneration.open,
+      compareEnvironments: environmentCompare.open,
       runCollection: collectionRunner.open,
       configureAuth: setAuthTarget,
       importCollection: collectionImport.openDialog,
@@ -178,6 +183,7 @@ function App() {
       handlers.copyText,
       openApiImport.openDialog,
       codeGeneration.open,
+      environmentCompare.open,
       collectionRunner.open,
       collectionImport.openDialog,
     ]
@@ -294,6 +300,15 @@ function App() {
         <ImportCollectionDialog onClose={collectionImport.closeDialog} onImport={collectionImport.importText} />
       )}
       {searchOpen && <GlobalSearchDialog items={searchItems} onClose={() => setSearchOpen(false)} />}
+      {environmentCompare.request && (
+        <CompareEnvironmentsDialog
+          request={environmentCompare.request}
+          environments={environments.environments}
+          activeId={environments.activeId}
+          onRun={environmentCompare.run}
+          onClose={environmentCompare.close}
+        />
+      )}
       {helpTopic && <HelpDialog initialTopic={helpTopic} onClose={() => setHelpTopic(null)} />}
       {dataTransfer.restoreOpen && (
         <RestoreBackupDialog

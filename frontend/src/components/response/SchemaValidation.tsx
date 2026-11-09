@@ -7,9 +7,10 @@ interface SchemaValidationProps {
   issues: SchemaIssue[];
   canGenerate: boolean;
   onGenerate: () => void;
+  onEdit?: () => void;
 }
 
-export function SchemaValidation({ declared, issues, canGenerate, onGenerate }: SchemaValidationProps) {
+export function SchemaValidation({ declared, issues, canGenerate, onGenerate, onEdit }: SchemaValidationProps) {
   if (!declared) {
     return (
       <EmptyState icon="{ }" title="Sem schema para este status">
@@ -38,6 +39,11 @@ export function SchemaValidation({ declared, issues, canGenerate, onGenerate }: 
         {declared.schemaInferred && canGenerate && (
           <button className="link" onClick={onGenerate}>
             Gerar novamente desta resposta
+          </button>
+        )}{' '}
+        {onEdit && (
+          <button className="link" onClick={onEdit}>
+            Editar schema
           </button>
         )}
       </p>

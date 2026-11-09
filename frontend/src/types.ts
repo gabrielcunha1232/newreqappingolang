@@ -78,6 +78,12 @@ export interface ApiEndpointSource {
   handler?: string;
 }
 
+export interface ResponseExtraction {
+  id: string;
+  path: string;
+  variable: string;
+}
+
 /** Requisição salva (aparece na árvore de coleções e pode estar aberta em uma aba). */
 export interface SavedRequest {
   id: string;
@@ -100,6 +106,7 @@ export interface SavedRequest {
   graphqlVariables?: string;
   preScript: string;
   postScript: string;
+  extractions?: ResponseExtraction[];
   /** Presente quando a requisição veio do scanner de código. */
   source?: ApiEndpointSource;
   /** Documentação declarada pela origem (spec OpenAPI importada, scanner...). */
@@ -202,7 +209,11 @@ export interface RequestRuntime {
   tests: TestResult[] | null;
   /** Erro que interrompeu o script de pós-processamento. */
   scriptError: string;
+  receivedAt?: string;
+  restored?: boolean;
 }
+
+export type StoredResponse = Response & { savedAt: string };
 
 export interface Environment {
   id: string;
@@ -218,6 +229,7 @@ export interface HistoryEntry {
   status: number;
   timeSpent: number;
   timestamp: string;
+  body?: string;
 }
 
 export type LogLevel = 'info' | 'ok' | 'warn' | 'error';
@@ -265,4 +277,5 @@ export interface PersistedState {
   environments?: Environment[];
   activeEnvironmentId?: string | null;
   history?: HistoryEntry[];
+  responses?: Record<string, StoredResponse>;
 }

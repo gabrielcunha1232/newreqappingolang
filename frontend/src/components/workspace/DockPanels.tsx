@@ -1,5 +1,6 @@
 import type { FunctionComponent, KeyboardEvent, ReactNode } from 'react';
 import type { IDockviewPanelProps, IWatermarkPanelProps } from 'dockview';
+import { generateId } from '../../lib/id';
 import type { PanelId, RequestPart } from '../../types';
 import { EmptyState } from '../common/EmptyState';
 import { ErrorBoundary } from '../common/ErrorBoundary';
@@ -108,7 +109,20 @@ function EnvironmentPanel() {
 }
 
 function ResponsePanel() {
-  const { request } = useWorkbench();
+  const { request, environment } = useWorkbench();
+  const active = request.active;
+  const rules = active?.extractions ?? [];
+  const extract = active
+    ? {
+        rules,
+        hasEnvironment: Boolean(environment.active),
+        onAdd: (path: string, variable: string, value: string) => {
+          request.onChange({ extractions: [...rules.filter((rule) => rule.variable !== variable), { id: generateId(), path, variable }] });
+          environment.actions.applyChanges({ [variable]: value });
+        },
+        onRemove: (id: string) => request.onChange({ extractions: rules.filter((rule) => rule.id !== id) }),
+      }
+    : undefined;
   return (
     <PanelFrame>
       <ResponseViewer
@@ -120,6 +134,8 @@ function ResponsePanel() {
         scriptError={request.runtime.scriptError}
         doc={request.active?.doc}
         onDocChange={request.active ? (doc) => request.onChange({ doc }) : undefined}
+        extract={extract}
+        restoredAt={request.runtime.restored ? request.runtime.receivedAt : undefined}
       />
     </PanelFrame>
   );

@@ -35,8 +35,9 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
       environments: environments.environments,
       activeEnvironmentId: environments.activeId,
       history: history.entries,
+      responses: runner.stored,
     }),
-    [state, environments.environments, environments.activeId, history.entries]
+    [state, environments.environments, environments.activeId, history.entries, runner.stored]
   );
 
   const hydrate = useCallback(
@@ -62,8 +63,9 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
       }
       environments.actions.hydrate(loaded.environments, loaded.activeEnvironmentId);
       history.actions.hydrate(loaded.history);
+      runner.hydrate(loaded.responses);
     },
-    [actions, environments.actions, history.actions]
+    [actions, environments.actions, history.actions, runner.hydrate]
   );
 
   /* ===== Requisição ativa ===== */

@@ -4,7 +4,19 @@ import { normalizeBaseUrl } from './url';
 
 export type TreeNode = { kind: 'folder'; folder: Folder } | { kind: 'request'; request: SavedRequest };
 
-export type AuthOwner = { kind: 'request' | 'folder' | 'collection'; id: string };
+export interface TreeDragNode {
+  kind: 'folder' | 'request';
+  id: string;
+}
+
+export interface TreeDropTarget {
+  collectionId: string | null;
+  parentId: string | null;
+  anchorId: string | null;
+  after: boolean;
+}
+
+export type AuthOwner ={ kind: 'request' | 'folder' | 'collection'; id: string };
 
 export function folderChain(folderId: string | null | undefined, folders: Folder[]): Folder[] {
   const chain: Folder[] = [];
@@ -57,6 +69,46 @@ export function treeChildren(
   ];
   const position = (node: TreeNode) => (node.kind === 'folder' ? node.folder.position : node.request.position);
   return nodes.sort((a, b) => (position(a) ?? Infinity) - (position(b) ?? Infinity) || 0);
+}
+
+export function reorderTree(
+  folders: Folder[],
+  requests: SavedRequest[],
+  node: TreeDragNode,
+  target: TreeDropTarget
+): { folders: Folder[]; requests: SavedRequest[] } | null {
+  if (target.anchorId === node.id) return null;
+  const { collectionId, parentId } = target;
+  let nextFolders = folders;
+  let nextRequests = requests;
+
+  if (node.kind === 'folder') {
+    const folder = folders.find((f) => f.id === node.id);
+    if (!folder || folder.collectionId !== collectionId) return null;
+    if (parentId && descendantFolderIds(node.id, folders).has(parentId)) return null;
+    nextFolders = folders.map((f) => (f.id === node.id ? { ...f, parentId } : f));
+  } else {
+    if (!requests.some((r) => r.id === node.id)) return null;
+    nextRequests = requests.map((r) => (r.id === node.id ? { ...r, collectionId, folderId: parentId } : r));
+  }
+
+  const nodeId = (item: TreeNode) => (item.kind === 'folder' ? item.folder.id : item.request.id);
+  const siblings = treeChildren(collectionId, parentId, nextFolders, nextRequests);
+  const moved = siblings.find((item) => item.kind === node.kind && nodeId(item) === node.id);
+  if (!moved) return null;
+  const others = siblings.filter((item) => item !== moved);
+  const anchor = others.findIndex((item) => nodeId(item) === target.anchorId);
+  others.splice(anchor === -1 ? others.length : anchor + Number(target.after), 0, moved);
+
+  const positions = new Map(others.map((item, index) => [`${item.kind}:${nodeId(item)}`, index]));
+  const place = <T extends { id: string; position?: number }>(kind: string, item: T): T => {
+    const position = positions.get(`${kind}:${item.id}`);
+    return position === undefined ? item : { ...item, position };
+  };
+  return {
+    folders: nextFolders.map((f) => place('folder', f)),
+    requests: nextRequests.map((r) => place('request', r)),
+  };
 }
 
 export function requestsInTreeOrder(

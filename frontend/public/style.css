@@ -2108,6 +2108,155 @@ input[type='checkbox'] {
   width: 84px;
 }
 
+.drop-before {
+  box-shadow: inset 0 2px 0 var(--accent);
+}
+
+.drop-after {
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.drop-into {
+  background: var(--accent-alpha);
+}
+
+.response-extract {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 8px;
+  min-height: 0;
+}
+
+.extract-rules,
+.extract-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+}
+
+.extract-rules li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.extract-list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.extract-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--line);
+}
+
+.extract-path,
+.extract-value {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.extract-value {
+  color: var(--muted);
+}
+
+.extract-name {
+  width: 130px;
+}
+
+.schema-fields {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 46vh;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.schema-fields li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 4px;
+  padding-right: 8px;
+  padding-bottom: 4px;
+}
+
+.schema-fields label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.schema-json {
+  width: 100%;
+  height: 46vh;
+  box-sizing: border-box;
+}
+
+.history-filters select {
+  flex: none;
+  width: 68px;
+}
+
+.history-day {
+  margin: 8px 0 3px;
+  padding: 0 6px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: normal;
+}
+
+.history-response {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 70vh;
+  padding: 12px;
+  overflow: auto;
+}
+
+.history-response .hint {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.compare-request {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.compare-sides {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.compare-side {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .help {
   display: flex;
   height: min(70vh, 620px);

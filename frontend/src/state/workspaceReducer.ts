@@ -4,7 +4,7 @@ import { newRequest, requestFromEndpoint } from '../lib/factories';
 import { generateId } from '../lib/id';
 import { applyRequestChanges, reconcileParams } from '../lib/query';
 import { collectionNameFromPath, normalizeBaseUrl } from '../lib/url';
-import { descendantFolderIds, inheritedAuthOwner } from '../lib/tree';
+import { descendantFolderIds, inheritedAuthOwner, reorderTree, type TreeDragNode, type TreeDropTarget } from '../lib/tree';
 import type { Collection, Folder, RequestAuth, SavedRequest } from '../types';
 
 export interface WorkspaceState {
@@ -32,6 +32,7 @@ export type WorkspaceAction =
   | { type: 'folder/update'; id: string; changes: Partial<Folder> }
   | { type: 'folder/delete'; id: string }
   | { type: 'folder/move'; id: string; parentId: string | null }
+  | { type: 'tree/reorder'; node: TreeDragNode; target: TreeDropTarget }
   | { type: 'tab/open'; id: string }
   | { type: 'tab/close'; id: string }
   | { type: 'tab/activate'; id: string }
@@ -240,6 +241,11 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         ...state,
         folders: state.folders.map((f) => (f.id === action.id ? { ...f, parentId: action.parentId } : f)),
       };
+
+    case 'tree/reorder': {
+      const result = reorderTree(state.folders, state.requests, action.node, action.target);
+      return result ? { ...state, ...result } : state;
+    }
 
     case 'tab/open':
       return openTab(state, action.id);

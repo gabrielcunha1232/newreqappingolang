@@ -3,17 +3,19 @@ import type { Response } from '../../../bindings/changeme/internal/models/models
 import { formatBytes, statusClass, statusLabel } from '../../lib/format';
 import { findTabularData, tryParseJson } from '../../lib/json';
 import { MAX_EXAMPLE_BYTES, findExample, withExample, withoutExample } from '../../lib/responseExamples';
-import { findResponseSchema, validateAgainstSchema, withInferredSchema, type SchemaIssue } from '../../lib/schemaValidation';
+import { findResponseSchema, validateAgainstSchema, withEditedSchema, withInferredSchema, type SchemaIssue } from '../../lib/schemaValidation';
 import type { TestResult } from '../../lib/scripts/types';
 import type { ApiDocMetadata } from '../../types';
 import { EmptyState } from '../common/EmptyState';
 import { DataTable } from './DataTable';
 import { JsonCode } from './JsonCode';
 import { ResponseDiff } from './ResponseDiff';
+import { ResponseExtract, type ExtractControls } from './ResponseExtract';
+import { SchemaEditorDialog } from './SchemaEditorDialog';
 import { SchemaValidation } from './SchemaValidation';
 import { TestResults } from './TestResults';
 
-type Mode = 'pretty' | 'raw' | 'preview' | 'table' | 'tests' | 'diff' | 'schema';
+type Mode = 'pretty' | 'raw' | 'preview' | 'table' | 'tests' | 'diff' | 'schema' | 'extract';
 
 const MODES: Array<{ id: Mode; label: string }> = [
   { id: 'pretty', label: 'Pretty' },
@@ -55,6 +57,8 @@ interface ResponseViewerProps {
   scriptError: string;
   doc?: ApiDocMetadata;
   onDocChange?: (doc: ApiDocMetadata) => void;
+  extract?: ExtractControls;
+  restoredAt?: string;
 }
 
 interface ExampleButtonProps {
@@ -85,8 +89,9 @@ function ExampleButton({ status, body, doc, onDocChange }: ExampleButtonProps) {
   );
 }
 
-export function ResponseViewer({ response, previous, error, loading, tests, scriptError, doc, onDocChange }: ResponseViewerProps) {
+export function ResponseViewer({ response, previous, error, loading, tests, scriptError, doc, onDocChange, extract, restoredAt }: ResponseViewerProps) {
   const [selected, setSelected] = useState<Mode>('pretty');
+  const [editingSchema, setEditingSchema] = useState(false);
   const failed = tests?.filter((t) => !t.passed).length ?? 0;
 
   const body = response?.body ?? '';
@@ -102,10 +107,11 @@ export function ResponseViewer({ response, previous, error, loading, tests, scri
     return validateAgainstSchema(parsed.value, declared.schema);
   }, [declared, parsed]);
   const hasSchemaTab = Boolean(declared) || (isJson && Boolean(onDocChange));
+  const hasExtractTab = isJson && Boolean(extract);
 
   // Sem script de pós-processamento a aba Testes some; volta para o modo padrão.
   const mode =
-    (selected === 'tests' && tests === null) || (selected === 'diff' && !previous) || (selected === 'schema' && !hasSchemaTab)
+    (selected === 'tests' && tests === null) || (selected === 'diff' && !previous) || (selected === 'schema' && !hasSchemaTab) || (selected === 'extract' && !hasExtractTab)
       ? 'pretty'
       : selected;
 
@@ -135,8 +141,16 @@ export function ResponseViewer({ response, previous, error, loading, tests, scri
     switch (mode) {
       case 'schema':
         return (
-          <SchemaValidation declared={declared} issues={issues} canGenerate={isJson && Boolean(onDocChange)} onGenerate={generateSchema} />
+          <SchemaValidation
+            declared={declared}
+            issues={issues}
+            canGenerate={isJson && Boolean(onDocChange)}
+            onGenerate={generateSchema}
+            onEdit={onDocChange && declared ? () => setEditingSchema(true) : undefined}
+          />
         );
+      case 'extract':
+        return parsed.ok && extract ? <ResponseExtract value={parsed.value} controls={extract} /> : null;
       case 'tests':
         return <TestResults tests={tests ?? []} scriptError={scriptError} />;
       case 'diff':
@@ -178,6 +192,11 @@ export function ResponseViewer({ response, previous, error, loading, tests, scri
             {m.label}
           </button>
         ))}
+        {hasExtractTab && (
+          <button className={mode === 'extract' ? 'active' : ''} onClick={() => setSelected('extract')}>
+            Extrair{extract?.rules.length ? ` (${extract.rules.length})` : ''}
+          </button>
+        )}
         {previous && (
           <button className={mode === 'diff' ? 'active' : ''} onClick={() => setSelected('diff')}>
             Comparar
@@ -200,10 +219,19 @@ export function ResponseViewer({ response, previous, error, loading, tests, scri
           </button>
         )}
         <span className="spacer" />
+        {restoredAt && <span className="hint">Salva em {new Date(restoredAt).toLocaleString('pt-BR')}</span>}
         {onDocChange && body && <ExampleButton status={response.status_code} body={body} doc={doc} onDocChange={onDocChange} />}
         <span className="hint">{isJson ? 'JSON' : 'Texto'} ▾</span>
       </div>
       {renderContent()}
+      {editingSchema && declared?.schema && onDocChange && (
+        <SchemaEditorDialog
+          status={declared.status}
+          schema={declared.schema}
+          onSave={(schema) => onDocChange(withEditedSchema(doc, declared.status, schema))}
+          onClose={() => setEditingSchema(false)}
+        />
+      )}
     </div>
   );
 }

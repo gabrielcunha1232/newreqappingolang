@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import type { RunnerData } from '../lib/runnerData';
+import { responseSchemaIssues, type SchemaIssue } from '../lib/schemaValidation';
 import { folderChain, requestsInTreeOrder, resolveInherited } from '../lib/tree';
 import type { SavedRequest } from '../types';
 import type { Logger } from './useConsole';
@@ -12,6 +13,7 @@ export interface RunEntry {
   iteration: number;
   passed: boolean;
   result: RunResult;
+  schemaIssues: SchemaIssue[];
 }
 
 export interface RunItem {
@@ -31,6 +33,7 @@ export interface RunnerSession {
   delayMs: number;
   stopOnFailure: boolean;
   data: RunnerData | null;
+  validateSchema: boolean;
 }
 
 interface Deps {
@@ -75,6 +78,7 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
         delayMs: 0,
         stopOnFailure: false,
         data: null,
+        validateSchema: false,
       });
     },
     [state.requests, state.collections, state.folders]
@@ -98,13 +102,13 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
     );
   }, []);
 
-  const setOptions = useCallback((options: Partial<Pick<RunnerSession, 'delayMs' | 'stopOnFailure' | 'data'>>) => {
+  const setOptions = useCallback((options: Partial<Pick<RunnerSession, 'delayMs' | 'stopOnFailure' | 'data' | 'validateSchema'>>) => {
     setSession((s) => s && { ...s, ...options });
   }, []);
 
   const start = useCallback(async () => {
     if (!session || session.running) return;
-    const { collectionId, delayMs, stopOnFailure, title, data } = session;
+    const { collectionId, delayMs, stopOnFailure, title, data, validateSchema } = session;
     const queue = session.items.filter((item) => item.selected).map((item) => item.request.id);
     const rows = data?.rows ?? [undefined];
 
@@ -150,13 +154,16 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
           current.folders,
           current.collections.find((c) => c.id === collectionId)
         );
-        const result = await runner.send(resolved.request, resolved.collection, environment, row);
+        const { body, ...outcome } = await runner.send(resolved.request, resolved.collection, environment, row);
+        const result = { ...outcome, body: '' };
         environment = result.environment;
         executed++;
-        const failed = runFailed(result);
+        const doc = latestState.current.requests.find((item) => item.id === requestId)?.doc;
+        const schemaIssues = validateSchema && !result.error ? responseSchemaIssues(doc, result.status, body) : [];
+        const failed = runFailed(result) || schemaIssues.length > 0;
         if (!failed) passed++;
         update(requestId, (item) => {
-          const runs = [...item.runs, { iteration, passed: !failed, result }];
+          const runs = [...item.runs, { iteration, passed: !failed, result, schemaIssues }];
           return { state: runs.every((run) => run.passed) ? 'passed' : 'failed', result, runs };
         });
 
@@ -189,7 +196,7 @@ export function runnerReport(session: RunnerSession): string {
       generatedAt: new Date().toISOString(),
       dataFile: session.data?.fileName,
       results: session.items.flatMap(({ request, runs }) =>
-        runs.map(({ iteration, passed, result }) => ({
+        runs.map(({ iteration, passed, result, schemaIssues }) => ({
           title: request.title,
           method: request.method,
           line: session.data ? iteration + 1 : undefined,
@@ -198,6 +205,7 @@ export function runnerReport(session: RunnerSession): string {
           timeMs: result.timeSpent,
           error: result.error || result.scriptError || undefined,
           tests: result.tests,
+          schemaIssues: schemaIssues.length > 0 ? schemaIssues : undefined,
         }))
       ),
     },

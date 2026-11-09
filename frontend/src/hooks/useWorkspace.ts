@@ -2,6 +2,7 @@ import { useMemo, useReducer } from 'react';
 import type { Endpoint } from '../../bindings/changeme/internal/models/models';
 import { newRequest } from '../lib/factories';
 import { generateId } from '../lib/id';
+import type { TreeDragNode, TreeDropTarget } from '../lib/tree';
 import { normalizeBaseUrl } from '../lib/url';
 import { initialWorkspace, workspaceReducer, type WorkspaceState } from '../state/workspaceReducer';
 import type { Collection, Folder, RequestAuth, SavedRequest } from '../types';
@@ -24,6 +25,7 @@ export function useWorkspace() {
       moveRequest: (id: string, collectionId: string | null, folderId: string | null = null) =>
         dispatch({ type: 'request/move', id, collectionId, folderId }),
       storeRenewedAuth: (id: string, auth: RequestAuth) => dispatch({ type: 'request/auth-renewed', id, auth }),
+      reorderTree: (node: TreeDragNode, target: TreeDropTarget) => dispatch({ type: 'tree/reorder', node, target }),
 
       createFolder: (collectionId: string, parentId: string | null): string => {
         const id = generateId();

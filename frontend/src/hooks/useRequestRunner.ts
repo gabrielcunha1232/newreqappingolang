@@ -1,6 +1,8 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { Request } from '../../bindings/changeme/internal/models/models';
+import { applyExtractions } from '../lib/extractions';
 import { formatBytes, statusLabel } from '../lib/format';
+import { storedResponses } from '../lib/responseStore';
 import {
   applyEnvironmentChanges,
   applyScriptRequest,
@@ -13,7 +15,7 @@ import { maskHeaderValue } from '../lib/secrets';
 import { buildHttpRequest, sendHttpRequest } from '../services/httpService';
 import { renewTokenIfNeeded } from '../services/oauthService';
 import { executeScript } from '../services/scriptService';
-import type { Collection, HistoryEntry, LogLevel, RequestAuth, RequestRuntime, SavedRequest } from '../types';
+import type { Collection, HistoryEntry, LogLevel, RequestAuth, RequestRuntime, SavedRequest, StoredResponse } from '../types';
 import type { Logger } from './useConsole';
 
 const IDLE: RequestRuntime = { response: null, previous: null, error: '', loading: false, tests: null, scriptError: '' };
@@ -25,6 +27,7 @@ export interface RunResult {
   status: number | null;
   timeSpent: number | null;
   error: string;
+  body: string;
   tests: TestResult[];
   /** Erro que interrompeu o script de pós-processamento. */
   scriptError: string;
@@ -88,6 +91,7 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         status: null,
         timeSpent: null,
         error: '',
+        body: '',
         tests: [],
         scriptError: '',
         environment,
@@ -121,6 +125,8 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
             loading: true,
             tests: null,
             scriptError: '',
+            receivedAt: undefined,
+            restored: false,
           },
         };
       });
@@ -171,7 +177,7 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
       } catch (err) {
         return fail(`Falha na requisição: ${err instanceof Error ? err.message : String(err)}`);
       }
-      patch(saved.id, { response, loading: false });
+      patch(saved.id, { response, loading: false, receivedAt: new Date().toISOString() });
       log(
         response.status_code < 400 ? 'ok' : 'warn',
         `${statusLabel(response.status_code)} · ${response.time_spent} ms · ${formatBytes(response.size)}`
@@ -182,7 +188,15 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         url: request.url,
         status: response.status_code,
         timeSpent: response.time_spent,
+        body: response.body,
       });
+
+      if (saved.extractions?.length) {
+        const { changes, missing } = applyExtractions(saved.extractions, response.body);
+        applyEnvironment(changes);
+        Object.keys(changes).forEach((name) => log('ok', `Extração: variável "${name}" atualizada.`));
+        missing.forEach((path) => log('warn', `Extração: "${path}" não encontrado na resposta.`));
+      }
 
       /* 4. Pós-processamento: testes e variáveis extraídas da resposta. */
       let tests: TestResult[] = [];
@@ -208,12 +222,25 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         patch(saved.id, { tests, scriptError });
       }
 
-      return result({ status: response.status_code, timeSpent: response.time_spent, tests, scriptError });
+      return result({ status: response.status_code, timeSpent: response.time_spent, body: response.body, tests, scriptError });
     },
     [log, onComplete, onEnvironmentChanges, onAuthRenewed, mask, patch, reportScript, logRequest]
   );
 
   const get = useCallback((id: string | null) => (id && runtime[id]) || IDLE, [runtime]);
 
-  return { get, send };
+  const stored = useMemo(() => storedResponses(runtime), [runtime]);
+
+  const hydrate = useCallback((responses: Record<string, StoredResponse>) => {
+    setRuntime(
+      Object.fromEntries(
+        Object.entries(responses).map(([id, { savedAt, ...response }]) => [
+          id,
+          { ...IDLE, response, receivedAt: savedAt, restored: true },
+        ])
+      )
+    );
+  }, []);
+
+  return { get, send, stored, hydrate };
 }

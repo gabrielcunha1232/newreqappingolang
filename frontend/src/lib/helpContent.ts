@@ -33,6 +33,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         'Excluir uma pasta não apaga o conteúdo: ele sobe um nível.',
         'Requisições podem mudar de coleção ou pasta pelo menu "Mover para". Pastas só se movem dentro da mesma coleção.',
         'Duplo clique ou F2 renomeia uma requisição.',
+        'Arraste para reordenar. Soltar no meio de uma pasta ou sobre uma coleção coloca o item dentro dela. O arraste fica desativado durante a busca.',
       ] },
     ],
   },
@@ -100,6 +101,40 @@ export const HELP_TOPICS: HelpTopic[] = [
         'Comparar: diferenças em relação à execução anterior.',
         'Testes: resultado do pós-processamento, quando há script.',
         'Schema: validação da resposta.',
+        'Extrair: guarda campos do JSON em variáveis.',
+      ] },
+      { text: 'A última resposta de cada requisição é mantida ao fechar o app, até 128 KB por resposta e 4 MB no total. Ela fica em texto puro no arquivo do app.' },
+    ],
+  },
+  {
+    id: 'encadear',
+    title: 'Encadear requisições',
+    blocks: [
+      { text: 'Na aba Extrair da resposta, clique em "Extrair" no campo desejado e dê um nome à variável. A cada envio, o valor é gravado no ambiente ativo, inclusive no Runner, e pode ser usado na próxima requisição como {{nome}}.' },
+      { items: [
+        'A extração roda antes do script de pós-processamento.',
+        'Se o campo não vier na resposta, a variável mantém o valor anterior e o Console mostra um aviso.',
+        'Marque a variável como secreta no ambiente se ela guardar um token.',
+      ] },
+    ],
+  },
+  {
+    id: 'historico',
+    title: 'Histórico',
+    blocks: [
+      { text: 'A barra lateral guarda as últimas 100 execuções, agrupadas por dia, com filtros por URL, método e faixa de status. Clique direito em uma entrada e use "Ver resposta" para abrir o corpo daquela execução.' },
+      { text: 'O corpo é guardado até 64 KB por execução e 2 MB no total, em texto puro. Acima disso, a entrada fica sem resposta.' },
+    ],
+  },
+  {
+    id: 'comparar',
+    title: 'Comparar ambientes',
+    blocks: [
+      { text: '"Comparar ambientes…", no menu da requisição ou em Editar, envia a mesma requisição em dois ambientes e mostra o diff das respostas.' },
+      { items: [
+        'A requisição é executada de verdade nos dois ambientes; métodos como POST exibem um alerta.',
+        'Scripts e extrações não rodam, e nada entra no histórico.',
+        'Tokens OAuth 2.0 vencidos não são renovados nesta comparação.',
       ] },
     ],
   },
@@ -121,6 +156,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     blocks: [
       { text: 'A aba Schema compara a resposta com o schema do status exato, da faixa (4XX) ou do default. Specs OpenAPI importadas já são validadas automaticamente.' },
       { text: 'Sem schema, "Gerar schema" cria um a partir da resposta atual. Ele compara só os tipos: detecta um campo que mudou de tipo, mas não um campo que sumiu. Em listas, o tipo dos itens vem do primeiro elemento.' },
+      { text: '"Editar schema" permite marcar campos obrigatórios ou editar o JSON. No Runner, a opção "Reprovar se divergir do schema" transforma divergências em falha.' },
     ],
   },
   {

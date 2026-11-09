@@ -25,12 +25,13 @@ interface Deps {
   onRestoreBackup: () => void;
   onGlobalSearch: () => void;
   onHelp: (topic?: string) => void;
+  onCompareEnvironments: () => void;
 }
 
 export const GLOBAL_SEARCH_LABEL = 'Busca global';
 
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch, onHelp }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch, onHelp, onCompareEnvironments }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -64,6 +65,7 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
         { label: 'Duplicar requisição', onSelect: () => activeId && actions.duplicateRequest(activeId) },
         { label: 'Copiar como cURL', onSelect: onCopyCurl },
         { label: 'Gerar código…', onSelect: onGenerateCode },
+        { label: 'Comparar ambientes…', onSelect: onCompareEnvironments },
         { label: 'Limpar console', onSelect: logger.clear },
       ],
     },

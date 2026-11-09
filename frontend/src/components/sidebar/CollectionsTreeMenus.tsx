@@ -11,6 +11,7 @@ export interface TreeCommands {
   exportPostman: (collectionId: string) => void;
   copyCurl: (requestId: string) => void;
   generateCode: (requestId: string) => void;
+  compareEnvironments: (requestId: string) => void;
   runCollection: (collectionId: string | null, folderId?: string | null) => void;
   configureAuth: (target: { kind: 'folder' | 'collection'; id: string }) => void;
   importCollection: () => void;
@@ -45,6 +46,7 @@ export function RequestMenu({
       <MenuSeparator />
       <MenuItem onSelect={() => commands.copyCurl(request.id)}>Copiar como cURL</MenuItem>
       <MenuItem onSelect={() => commands.generateCode(request.id)}>Gerar código…</MenuItem>
+      <MenuItem onSelect={() => commands.compareEnvironments(request.id)}>Comparar ambientes…</MenuItem>
       <MenuItem onSelect={() => commands.copyText(request.url, 'URL')}>Copiar URL</MenuItem>
       <MenuSeparator />
       <MenuLabel>Mover para</MenuLabel>

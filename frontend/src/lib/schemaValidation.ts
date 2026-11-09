@@ -1,4 +1,5 @@
 import type { ApiDocMetadata, ApiResponseDoc, JsonSchema } from '../types';
+import { tryParseJson } from './json';
 import { inferSchema } from './openapi/inferSchema';
 
 export interface SchemaIssue {
@@ -179,6 +180,24 @@ export function findResponseSchema(doc: ApiDocMetadata | undefined, status: numb
     responses.find((response) => response.status.toUpperCase() === range) ??
     responses.find((response) => response.status === 'default')
   );
+}
+
+export function responseSchemaIssues(doc: ApiDocMetadata | undefined, status: number | null, body: string): SchemaIssue[] {
+  const schema = status === null ? undefined : findResponseSchema(doc, status)?.schema;
+  if (!schema) return [];
+  const parsed = tryParseJson(body);
+  return parsed.ok ? validateAgainstSchema(parsed.value, schema) : [{ path: '$', message: 'a resposta não é JSON válido' }];
+}
+
+export function withEditedSchema(doc: ApiDocMetadata | undefined, status: string, schema: JsonSchema): ApiDocMetadata {
+  return {
+    ...doc,
+    responses: (doc?.responses ?? []).map((response) => {
+      if (response.status !== status) return response;
+      const { schemaInferred: _inferred, ...rest } = response;
+      return { ...rest, schema };
+    }),
+  };
 }
 
 export function withInferredSchema(doc: ApiDocMetadata | undefined, status: number, value: unknown): ApiDocMetadata {
