@@ -9,7 +9,7 @@ export interface ThemeDefinition {
   id: string;
   name: string;
   kind: ThemeKind;
-  group: 'Forkarsenet' | 'VS Code' | 'Importados';
+  group: 'Padrão' | 'Importados';
   colors: ThemePalette;
   native?: boolean;
 }
@@ -45,26 +45,26 @@ const LIGHT_PLUS_CODE = '#0451a5 #a31515 #098658 #0000ff';
 const SOLARIZED_CODE = '#268bd2 #2aa198 #d33682 #b58900';
 
 export const BUILTIN_THEMES: ThemeDefinition[] = [
-  { ...theme(DEFAULT_THEME_ID, 'Monocromático', 'dark', 'Forkarsenet', '#000000 #131416 #26282c #0a0b0c #393c41 #e6e8eb #8b9199 #d4d7dc #8bc6dd #e7a16b #e4c46e #c99be0'), native: true },
-  theme('midnight', 'Azul noturno', 'dark', 'Forkarsenet', '#0b1220 #111a2c #1c2840 #0d1526 #2a3a57 #dbe4f3 #8796b0 #6ea8fe #7dd3fc #fbbf77 #fcd34d #c4a7f5'),
-  theme('ember', 'Brasa', 'dark', 'Forkarsenet', '#14100c #1c1712 #2c241c #16120d #40352a #eee3d6 #a39483 #f0883e #e5c07b #d7a06b #e6b450 #d19a9a'),
-  theme('paper', 'Papel', 'light', 'Forkarsenet', '#e9ebee #ffffff #f1f3f5 #ffffff #d3d7dd #24292f #656d76 #3b5bdb #0550ae #953800 #116329 #8250df'),
+  { ...theme(DEFAULT_THEME_ID, 'Monocromático', 'dark', 'Padrão','#000000 #131416 #26282c #0a0b0c #393c41 #e6e8eb #8b9199 #d4d7dc #8bc6dd #e7a16b #e4c46e #c99be0'), native: true },
+  theme('midnight', 'Azul noturno', 'dark', 'Padrão','#0b1220 #111a2c #1c2840 #0d1526 #2a3a57 #dbe4f3 #8796b0 #6ea8fe #7dd3fc #fbbf77 #fcd34d #c4a7f5'),
+  theme('ember', 'Brasa', 'dark', 'Padrão','#14100c #1c1712 #2c241c #16120d #40352a #eee3d6 #a39483 #f0883e #e5c07b #d7a06b #e6b450 #d19a9a'),
+  theme('paper', 'Papel', 'light', 'Padrão','#e9ebee #ffffff #f1f3f5 #ffffff #d3d7dd #24292f #656d76 #3b5bdb #0550ae #953800 #116329 #8250df'),
 
-  theme('dark-modern', 'Dark Modern', 'dark', 'VS Code', `#181818 #1f1f1f #2b2b2b #313131 #2b2b2b #cccccc #9d9d9d #0078d4 ${DARK_PLUS_CODE}`),
-  theme('dark-plus', 'Dark+', 'dark', 'VS Code', `#252526 #1e1e1e #333333 #3c3c3c #3c3c3c #d4d4d4 #9d9d9d #007acc ${DARK_PLUS_CODE}`),
-  theme('light-modern', 'Light Modern', 'light', 'VS Code', `#f8f8f8 #ffffff #f2f2f2 #ffffff #e5e5e5 #3b3b3b #767676 #005fb8 ${LIGHT_PLUS_CODE}`),
-  theme('light-plus', 'Light+', 'light', 'VS Code', `#f3f3f3 #ffffff #e8e8e8 #ffffff #d4d4d4 #333333 #717171 #007acc ${LIGHT_PLUS_CODE}`),
-  theme('hc-dark', 'Dark High Contrast', 'dark', 'VS Code', '#000000 #000000 #0c0c0c #000000 #6fc3df #ffffff #d0d0d0 #f38518 #9cdcfe #ce9178 #b5cea8 #569cd6'),
-  theme('hc-light', 'Light High Contrast', 'light', 'VS Code', '#ffffff #ffffff #f2f2f2 #ffffff #0f4a85 #292929 #4a4a4a #0f4a85 #0451a5 #a31515 #096d48 #0000ff'),
-  theme('monokai', 'Monokai', 'dark', 'VS Code', '#1e1f1c #272822 #34352f #414339 #414339 #f8f8f2 #90908a #a6e22e #f92672 #e6db74 #ae81ff #ae81ff'),
-  theme('monokai-dimmed', 'Monokai Dimmed', 'dark', 'VS Code', '#272727 #1e1e1e #303030 #353535 #303030 #c5c8c6 #8f8f8f #707070 #9872a2 #9aa83a #6089b4 #6089b4'),
-  theme('solarized-dark', 'Solarized Dark', 'dark', 'VS Code', `#00212b #002b36 #073642 #003847 #073642 #93a1a1 #6c8087 #2aa198 ${SOLARIZED_CODE}`),
-  theme('solarized-light', 'Solarized Light', 'light', 'VS Code', `#eee8d5 #fdf6e3 #e8e1cc #fdf6e3 #ddd6c1 #586e75 #6c7a7d #268bd2 ${SOLARIZED_CODE}`),
-  theme('quiet-light', 'Quiet Light', 'light', 'VS Code', '#f2f2f2 #f5f5f5 #e7e7e7 #ffffff #c9c9c9 #333333 #6d6d6d #705697 #aa3731 #448c27 #ab6526 #4b69c6'),
-  theme('abyss', 'Abyss', 'dark', 'VS Code', '#060621 #000c18 #10192c #181f2f #2b2b4a #6688cc #5a6f99 #596f99 #ddbb88 #22aa44 #f280d0 #f280d0'),
-  theme('kimbie-dark', 'Kimbie Dark', 'dark', 'VS Code', '#131510 #221a0f #362712 #51412c #51412c #d3af86 #a57a4c #7c5021 #dc3958 #889b4a #f79a32 #98676a'),
-  theme('red', 'Red', 'dark', 'VS Code', '#330000 #390000 #4c0000 #580000 #5c1a1a #f8f8f8 #d0a0a0 #cc3333 #fb9a4b #cd8d8d #fb9a4b #f12727'),
-  theme('tomorrow-night-blue', 'Tomorrow Night Blue', 'dark', 'VS Code', '#001c40 #002451 #001c40 #001733 #404f7d #ffffff #9fb4d0 #bbdaff #ff9da4 #d1f1a9 #ffc58f #ebbbff'),
+  theme('dark-modern', 'Dark Modern', 'dark', 'Padrão',`#181818 #1f1f1f #2b2b2b #313131 #2b2b2b #cccccc #9d9d9d #0078d4 ${DARK_PLUS_CODE}`),
+  theme('dark-plus', 'Dark+', 'dark', 'Padrão',`#252526 #1e1e1e #333333 #3c3c3c #3c3c3c #d4d4d4 #9d9d9d #007acc ${DARK_PLUS_CODE}`),
+  theme('light-modern', 'Light Modern', 'light', 'Padrão',`#f8f8f8 #ffffff #f2f2f2 #ffffff #e5e5e5 #3b3b3b #767676 #005fb8 ${LIGHT_PLUS_CODE}`),
+  theme('light-plus', 'Light+', 'light', 'Padrão',`#f3f3f3 #ffffff #e8e8e8 #ffffff #d4d4d4 #333333 #717171 #007acc ${LIGHT_PLUS_CODE}`),
+  theme('hc-dark', 'Dark High Contrast', 'dark', 'Padrão','#000000 #000000 #0c0c0c #000000 #6fc3df #ffffff #d0d0d0 #f38518 #9cdcfe #ce9178 #b5cea8 #569cd6'),
+  theme('hc-light', 'Light High Contrast', 'light', 'Padrão','#ffffff #ffffff #f2f2f2 #ffffff #0f4a85 #292929 #4a4a4a #0f4a85 #0451a5 #a31515 #096d48 #0000ff'),
+  theme('monokai', 'Monokai', 'dark', 'Padrão','#1e1f1c #272822 #34352f #414339 #414339 #f8f8f2 #90908a #a6e22e #f92672 #e6db74 #ae81ff #ae81ff'),
+  theme('monokai-dimmed', 'Monokai Dimmed', 'dark', 'Padrão','#272727 #1e1e1e #303030 #353535 #303030 #c5c8c6 #8f8f8f #707070 #9872a2 #9aa83a #6089b4 #6089b4'),
+  theme('solarized-dark', 'Solarized Dark', 'dark', 'Padrão',`#00212b #002b36 #073642 #003847 #073642 #93a1a1 #6c8087 #2aa198 ${SOLARIZED_CODE}`),
+  theme('solarized-light', 'Solarized Light', 'light', 'Padrão',`#eee8d5 #fdf6e3 #e8e1cc #fdf6e3 #ddd6c1 #586e75 #6c7a7d #268bd2 ${SOLARIZED_CODE}`),
+  theme('quiet-light', 'Quiet Light', 'light', 'Padrão','#f2f2f2 #f5f5f5 #e7e7e7 #ffffff #c9c9c9 #333333 #6d6d6d #705697 #aa3731 #448c27 #ab6526 #4b69c6'),
+  theme('abyss', 'Abyss', 'dark', 'Padrão','#060621 #000c18 #10192c #181f2f #2b2b4a #6688cc #5a6f99 #596f99 #ddbb88 #22aa44 #f280d0 #f280d0'),
+  theme('kimbie-dark', 'Kimbie Dark', 'dark', 'Padrão','#131510 #221a0f #362712 #51412c #51412c #d3af86 #a57a4c #7c5021 #dc3958 #889b4a #f79a32 #98676a'),
+  theme('red', 'Red', 'dark', 'Padrão','#330000 #390000 #4c0000 #580000 #5c1a1a #f8f8f8 #d0a0a0 #cc3333 #fb9a4b #cd8d8d #fb9a4b #f12727'),
+  theme('tomorrow-night-blue', 'Tomorrow Night Blue', 'dark', 'Padrão','#001c40 #002451 #001c40 #001733 #404f7d #ffffff #9fb4d0 #bbdaff #ff9da4 #d1f1a9 #ffc58f #ebbbff'),
 ];
 
 function channels(hex: string): [number, number, number] {

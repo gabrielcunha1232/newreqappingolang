@@ -2257,18 +2257,71 @@ input[type='checkbox'] {
   overflow-wrap: anywhere;
 }
 
-.theme-groups {
+.theme-toolbar {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  max-height: 52vh;
-  overflow: auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
 }
 
-.theme-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+.theme-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.theme-tabs button,
+.theme-tabs button:hover {
+  padding: 5px 12px;
+  background: none;
+  border: 0;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.theme-tabs button:hover {
+  color: var(--text-strong);
+}
+
+.theme-tabs button.active {
+  background: var(--selected);
+  color: var(--text-strong);
+}
+
+.theme-accent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 12px;
+}
+
+.theme-accent label {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  color: var(--text-soft);
+}
+
+.theme-accent input[type='color'] {
+  width: 26px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+}
+
+.theme-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  align-content: start;
+  gap: 12px;
+  height: min(60vh, 470px);
+  padding: 16px;
+  overflow: auto;
 }
 
 .theme-card-wrap {
@@ -2277,68 +2330,136 @@ input[type='checkbox'] {
 
 .theme-card-wrap .row-remove {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 6px;
+  right: 6px;
 }
 
 .theme-card,
 .theme-card:hover {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
   width: 100%;
-  padding: 7px;
-  background: var(--surface);
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text-soft);
   text-align: left;
 }
 
 .theme-card:hover {
-  border-color: var(--line-strong);
+  color: var(--text-strong);
 }
 
 .theme-card.active {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 1px var(--accent);
+  color: var(--text-strong);
 }
 
-.theme-preview {
+.theme-thumb {
   display: flex;
-  align-items: flex-end;
-  gap: 4px;
-  height: 34px;
-  padding: 6px;
+  height: 92px;
+  overflow: hidden;
   border: 1px solid;
-  border-radius: 3px;
+  border-radius: 6px;
   box-sizing: border-box;
+  transition: transform 0.12s ease;
 }
 
-.theme-preview span {
-  flex: 1;
-  height: 100%;
+.theme-card:hover .theme-thumb {
+  transform: translateY(-1px);
+}
+
+.theme-card.active .theme-thumb {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.theme-thumb i,
+.theme-thumb b {
+  display: block;
+  height: 5px;
   border-radius: 2px;
 }
 
+.theme-thumb-side {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: 7px;
+  width: 30%;
+  padding: 10px 8px;
+  border-right: 1px solid;
+  box-sizing: border-box;
+}
+
+.theme-thumb-side i {
+  opacity: 0.75;
+}
+
+.theme-thumb-main {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 9px;
+}
+
+.theme-thumb-bar {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 3px;
+}
+
+.theme-thumb-bar i {
+  flex: 1;
+  height: 12px;
+  border: 1px solid;
+  box-sizing: border-box;
+}
+
+.theme-thumb-bar b {
+  width: 24px;
+  height: 12px;
+}
+
+.theme-thumb-line {
+  display: flex;
+  gap: 5px;
+}
+
 .theme-name {
+  overflow: hidden;
+  padding: 0 2px;
   font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.theme-import input {
-  display: none;
+.theme-error {
+  margin: 0 16px 10px;
 }
 
-.theme-import span {
-  padding: 7px 11px;
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  background: linear-gradient(var(--surface-3), var(--surface-2));
+.theme-import {
   cursor: pointer;
 }
 
-.theme-import input:focus-visible + span {
-  border-color: var(--accent);
+.theme-import input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
-.runner-options .spacer {
+.theme-import:focus-within {
+  outline: 1px solid var(--accent);
+}
+
+.theme-foot {
+  justify-content: flex-start;
+}
+
+.theme-foot-gap {
   flex: 1;
 }
 

@@ -235,7 +235,7 @@ export const HELP_TOPICS: HelpTopic[] = [
     blocks: [
       { text: 'Em Visualizar → Tema…, clique em um tema para ver a prévia e use Aplicar para manter. Cancelar volta ao tema anterior.' },
       { items: [
-        'Há temas do Forkarsenet e versões adaptadas dos temas padrão do VS Code.',
+        'Os temas ficam separados em escuros, claros e importados.',
         'A cor de destaque personaliza botões, abas ativas e foco em qualquer tema.',
         '"Exportar tema" e "Importar tema…" usam um arquivo JSON só com cores em #rrggbb.',
       ] },
