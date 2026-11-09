@@ -21,10 +21,12 @@ interface Deps {
   onGenerateCode: () => void;
   /** Copia a requisição ativa como cURL. */
   onCopyCurl: () => void;
+  onExportBackup: () => void;
+  onRestoreBackup: () => void;
 }
 
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -44,6 +46,9 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
         { label: 'Importar OpenAPI / Swagger…', onSelect: onImportSpec },
         { label: 'Importar cURL…', onSelect: onImportCurl },
         { label: 'Importar Postman / Insomnia…', onSelect: onImportCollection },
+        'separator',
+        { label: 'Fazer backup', onSelect: onExportBackup },
+        { label: 'Restaurar backup…', onSelect: onRestoreBackup },
         'separator',
         { label: 'Fechar aba', shortcut: 'Ctrl+W', onSelect: actions.closeActiveTab },
       ],

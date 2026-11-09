@@ -43,7 +43,7 @@ function migrateHeaders(headers: KeyValue[] | string | undefined): KeyValue[] {
   return [];
 }
 
-function deserialize(state: Partial<PersistedState>): AppSnapshot {
+export function deserialize(state: Partial<PersistedState>): AppSnapshot {
   const collectionIds = new Set((state.collections ?? []).map((c) => c.id));
   const folders = (state.folders ?? []).filter((f) => collectionIds.has(f.collectionId));
   const folderIds = new Set(folders.map((f) => f.id));

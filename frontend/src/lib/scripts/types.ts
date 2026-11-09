@@ -27,6 +27,7 @@ export interface ScriptInput {
   environment: Record<string, string>;
   /** Variáveis locais da execução (pm.variables), compartilhadas entre pre e post. */
   variables: Record<string, string>;
+  iterationData?: Record<string, string>;
 }
 
 export interface TestResult {

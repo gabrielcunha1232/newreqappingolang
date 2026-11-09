@@ -8,6 +8,7 @@ import { MenuItem, MenuLabel, MenuSeparator } from '../common/ContextMenu';
 export interface TreeCommands {
   showDocs: (collectionId: string | null, requestId?: string) => void;
   exportOpenApi: (collectionId: string | null) => void;
+  exportPostman: (collectionId: string) => void;
   copyCurl: (requestId: string) => void;
   generateCode: (requestId: string) => void;
   runCollection: (collectionId: string | null, folderId?: string | null) => void;
@@ -92,6 +93,7 @@ export function CollectionMenu({ collection, actions, commands, onEdit }: MenuCo
       <MenuItem onSelect={() => commands.runCollection(collection.id)}>Executar coleção…</MenuItem>
       <MenuItem onSelect={() => commands.showDocs(collection.id)}>Ver documentação</MenuItem>
       <MenuItem onSelect={() => commands.exportOpenApi(collection.id)}>Exportar OpenAPI</MenuItem>
+      <MenuItem onSelect={() => commands.exportPostman(collection.id)}>Exportar para Postman</MenuItem>
       <MenuSeparator />
       <MenuItem onSelect={() => onEdit({ kind: 'collection', id: collection.id })}>Renomear</MenuItem>
       <MenuItem onSelect={() => onEdit({ kind: 'baseUrl', id: collection.id })}>Definir URL base</MenuItem>

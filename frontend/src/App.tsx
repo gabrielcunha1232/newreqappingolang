@@ -13,6 +13,7 @@ import { Workspace } from './components/workspace/Workspace';
 import { ImportOpenApiDialog } from './components/import/ImportOpenApiDialog';
 import { ImportCurlDialog } from './components/import/ImportCurlDialog';
 import { ImportCollectionDialog } from './components/import/ImportCollectionDialog';
+import { RestoreBackupDialog } from './components/import/RestoreBackupDialog';
 import { CollectionRunnerDialog } from './components/runner/CollectionRunnerDialog';
 import { GenerateCodeDialog } from './components/request/GenerateCodeDialog';
 import { useApiDocs } from './hooks/useApiDocs';
@@ -22,6 +23,7 @@ import { useCodeGeneration } from './hooks/useCodeGeneration';
 import { useCollectionImport } from './hooks/useCollectionImport';
 import { useCollectionRunner } from './hooks/useCollectionRunner';
 import { useCurl } from './hooks/useCurl';
+import { useDataTransfer } from './hooks/useDataTransfer';
 import { useDockLayout } from './hooks/useDockLayout';
 import { useEnvironments } from './hooks/useEnvironments';
 import { useHistory } from './hooks/useHistory';
@@ -72,6 +74,12 @@ function App() {
 
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
   usePersistence(handlers.snapshot, handlers.hydrate);
+  const dataTransfer = useDataTransfer({
+    snapshot: handlers.snapshot,
+    hydrate: handlers.hydrate,
+    log: logger.log,
+    notify: toast.show,
+  });
   useKeyboardShortcuts(handlers.shortcuts);
   const menus = useAppMenus({
     workspace,
@@ -85,6 +93,8 @@ function App() {
     onImportCollection: collectionImport.openDialog,
     onGenerateCode: () => codeGeneration.open(workspace.state.activeRequestId),
     onCopyCurl: () => curl.copyAsCurl(workspace.state.activeRequestId),
+    onExportBackup: dataTransfer.exportBackup,
+    onRestoreBackup: dataTransfer.openRestore,
   });
 
   const { state } = workspace;
@@ -102,6 +112,7 @@ function App() {
     () => ({
       showDocs: docs.show,
       exportOpenApi: docs.exportCollection,
+      exportPostman: dataTransfer.exportPostman,
       copyCurl: curl.copyAsCurl,
       generateCode: codeGeneration.open,
       runCollection: collectionRunner.open,
@@ -114,6 +125,7 @@ function App() {
     [
       docs.show,
       docs.exportCollection,
+      dataTransfer.exportPostman,
       curl.copyAsCurl,
       curl.openDialog,
       handlers.copyText,
@@ -233,6 +245,13 @@ function App() {
       {curl.dialogOpen && <ImportCurlDialog onClose={curl.closeDialog} onImport={curl.importAsNew} />}
       {collectionImport.dialogOpen && (
         <ImportCollectionDialog onClose={collectionImport.closeDialog} onImport={collectionImport.importText} />
+      )}
+      {dataTransfer.restoreOpen && (
+        <RestoreBackupDialog
+          onClose={dataTransfer.closeRestore}
+          onInspect={dataTransfer.inspectBackup}
+          onRestore={dataTransfer.restoreBackup}
+        />
       )}
       {codeGeneration.source && (
         <GenerateCodeDialog

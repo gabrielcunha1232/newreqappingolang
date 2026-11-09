@@ -73,9 +73,14 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
   );
 
   const send = useCallback(
-    async (saved: SavedRequest, collection: Collection | undefined, envVars: Record<string, string>): Promise<RunResult> => {
+    async (
+      saved: SavedRequest,
+      collection: Collection | undefined,
+      envVars: Record<string, string>,
+      iterationData?: Record<string, string>
+    ): Promise<RunResult> => {
       let environment = envVars;
-      let locals: Record<string, string> = {};
+      let locals: Record<string, string> = { ...iterationData };
       let effective = saved;
 
       const result = (changes: Partial<RunResult>): RunResult => ({
@@ -126,6 +131,7 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
           request: scriptRequestFromSaved(saved),
           environment,
           variables: locals,
+          iterationData,
         });
         reportScript('pré', output);
         if (output.error) return fail(`Erro no script de pré-processamento: ${output.error}`);
@@ -187,6 +193,7 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
           response: scriptResponseFrom(response),
           environment,
           variables: locals,
+          iterationData,
         });
         reportScript('pós', output);
         applyEnvironment(output.environmentChanges);

@@ -1,3 +1,5 @@
+import { useState, type ChangeEvent } from 'react';
+import { parseRunnerData } from '../../lib/runnerData';
 import {
   runnerReport,
   type CollectionRunnerControls,
@@ -21,8 +23,11 @@ const STATE_LABEL: Record<RunItem['state'], string> = {
   skipped: 'Ignorada',
 };
 
-function outcome({ state, result }: RunItem): string {
+const MAX_DATA_BYTES = 20 * 1024 * 1024;
+
+function outcome({ state, result, runs }: RunItem, multiple: boolean): string {
   if (!result) return STATE_LABEL[state];
+  if (multiple) return [STATE_LABEL[state], `${runs.filter((run) => run.passed).length}/${runs.length} linhas`].filter(Boolean).join(' · ');
   const passed = result.tests.filter((test) => test.passed).length;
   const parts = [
     STATE_LABEL[state],
@@ -33,20 +38,42 @@ function outcome({ state, result }: RunItem): string {
   return parts.filter(Boolean).join(' · ');
 }
 
-function failureDetails({ result }: RunItem): string[] {
-  if (!result) return [];
-  return [
-    result.error,
-    result.scriptError,
-    ...result.tests.filter((t) => !t.passed).map((t) => `${t.name}${t.error ? `: ${t.error}` : ''}`),
-  ].filter(Boolean);
+function failureDetails({ runs }: RunItem, multiple: boolean): string[] {
+  return runs.flatMap(({ iteration, passed, result }) => {
+    if (passed) return [];
+    const details = [
+      result.error,
+      result.scriptError,
+      ...result.tests.filter((t) => !t.passed).map((t) => `${t.name}${t.error ? `: ${t.error}` : ''}`),
+      ...(result.tests.length === 0 && !result.error && !result.scriptError && multiple ? [`Status ${result.status}`] : []),
+    ].filter(Boolean);
+    return multiple ? details.map((detail) => `Linha ${iteration + 1}: ${detail}`) : details;
+  });
 }
 
 export function CollectionRunnerDialog({ session, controls, onSaveReport }: CollectionRunnerDialogProps) {
-  const { items, running, finished, delayMs, stopOnFailure, title } = session;
+  const { items, running, finished, delayMs, stopOnFailure, title, data } = session;
+  const [dataError, setDataError] = useState('');
   const selected = items.filter((item) => item.selected).length;
-  const passed = items.filter((item) => item.state === 'passed').length;
-  const failed = items.filter((item) => item.state === 'failed').length;
+  const runs = items.flatMap((item) => item.runs);
+  const passed = runs.filter((run) => run.passed).length;
+  const failed = runs.length - passed;
+  const multiple = Boolean(data);
+
+  const chooseData = async (event: ChangeEvent<HTMLInputElement>) => {
+    const input = event.target;
+    const file = input.files?.[0];
+    if (!file) return;
+    setDataError('');
+    try {
+      if (file.size > MAX_DATA_BYTES) throw new Error('Arquivo maior que 20 MB.');
+      controls.setOptions({ data: parseRunnerData(await file.text(), file.name) });
+    } catch (err) {
+      controls.setOptions({ data: null });
+      setDataError(err instanceof Error ? err.message : String(err));
+    }
+    input.value = '';
+  };
 
   return (
     <Modal title={`Executar: ${title}`} width={680} onClose={controls.close}>
@@ -73,7 +100,29 @@ export function CollectionRunnerDialog({ session, controls, onSaveReport }: Coll
               />
               Parar na primeira falha
             </label>
+            <label>
+              Dados (CSV/JSON)
+              <input type="file" accept=".csv,.tsv,.txt,.json,text/csv,application/json" disabled={running} onChange={chooseData} />
+            </label>
           </div>
+
+          {data && (
+            <p className="runner-data">
+              <span>
+                <strong>{data.fileName}</strong>: {data.rows.length} linha(s). Use como {'{{variável}}'}:{' '}
+                <code>{data.columns.join(', ')}</code>
+              </span>
+              <button type="button" className="link" disabled={running} onClick={() => controls.setOptions({ data: null })}>
+                Remover
+              </button>
+            </p>
+          )}
+
+          {dataError && (
+            <div className="inline-error" role="alert">
+              ⚠ {dataError}
+            </div>
+          )}
 
           {finished && (
             <p className="runner-summary" role="status">
@@ -99,9 +148,9 @@ export function CollectionRunnerDialog({ session, controls, onSaveReport }: Coll
                     <span className="runner-title" title={item.request.title}>
                       {item.request.title}
                     </span>
-                    <span className={`runner-outcome ${item.state}`}>{outcome(item)}</span>
+                    <span className={`runner-outcome ${item.state}`}>{outcome(item, multiple)}</span>
                   </div>
-                  {failureDetails(item).map((detail, index) => (
+                  {failureDetails(item, multiple).map((detail, index) => (
                     <p key={index} className="runner-detail">
                       {detail}
                     </p>
@@ -132,7 +181,7 @@ export function CollectionRunnerDialog({ session, controls, onSaveReport }: Coll
             </button>
           ) : (
             <button type="button" className="primary" disabled={selected === 0} onClick={() => void controls.start()}>
-              {finished ? 'Executar de novo' : `Executar ${selected}`}
+              {finished ? 'Executar de novo' : data ? `Executar ${selected} × ${data.rows.length} linhas` : `Executar ${selected}`}
             </button>
           )}
         </footer>

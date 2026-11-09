@@ -2108,6 +2108,16 @@ input[type='checkbox'] {
   width: 84px;
 }
 
+.runner-data {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .runner-list {
   list-style: none;
   margin: 0;

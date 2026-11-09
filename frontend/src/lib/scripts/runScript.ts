@@ -120,6 +120,11 @@ export function runScript(input: ScriptInput): ScriptOutput {
       },
       toObject: () => ({ ...environment, ...variables }),
     },
+    iterationData: {
+      get: (name: string) => input.iterationData?.[name],
+      has: (name: string) => Boolean(input.iterationData) && Object.prototype.hasOwnProperty.call(input.iterationData, name),
+      toObject: () => ({ ...input.iterationData }),
+    },
     request: {
       get method() {
         return request.method;

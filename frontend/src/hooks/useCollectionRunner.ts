@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import type { RunnerData } from '../lib/runnerData';
 import { folderChain, requestsInTreeOrder, resolveInherited } from '../lib/tree';
 import type { SavedRequest } from '../types';
 import type { Logger } from './useConsole';
@@ -7,11 +8,18 @@ import type { useWorkspace } from './useWorkspace';
 
 export type RunItemState = 'pending' | 'running' | 'passed' | 'failed' | 'skipped';
 
+export interface RunEntry {
+  iteration: number;
+  passed: boolean;
+  result: RunResult;
+}
+
 export interface RunItem {
   request: SavedRequest;
   selected: boolean;
   state: RunItemState;
   result?: RunResult;
+  runs: RunEntry[];
 }
 
 export interface RunnerSession {
@@ -22,6 +30,7 @@ export interface RunnerSession {
   finished: boolean;
   delayMs: number;
   stopOnFailure: boolean;
+  data: RunnerData | null;
 }
 
 interface Deps {
@@ -60,11 +69,12 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
       setSession({
         title,
         collectionId,
-        items: requests.map((request) => ({ request, selected: true, state: 'pending' })),
+        items: requests.map((request) => ({ request, selected: true, state: 'pending', runs: [] })),
         running: false,
         finished: false,
         delayMs: 0,
         stopOnFailure: false,
+        data: null,
       });
     },
     [state.requests, state.collections, state.folders]
@@ -88,17 +98,18 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
     );
   }, []);
 
-  const setOptions = useCallback((options: Partial<Pick<RunnerSession, 'delayMs' | 'stopOnFailure'>>) => {
+  const setOptions = useCallback((options: Partial<Pick<RunnerSession, 'delayMs' | 'stopOnFailure' | 'data'>>) => {
     setSession((s) => s && { ...s, ...options });
   }, []);
 
   const start = useCallback(async () => {
     if (!session || session.running) return;
-    const { collectionId, delayMs, stopOnFailure, title } = session;
+    const { collectionId, delayMs, stopOnFailure, title, data } = session;
     const queue = session.items.filter((item) => item.selected).map((item) => item.request.id);
+    const rows = data?.rows ?? [undefined];
 
-    const update = (requestId: string, changes: Partial<RunItem>) =>
-      setSession((s) => s && { ...s, items: s.items.map((i) => (i.request.id === requestId ? { ...i, ...changes } : i)) });
+    const update = (requestId: string, change: (item: RunItem) => Partial<RunItem>) =>
+      setSession((s) => s && { ...s, items: s.items.map((i) => (i.request.id === requestId ? { ...i, ...change(i) } : i)) });
 
     stopRequested.current = false;
     setSession(
@@ -111,34 +122,51 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
             request,
             selected,
             state: selected ? 'pending' : 'skipped',
+            runs: [],
           })),
         }
     );
-    log('info', `Runner: iniciando "${title}" (${queue.length} requisição(ões)).`);
+    const volume = data ? ` × ${rows.length} linha(s) de ${data.fileName}` : '';
+    log('info', `Runner: iniciando "${title}" (${queue.length} requisição(ões)${volume}).`);
 
     let environment = variables;
     let passed = 0;
     let executed = 0;
-    for (const [index, requestId] of queue.entries()) {
-      if (stopRequested.current) break;
-      const request = session.items.find((item) => item.request.id === requestId)!.request;
-      update(requestId, { state: 'running' });
+    let halted = false;
+    for (const [iteration, row] of rows.entries()) {
+      if (halted) break;
+      if (data && !stopRequested.current) log('info', `Runner: linha ${iteration + 1} de ${rows.length}.`);
+      for (const [index, requestId] of queue.entries()) {
+        if (stopRequested.current) {
+          halted = true;
+          break;
+        }
+        const request = session.items.find((item) => item.request.id === requestId)!.request;
+        update(requestId, () => ({ state: 'running' }));
 
-      const current = latestState.current;
-      const resolved = resolveInherited(
-        request,
-        current.folders,
-        current.collections.find((c) => c.id === collectionId)
-      );
-      const result = await runner.send(resolved.request, resolved.collection, environment);
-      environment = result.environment;
-      executed++;
-      const failed = runFailed(result);
-      if (!failed) passed++;
-      update(requestId, { state: failed ? 'failed' : 'passed', result });
+        const current = latestState.current;
+        const resolved = resolveInherited(
+          request,
+          current.folders,
+          current.collections.find((c) => c.id === collectionId)
+        );
+        const result = await runner.send(resolved.request, resolved.collection, environment, row);
+        environment = result.environment;
+        executed++;
+        const failed = runFailed(result);
+        if (!failed) passed++;
+        update(requestId, (item) => {
+          const runs = [...item.runs, { iteration, passed: !failed, result }];
+          return { state: runs.every((run) => run.passed) ? 'passed' : 'failed', result, runs };
+        });
 
-      if (failed && stopOnFailure) break;
-      if (delayMs > 0 && index < queue.length - 1) await wait(delayMs);
+        if (failed && stopOnFailure) {
+          halted = true;
+          break;
+        }
+        const last = iteration === rows.length - 1 && index === queue.length - 1;
+        if (delayMs > 0 && !last) await wait(delayMs);
+      }
     }
 
     log(passed === executed ? 'ok' : 'warn', `Runner: "${title}" terminou com ${passed} de ${executed} aprovada(s).`);
@@ -159,17 +187,19 @@ export function runnerReport(session: RunnerSession): string {
     {
       collection: session.title,
       generatedAt: new Date().toISOString(),
-      results: session.items
-        .filter((item) => item.result)
-        .map(({ request, state, result }) => ({
+      dataFile: session.data?.fileName,
+      results: session.items.flatMap(({ request, runs }) =>
+        runs.map(({ iteration, passed, result }) => ({
           title: request.title,
           method: request.method,
-          outcome: state,
-          status: result?.status,
-          timeMs: result?.timeSpent,
-          error: result?.error || result?.scriptError || undefined,
-          tests: result?.tests,
-        })),
+          line: session.data ? iteration + 1 : undefined,
+          outcome: passed ? 'passed' : 'failed',
+          status: result.status,
+          timeMs: result.timeSpent,
+          error: result.error || result.scriptError || undefined,
+          tests: result.tests,
+        }))
+      ),
     },
     null,
     2
