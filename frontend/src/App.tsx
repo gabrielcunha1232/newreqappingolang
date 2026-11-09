@@ -8,6 +8,7 @@ import { CollectionsTree } from './components/sidebar/CollectionsTree';
 import type { TreeCommands } from './components/sidebar/CollectionsTreeMenus';
 import { HistoryList } from './components/sidebar/HistoryList';
 import { Sidebar } from './components/sidebar/Sidebar';
+import { GlobalSearchDialog } from './components/common/GlobalSearchDialog';
 import { Toast } from './components/common/Toast';
 import { Workspace } from './components/workspace/Workspace';
 import { ImportOpenApiDialog } from './components/import/ImportOpenApiDialog';
@@ -17,7 +18,7 @@ import { RestoreBackupDialog } from './components/import/RestoreBackupDialog';
 import { CollectionRunnerDialog } from './components/runner/CollectionRunnerDialog';
 import { GenerateCodeDialog } from './components/request/GenerateCodeDialog';
 import { useApiDocs } from './hooks/useApiDocs';
-import { useAppMenus } from './hooks/useAppMenus';
+import { GLOBAL_SEARCH_LABEL, useAppMenus } from './hooks/useAppMenus';
 import { useConsole } from './hooks/useConsole';
 import { useCodeGeneration } from './hooks/useCodeGeneration';
 import { useCollectionImport } from './hooks/useCollectionImport';
@@ -34,6 +35,7 @@ import { useRequestRunner } from './hooks/useRequestRunner';
 import { useToast } from './hooks/useToast';
 import { useWorkspace } from './hooks/useWorkspace';
 import { useWorkspaceHandlers } from './hooks/useWorkspaceHandlers';
+import { buildSearchItems } from './lib/globalSearch';
 import type { SidebarView } from './types';
 
 /**
@@ -50,6 +52,7 @@ function App() {
   const toast = useToast();
   const dock = useDockLayout();
   const [authTarget, setAuthTarget] = useState<AuthTarget | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
   const runner = useRequestRunner({
     onAuthRenewed: workspace.actions.storeRenewedAuth,
     log: logger.log,
@@ -80,7 +83,7 @@ function App() {
     log: logger.log,
     notify: toast.show,
   });
-  useKeyboardShortcuts(handlers.shortcuts);
+  useKeyboardShortcuts({ ...handlers.shortcuts, globalSearch: () => setSearchOpen(true) });
   const menus = useAppMenus({
     workspace,
     dock,
@@ -95,9 +98,39 @@ function App() {
     onCopyCurl: () => curl.copyAsCurl(workspace.state.activeRequestId),
     onExportBackup: dataTransfer.exportBackup,
     onRestoreBackup: dataTransfer.openRestore,
+    onGlobalSearch: () => setSearchOpen(true),
   });
 
   const { state } = workspace;
+  const searchItems = searchOpen
+    ? buildSearchItems(
+        {
+          collections: state.collections,
+          folders: state.folders,
+          requests: state.requests,
+          openRequestIds: state.openRequestIds,
+          environments: environments.environments,
+          menus,
+          excludedCommands: [GLOBAL_SEARCH_LABEL],
+        },
+        {
+          openRequest: docs.tryIt,
+          revealCollection: (id) => {
+            setSidebarView('collections');
+            workspace.actions.setCollectionCollapsed(id, false);
+          },
+          revealFolder: (folderIds, collectionId) => {
+            setSidebarView('collections');
+            workspace.actions.setCollectionCollapsed(collectionId, false);
+            folderIds.forEach((id) => workspace.actions.setFolderCollapsed(id, false));
+          },
+          selectEnvironment: (environment) => {
+            environments.actions.select(environment.id);
+            toast.show(`Ambiente "${environment.name}" ativado.`);
+          },
+        }
+      )
+    : [];
   const authOwner =
     authTarget?.kind === 'folder'
       ? state.folders.find((f) => f.id === authTarget.id)
@@ -246,6 +279,7 @@ function App() {
       {collectionImport.dialogOpen && (
         <ImportCollectionDialog onClose={collectionImport.closeDialog} onImport={collectionImport.importText} />
       )}
+      {searchOpen && <GlobalSearchDialog items={searchItems} onClose={() => setSearchOpen(false)} />}
       {dataTransfer.restoreOpen && (
         <RestoreBackupDialog
           onClose={dataTransfer.closeRestore}

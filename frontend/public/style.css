@@ -2108,6 +2108,88 @@ input[type='checkbox'] {
   width: 84px;
 }
 
+.global-search {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  min-height: 0;
+}
+
+.global-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px 11px;
+  font-size: 14px;
+}
+
+.global-search-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 46vh;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+}
+
+.global-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.global-search-item.active {
+  background: var(--selected);
+}
+
+.global-search-kind {
+  flex: none;
+  width: 70px;
+  font-size: 11px;
+  color: var(--muted, inherit);
+}
+
+.global-search-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.global-search-title,
+.global-search-subtitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.global-search-subtitle {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.global-search-item kbd {
+  flex: none;
+  font: 11px var(--mono);
+  opacity: 0.65;
+}
+
+.global-search-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 46vh;
+  margin: 0;
+  opacity: 0.65;
+}
+
+.global-search .hint {
+  margin: 0;
+}
+
 .runner-data {
   display: flex;
   align-items: baseline;

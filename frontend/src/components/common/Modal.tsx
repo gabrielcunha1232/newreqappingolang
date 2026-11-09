@@ -9,6 +9,7 @@ interface ModalProps {
   children: ReactNode;
   /** Largura máxima em px. */
   width?: number;
+  initialFocus?: string;
 }
 
 /**
@@ -16,7 +17,7 @@ interface ModalProps {
  * devolve o foco para onde estava ao fechar. É renderizada direto no <body>
  * (portal), acima de todo o layout do app, inclusive dos painéis do dockview.
  */
-export function Modal({ title, onClose, children, width = 520 }: ModalProps) {
+export function Modal({ title, onClose, children, width = 520, initialFocus = FOCUSABLE }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
   const onCloseRef = useRef(onClose);
@@ -24,7 +25,7 @@ export function Modal({ title, onClose, children, width = 520 }: ModalProps) {
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
-    dialogRef.current?.querySelector<HTMLElement>(FOCUSABLE)?.focus();
+    dialogRef.current?.querySelector<HTMLElement>(initialFocus)?.focus();
 
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {

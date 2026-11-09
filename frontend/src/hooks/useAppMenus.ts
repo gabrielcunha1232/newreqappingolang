@@ -23,10 +23,13 @@ interface Deps {
   onCopyCurl: () => void;
   onExportBackup: () => void;
   onRestoreBackup: () => void;
+  onGlobalSearch: () => void;
 }
 
+export const GLOBAL_SEARCH_LABEL = 'Busca global';
+
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -56,6 +59,7 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
     {
       label: 'Editar',
       items: [
+        { label: GLOBAL_SEARCH_LABEL, shortcut: 'Ctrl+K', onSelect: onGlobalSearch },
         { label: 'Duplicar requisição', onSelect: () => activeId && actions.duplicateRequest(activeId) },
         { label: 'Copiar como cURL', onSelect: onCopyCurl },
         { label: 'Gerar código…', onSelect: onGenerateCode },
@@ -107,7 +111,7 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
       items: [
         {
           label: 'Atalhos de teclado',
-          onSelect: () => toast.show('Ctrl+T nova aba · Ctrl+W fecha aba · Ctrl+Enter envia'),
+          onSelect: () => toast.show('Ctrl+K busca global · Ctrl+T nova aba · Ctrl+W fecha aba · Ctrl+Enter envia'),
         },
         {
           label: 'Sobre o Forkarsenet',

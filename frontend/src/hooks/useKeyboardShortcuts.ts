@@ -3,6 +3,7 @@ import { useEffect, useRef } from 'react';
 interface Shortcuts {
   newRequest: () => void;
   closeTab: () => void;
+  globalSearch: () => void;
 }
 
 /** Ctrl+T abre uma nova requisição; Ctrl+W fecha a aba ativa. */
@@ -22,6 +23,9 @@ export function useKeyboardShortcuts(shortcuts: Shortcuts) {
       } else if (key === 'w') {
         event.preventDefault();
         ref.current.closeTab();
+      } else if (key === 'k') {
+        event.preventDefault();
+        ref.current.globalSearch();
       }
     };
     window.addEventListener('keydown', onKeyDown);
