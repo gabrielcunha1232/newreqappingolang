@@ -4,7 +4,7 @@ import { newRequest } from '../lib/factories';
 import { generateId } from '../lib/id';
 import { normalizeBaseUrl } from '../lib/url';
 import { initialWorkspace, workspaceReducer, type WorkspaceState } from '../state/workspaceReducer';
-import type { Collection, SavedRequest } from '../types';
+import type { Collection, Folder, RequestAuth, SavedRequest } from '../types';
 
 /** Estado de coleções, requisições e abas abertas, com ações nomeadas. */
 export function useWorkspace() {
@@ -21,8 +21,30 @@ export function useWorkspace() {
       duplicateRequest: (id: string) =>
         dispatch({ type: 'request/duplicate', id, newId: generateId() }),
       deleteRequest: (id: string) => dispatch({ type: 'request/delete', id }),
-      moveRequest: (id: string, collectionId: string | null) =>
-        dispatch({ type: 'request/move', id, collectionId }),
+      moveRequest: (id: string, collectionId: string | null, folderId: string | null = null) =>
+        dispatch({ type: 'request/move', id, collectionId, folderId }),
+      storeRenewedAuth: (id: string, auth: RequestAuth) => dispatch({ type: 'request/auth-renewed', id, auth }),
+
+      createFolder: (collectionId: string, parentId: string | null): string => {
+        const id = generateId();
+        dispatch({
+          type: 'folder/create',
+          folder: { id, collectionId, parentId, name: 'Nova pasta', collapsed: false, baseUrl: '' },
+        });
+        return id;
+      },
+      renameFolder: (id: string, name: string) => {
+        const trimmed = name.trim();
+        if (trimmed) dispatch({ type: 'folder/update', id, changes: { name: trimmed } });
+      },
+      setFolderBaseUrl: (id: string, baseUrl: string) =>
+        dispatch({ type: 'folder/update', id, changes: { baseUrl: normalizeBaseUrl(baseUrl) } }),
+      setFolderCollapsed: (id: string, collapsed: boolean) =>
+        dispatch({ type: 'folder/update', id, changes: { collapsed } }),
+      setFolderAuth: (id: string, auth: RequestAuth | undefined) =>
+        dispatch({ type: 'folder/update', id, changes: { auth } }),
+      deleteFolder: (id: string) => dispatch({ type: 'folder/delete', id }),
+      moveFolder: (id: string, parentId: string | null) => dispatch({ type: 'folder/move', id, parentId }),
 
       openTab: (id: string) => dispatch({ type: 'tab/open', id }),
       closeTab: (id: string) => dispatch({ type: 'tab/close', id }),
@@ -53,11 +75,13 @@ export function useWorkspace() {
         dispatch({ type: 'collection/update', id, changes: { baseUrl: normalizeBaseUrl(baseUrl) } }),
       setCollectionCollapsed: (id: string, collapsed: boolean) =>
         dispatch({ type: 'collection/update', id, changes: { collapsed } }),
+      setCollectionAuth: (id: string, auth: RequestAuth | undefined) =>
+        dispatch({ type: 'collection/update', id, changes: { auth } }),
       deleteCollection: (id: string) => dispatch({ type: 'collection/delete', id }),
 
       /** Adiciona uma coleção já montada (ex.: importada de uma spec OpenAPI). */
-      importCollection: (collection: Collection, requests: SavedRequest[]) =>
-        dispatch({ type: 'collection/import', collection, requests }),
+      importCollection: (collection: Collection, requests: SavedRequest[], folders: Folder[] = []) =>
+        dispatch({ type: 'collection/import', collection, requests, folders }),
 
       importEndpoints: (dir: string, endpoints: Endpoint[], baseUrl = '') =>
         dispatch({ type: 'scanner/import', dir, endpoints, baseUrl }),

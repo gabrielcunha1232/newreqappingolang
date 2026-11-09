@@ -1,9 +1,10 @@
-import type { Collection, KeyValue, SavedRequest } from '../../types';
+import type { Collection, Folder, KeyValue, SavedRequest } from '../../types';
 
 /** Coleção pronta para entrar no workspace, com o ambiente que veio junto. */
 export interface CollectionImport {
   collection: Collection;
   requests: SavedRequest[];
+  folders: Folder[];
   environment?: { name: string; variables: KeyValue[] };
   warnings: string[];
 }

@@ -1,6 +1,6 @@
 import type { DocsFocus } from '../../hooks/useApiDocs';
 import type { DocsScope } from '../../lib/apiDocsScope';
-import type { SavedRequest } from '../../types';
+import type { Folder, SavedRequest } from '../../types';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 import { ApiDocsView } from './ApiDocsView';
 import type { EndpointActions } from './endpointActions';
@@ -9,6 +9,7 @@ interface DocsTabsHostProps {
   scopes: DocsScope[];
   activeId: string | null;
   requests: SavedRequest[];
+  folders: Folder[];
   focus: DocsFocus | null;
   endpointActions: EndpointActions;
   onExportOpenApi: (scope: DocsScope) => void;
@@ -18,7 +19,7 @@ interface DocsTabsHostProps {
  * Conteúdo das abas de documentação. Todas ficam montadas (só a ativa
  * aparece), para cada aba manter rolagem, filtro e endpoints expandidos.
  */
-export function DocsTabsHost({ scopes, activeId, requests, focus, endpointActions, onExportOpenApi }: DocsTabsHostProps) {
+export function DocsTabsHost({ scopes, activeId, requests, folders, focus, endpointActions, onExportOpenApi }: DocsTabsHostProps) {
   return (
     <>
       {scopes.map((scope) => (
@@ -27,6 +28,7 @@ export function DocsTabsHost({ scopes, activeId, requests, focus, endpointAction
             <ApiDocsView
               scope={scope}
               requests={requests}
+              folders={folders}
               focus={focus}
               endpointActions={endpointActions}
               onExport={() => onExportOpenApi(scope)}

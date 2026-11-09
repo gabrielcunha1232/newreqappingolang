@@ -12,7 +12,7 @@ export interface KeyValue {
   description: string;
 }
 
-export type AuthType = 'none' | 'bearer' | 'basic' | 'apikey' | 'oauth2';
+export type AuthType = 'none' | 'inherit' | 'bearer' | 'basic' | 'apikey' | 'oauth2';
 
 export type BodyType = 'json' | 'text' | 'form' | 'graphql';
 
@@ -49,6 +49,18 @@ export interface Collection {
   collapsed: boolean;
   /** URL usada como prefixo de caminhos relativos (ex.: "/albums"). Vazio = sem base. */
   baseUrl: string;
+  auth?: RequestAuth;
+}
+
+export interface Folder {
+  id: string;
+  collectionId: string;
+  parentId: string | null;
+  name: string;
+  collapsed: boolean;
+  baseUrl: string;
+  auth?: RequestAuth;
+  position?: number;
 }
 
 /**
@@ -69,6 +81,8 @@ export interface ApiEndpointSource {
 export interface SavedRequest {
   id: string;
   collectionId: string | null;
+  folderId?: string | null;
+  position?: number;
   title: string;
   method: string;
   url: string;
@@ -142,10 +156,11 @@ export interface ApiResponseDoc {
   contentType?: string;
   example?: string;
   schema?: JsonSchema;
+  schemaInferred?: boolean;
 }
 
 export interface ApiSecurity {
-  type: Exclude<AuthType, 'none' | 'oauth2'>;
+  type: Exclude<AuthType, 'none' | 'inherit' | 'oauth2'>;
   /** Nome do cabeçalho, para API key. */
   name?: string;
 }
@@ -236,6 +251,7 @@ export interface MenuDefinition {
 /** Forma gravada em disco pelo CollectionService (respostas não são persistidas). */
 export interface PersistedState {
   collections: Collection[];
+  folders?: Folder[];
   /**
    * Arquivos antigos guardam `headers` como string JSON e não têm
    * params/auth/scripts; o persistenceService faz a migração na leitura.

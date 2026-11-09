@@ -6,6 +6,7 @@ const AUTH_TYPES: Array<{ value: AuthType; label: string }> = [
   { value: 'basic', label: 'Basic Auth' },
   { value: 'apikey', label: 'API Key' },
   { value: 'oauth2', label: 'OAuth 2.0' },
+  { value: 'inherit', label: 'Herdar da pasta/coleção' },
   { value: 'none', label: 'Sem autenticação' },
 ];
 
@@ -14,9 +15,10 @@ interface AuthEditorProps {
   onChange: (auth: RequestAuth) => void;
   /** Variáveis do ambiente ativo, usadas ao pedir o token OAuth2. */
   variables: Record<string, string>;
+  allowInherit?: boolean;
 }
 
-export function AuthEditor({ auth, onChange, variables }: AuthEditorProps) {
+export function AuthEditor({ auth, onChange, variables, allowInherit = true }: AuthEditorProps) {
   const set = (changes: Partial<RequestAuth>) => onChange({ ...auth, ...changes });
 
   return (
@@ -24,7 +26,7 @@ export function AuthEditor({ auth, onChange, variables }: AuthEditorProps) {
       <label className="form-row">
         <span>Tipo de autenticação</span>
         <select value={auth.type} onChange={(event) => set({ type: event.target.value as AuthType })}>
-          {AUTH_TYPES.map((t) => (
+          {AUTH_TYPES.filter((t) => allowInherit || t.value !== 'inherit').map((t) => (
             <option key={t.value} value={t.value}>
               {t.label}
             </option>
@@ -79,6 +81,8 @@ export function AuthEditor({ auth, onChange, variables }: AuthEditorProps) {
       {auth.type === 'oauth2' && (
         <OAuth2Editor settings={auth.oauth2} variables={variables} onChange={(oauth2) => set({ oauth2 })} />
       )}
+
+      {auth.type === 'inherit' && <p className="hint">Usa a autorização da pasta mais próxima ou da coleção.</p>}
 
       {auth.type === 'none' && <p className="hint">Esta requisição não envia credenciais.</p>}
     </div>

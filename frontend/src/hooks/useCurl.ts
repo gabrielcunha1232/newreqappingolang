@@ -2,6 +2,7 @@ import { useCallback, useMemo, useState } from 'react';
 import { parseCurl } from '../lib/curl/parseCurl';
 import { toCurl } from '../lib/curl/toCurl';
 import { paramsFromUrl } from '../lib/query';
+import { resolveInherited } from '../lib/tree';
 import { buildHttpRequest } from '../services/httpService';
 import type { SavedRequest } from '../types';
 import type { Logger } from './useConsole';
@@ -76,7 +77,8 @@ export function useCurl({ workspace, variables, log, notify }: Deps) {
       const request = state.requests.find((r) => r.id === requestId);
       if (!request) return;
       const collection = state.collections.find((c) => c.id === request.collectionId);
-      const built = buildHttpRequest(request, collection, variables);
+      const resolved = resolveInherited(request, state.folders, collection);
+      const built = buildHttpRequest(resolved.request, resolved.collection, variables);
       if (!built.ok) {
         notify(built.error);
         return;
@@ -86,7 +88,7 @@ export function useCurl({ workspace, variables, log, notify }: Deps) {
         .then(() => notify('Copiado como cURL (bash).'))
         .catch(() => notify('Não foi possível copiar para a área de transferência.'));
     },
-    [state.requests, state.collections, variables, notify]
+    [state.requests, state.collections, state.folders, variables, notify]
   );
 
   const openDialog = useCallback(() => setDialogOpen(true), []);

@@ -118,6 +118,8 @@ function ResponsePanel() {
         loading={request.runtime.loading}
         tests={request.runtime.tests}
         scriptError={request.runtime.scriptError}
+        doc={request.active?.doc}
+        onDocChange={request.active ? (doc) => request.onChange({ doc }) : undefined}
       />
     </PanelFrame>
   );

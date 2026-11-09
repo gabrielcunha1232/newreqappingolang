@@ -3,6 +3,7 @@ import type { Endpoint } from '../../bindings/changeme/internal/models/models';
 import { downloadText } from '../lib/download';
 import { requestFromEndpoint } from '../lib/factories';
 import { logsToText } from '../lib/format';
+import { resolveInherited } from '../lib/tree';
 import type { AppSnapshot } from '../services/persistenceService';
 import { initialWorkspace } from '../state/workspaceReducer';
 import type { HistoryEntry, SavedRequest } from '../types';
@@ -43,6 +44,7 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
       if (loaded.requests.length > 0) {
         actions.hydrate({
           collections: loaded.collections,
+          folders: loaded.folders,
           requests: loaded.requests,
           openRequestIds: loaded.openRequestIds,
           activeRequestId: loaded.activeRequestId,
@@ -53,6 +55,7 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
         actions.hydrate({
           ...initialWorkspace(),
           collections: loaded.collections,
+          folders: loaded.folders,
           openDocIds: loaded.openDocIds,
           activeDocId: loaded.activeDocId,
         });
@@ -83,8 +86,9 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
   const sendActiveRequest = useCallback(() => {
     if (!activeRequest) return;
     const collection = state.collections.find((c) => c.id === activeRequest.collectionId);
-    void runner.send(activeRequest, collection, environments.variables);
-  }, [activeRequest, state.collections, runner, environments.variables]);
+    const resolved = resolveInherited(activeRequest, state.folders, collection);
+    void runner.send(resolved.request, resolved.collection, environments.variables);
+  }, [activeRequest, state.collections, state.folders, runner, environments.variables]);
 
   const copyActiveResponse = useCallback(() => {
     const body = runner.get(state.activeRequestId).response?.body ?? '';

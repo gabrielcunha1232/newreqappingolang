@@ -6,6 +6,7 @@ import { normalizeBaseUrl } from '../lib/url';
 import type {
   Collection,
   Environment,
+  Folder,
   HistoryEntry,
   KeyValue,
   PersistedState,
@@ -14,6 +15,7 @@ import type {
 
 export interface AppSnapshot {
   collections: Collection[];
+  folders: Folder[];
   requests: SavedRequest[];
   openRequestIds: string[];
   activeRequestId: string | null;
@@ -42,11 +44,17 @@ function migrateHeaders(headers: KeyValue[] | string | undefined): KeyValue[] {
 }
 
 function deserialize(state: Partial<PersistedState>): AppSnapshot {
+  const collectionIds = new Set((state.collections ?? []).map((c) => c.id));
+  const folders = (state.folders ?? []).filter((f) => collectionIds.has(f.collectionId));
+  const folderIds = new Set(folders.map((f) => f.id));
+
   // Versões anteriores guardavam os parâmetros só na tabela (fora da URL).
   const requests: SavedRequest[] = (state.requests ?? []).map((request) =>
     reconcileParams({
       id: request.id,
       collectionId: request.collectionId ?? null,
+      folderId: request.folderId && folderIds.has(request.folderId) ? request.folderId : null,
+      position: request.position,
       title: request.title ?? 'Requisição',
       method: request.method ?? 'GET',
       url: request.url ?? '',
@@ -87,6 +95,7 @@ function deserialize(state: Partial<PersistedState>): AppSnapshot {
 
   return {
     collections,
+    folders,
     requests,
     openRequestIds,
     activeRequestId,

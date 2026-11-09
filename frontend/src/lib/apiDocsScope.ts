@@ -1,5 +1,6 @@
-import type { ApiEndpoint, Collection, SavedRequest } from '../types';
+import type { ApiEndpoint, Collection, Folder, SavedRequest } from '../types';
 import { endpointFromRequest } from './apiEndpoints';
+import { resolveInherited } from './tree';
 
 /** Escopo das requisições sem coleção. */
 export const UNGROUPED_SCOPE = 'ungrouped';
@@ -25,9 +26,12 @@ export function resolveDocsScopes(openDocIds: string[], collections: Collection[
   });
 }
 
-export function endpointsForScope(scope: DocsScope, requests: SavedRequest[]): ApiEndpoint[] {
+export function endpointsForScope(scope: DocsScope, requests: SavedRequest[], folders: Folder[]): ApiEndpoint[] {
   const collectionId = scope.collection?.id ?? null;
   return requests
     .filter((r) => (r.collectionId ?? null) === collectionId)
-    .map((r) => endpointFromRequest(r, scope.collection));
+    .map((r) => {
+      const resolved = resolveInherited(r, folders, scope.collection);
+      return endpointFromRequest(resolved.request, resolved.collection);
+    });
 }

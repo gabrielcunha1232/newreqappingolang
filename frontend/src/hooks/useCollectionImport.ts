@@ -21,9 +21,9 @@ export function useCollectionImport({ workspace, environments, log, notify }: De
   const importText = useCallback(
     (content: string, origin: string) => {
       const result = importCollectionText(content, state.collections.map((c) => c.name));
-      const { collection, requests, environment, warnings } = result;
+      const { collection, requests, folders, environment, warnings } = result;
 
-      actions.importCollection(collection, requests);
+      actions.importCollection(collection, requests, folders);
       if (environment) addEnvironment(environment.name, environment.variables);
       setDialogOpen(false);
 

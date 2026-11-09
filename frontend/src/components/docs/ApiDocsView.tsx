@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { DocsFocus } from '../../hooks/useApiDocs';
 import { endpointsForScope, type DocsScope } from '../../lib/apiDocsScope';
 import { groupEndpoints, matchesEndpoint } from '../../lib/apiEndpoints';
-import type { SavedRequest } from '../../types';
+import type { Folder, SavedRequest } from '../../types';
 import { EmptyState } from '../common/EmptyState';
 import { EndpointGroup } from './EndpointGroup';
 import type { EndpointActions } from './endpointActions';
@@ -10,6 +10,7 @@ import type { EndpointActions } from './endpointActions';
 interface ApiDocsViewProps {
   scope: DocsScope;
   requests: SavedRequest[];
+  folders: Folder[];
   /** Endpoint a destacar (vindo do botão "Documentação" do editor). */
   focus: DocsFocus | null;
   endpointActions: EndpointActions;
@@ -21,10 +22,10 @@ interface ApiDocsViewProps {
  * Documentação no estilo Swagger UI de uma coleção. Funciona com qualquer
  * origem de endpoints: scanner, importação ou requisições criadas à mão.
  */
-export function ApiDocsView({ scope, requests, focus, endpointActions, onExport }: ApiDocsViewProps) {
+export function ApiDocsView({ scope, requests, folders, focus, endpointActions, onExport }: ApiDocsViewProps) {
   const [search, setSearch] = useState('');
 
-  const endpoints = useMemo(() => endpointsForScope(scope, requests), [scope, requests]);
+  const endpoints = useMemo(() => endpointsForScope(scope, requests, folders), [scope, requests, folders]);
   const focused = focus && endpoints.some((e) => e.id === focus.endpointId) ? focus : null;
 
   // Ir até um endpoint não pode esbarrar no filtro digitado antes.

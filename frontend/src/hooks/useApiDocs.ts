@@ -62,7 +62,7 @@ export function useApiDocs({ workspace, dockActions, variables, log, notify }: D
   /** Baixa a documentação da aba como OpenAPI 3 (JSON); avisos vão para o console. */
   const exportOpenApi = useCallback(
     (scope: DocsScope) => {
-      const endpoints = endpointsForScope(scope, state.requests);
+      const endpoints = endpointsForScope(scope, state.requests, state.folders);
       const { document, warnings } = buildOpenApiDocument({ title: scope.label, endpoints, variables });
       const fileName = openApiFileName(scope.label);
 
@@ -75,7 +75,7 @@ export function useApiDocs({ workspace, dockActions, variables, log, notify }: D
           : 'OpenAPI exportado.'
       );
     },
-    [state.requests, variables, log, notify]
+    [state.requests, state.folders, variables, log, notify]
   );
 
   /** Exporta direto da árvore de coleções, sem abrir a documentação. */

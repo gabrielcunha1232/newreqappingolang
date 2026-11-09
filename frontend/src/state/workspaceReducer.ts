@@ -4,10 +4,12 @@ import { newRequest, requestFromEndpoint } from '../lib/factories';
 import { generateId } from '../lib/id';
 import { applyRequestChanges, reconcileParams } from '../lib/query';
 import { collectionNameFromPath, normalizeBaseUrl } from '../lib/url';
-import type { Collection, SavedRequest } from '../types';
+import { descendantFolderIds, inheritedAuthOwner } from '../lib/tree';
+import type { Collection, Folder, RequestAuth, SavedRequest } from '../types';
 
 export interface WorkspaceState {
   collections: Collection[];
+  folders: Folder[];
   requests: SavedRequest[];
   /** Requisições abertas como abas, na ordem da barra de abas. */
   openRequestIds: string[];
@@ -24,7 +26,12 @@ export type WorkspaceAction =
   | { type: 'request/update'; id: string; changes: Partial<SavedRequest> }
   | { type: 'request/duplicate'; id: string; newId: string }
   | { type: 'request/delete'; id: string }
-  | { type: 'request/move'; id: string; collectionId: string | null }
+  | { type: 'request/move'; id: string; collectionId: string | null; folderId: string | null }
+  | { type: 'request/auth-renewed'; id: string; auth: RequestAuth }
+  | { type: 'folder/create'; folder: Folder }
+  | { type: 'folder/update'; id: string; changes: Partial<Folder> }
+  | { type: 'folder/delete'; id: string }
+  | { type: 'folder/move'; id: string; parentId: string | null }
   | { type: 'tab/open'; id: string }
   | { type: 'tab/close'; id: string }
   | { type: 'tab/activate'; id: string }
@@ -36,13 +43,14 @@ export type WorkspaceAction =
   | { type: 'collection/create'; collection: Collection }
   | { type: 'collection/update'; id: string; changes: Partial<Collection> }
   | { type: 'collection/delete'; id: string }
-  | { type: 'collection/import'; collection: Collection; requests: SavedRequest[] }
+  | { type: 'collection/import'; collection: Collection; requests: SavedRequest[]; folders: Folder[] }
   | { type: 'scanner/import'; dir: string; endpoints: Endpoint[]; baseUrl: string };
 
 export function initialWorkspace(): WorkspaceState {
   const request = newRequest();
   return {
     collections: [],
+    folders: [],
     requests: [request],
     openRequestIds: [request.id],
     activeRequestId: request.id,
@@ -181,8 +189,56 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
       return {
         ...state,
         requests: state.requests.map((r) =>
-          r.id === action.id ? { ...r, collectionId: action.collectionId } : r
+          r.id === action.id ? { ...r, collectionId: action.collectionId, folderId: action.folderId } : r
         ),
+      };
+
+    case 'request/auth-renewed': {
+      const request = state.requests.find((r) => r.id === action.id);
+      const found = request && inheritedAuthOwner(request, state.folders, state.collections);
+      if (!found) return state;
+      const { kind, id } = found.owner;
+      if (kind === 'request') {
+        return { ...state, requests: state.requests.map((r) => (r.id === id ? { ...r, auth: action.auth } : r)) };
+      }
+      if (kind === 'folder') {
+        return { ...state, folders: state.folders.map((f) => (f.id === id ? { ...f, auth: action.auth } : f)) };
+      }
+      return { ...state, collections: state.collections.map((c) => (c.id === id ? { ...c, auth: action.auth } : c)) };
+    }
+
+    case 'folder/create':
+      return {
+        ...state,
+        folders: [
+          ...state.folders.map((f) => (f.id === action.folder.parentId ? { ...f, collapsed: false } : f)),
+          action.folder,
+        ],
+        collections: state.collections.map((c) =>
+          c.id === action.folder.collectionId ? { ...c, collapsed: false } : c
+        ),
+      };
+
+    case 'folder/update':
+      return { ...state, folders: state.folders.map((f) => (f.id === action.id ? { ...f, ...action.changes } : f)) };
+
+    case 'folder/delete': {
+      const folder = state.folders.find((f) => f.id === action.id);
+      if (!folder) return state;
+      return {
+        ...state,
+        folders: state.folders
+          .filter((f) => f.id !== action.id)
+          .map((f) => (f.parentId === action.id ? { ...f, parentId: folder.parentId } : f)),
+        requests: state.requests.map((r) => (r.folderId === action.id ? { ...r, folderId: folder.parentId } : r)),
+      };
+    }
+
+    case 'folder/move':
+      if (action.parentId && descendantFolderIds(action.id, state.folders).has(action.parentId)) return state;
+      return {
+        ...state,
+        folders: state.folders.map((f) => (f.id === action.id ? { ...f, parentId: action.parentId } : f)),
       };
 
     case 'tab/open':
@@ -226,8 +282,9 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
       return {
         ...closeDocs(state, action.id),
         collections: state.collections.filter((c) => c.id !== action.id),
+        folders: state.folders.filter((f) => f.collectionId !== action.id),
         requests: state.requests.map((r) =>
-          r.collectionId === action.id ? { ...r, collectionId: null } : r
+          r.collectionId === action.id ? { ...r, collectionId: null, folderId: null } : r
         ),
       };
 
@@ -235,6 +292,7 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
       return {
         ...state,
         collections: [...state.collections, action.collection],
+        folders: [...state.folders, ...action.folders],
         requests: [...state.requests, ...action.requests],
       };
 

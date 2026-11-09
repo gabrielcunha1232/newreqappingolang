@@ -112,6 +112,7 @@ function security(request: SavedRequest): ApiSecurity | undefined {
   const { auth } = request;
   switch (auth.type) {
     case 'none':
+    case 'inherit':
       return undefined;
     case 'apikey':
       return { type: 'apikey', name: optionalText(auth.apiKeyName) };

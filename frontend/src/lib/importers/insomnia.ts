@@ -1,11 +1,9 @@
-import type { Collection, KeyValue, RequestAuth, SavedRequest } from '../../types';
+import type { Collection, Folder, KeyValue, RequestAuth, SavedRequest } from '../../types';
 import { defaultAuth, defaultOAuth2, newKeyValue, newRequest } from '../factories';
 import { generateId } from '../id';
 import { uniqueName } from '../openapi/importOpenApi';
 import { urlWithParams } from '../query';
 import { asJson, asList, isJson, text, type CollectionImport, type Json } from './common';
-
-/* Export do Insomnia (formato 4, JSON) → coleção do app. Pastas viram prefixo no título. */
 
 /** "{{ _.host }}" → "{{host}}". Tags "{% %}" não têm equivalente e ficam como estão. */
 function convertTemplate(value: unknown): string {
@@ -97,12 +95,24 @@ function convertBody(source: unknown, label: string, warn: (m: string) => void):
   return { bodyType: /json/i.test(mime) || !mime ? 'json' : 'text', body: content };
 }
 
-function convertRequest(resource: Json, title: string, collectionId: string, warn: (m: string) => void): SavedRequest {
-  const { auth, queryKey } = convertAuth(resource.authentication, title, warn);
+interface Placement {
+  collectionId: string;
+  folderId: string | null;
+  position: number;
+  canInherit: boolean;
+}
+
+function convertRequest(resource: Json, title: string, place: Placement, warn: (m: string) => void): SavedRequest {
+  const inherits = place.canInherit && !asJson(resource.authentication).type;
+  const { auth, queryKey } = inherits
+    ? { auth: { ...defaultAuth(), type: 'inherit' as const }, queryKey: undefined }
+    : convertAuth(resource.authentication, title, warn);
   const params = [...rows(resource.parameters), ...(queryKey ? [queryKey] : [])];
   const url = convertTemplate(resource.url);
   return {
-    ...newRequest(collectionId),
+    ...newRequest(place.collectionId),
+    folderId: place.folderId,
+    position: place.position,
     title,
     method: text(resource.method).toUpperCase() || 'GET',
     // A URL do Insomnia não traz a query: ela fica na lista de parâmetros.
@@ -151,26 +161,45 @@ export function importInsomnia(data: Json, existingNames: string[]): CollectionI
   const name = uniqueName(text(workspace.name) || 'Coleção do Insomnia', existingNames);
   const collection: Collection = { id: generateId(), name, collapsed: false, baseUrl: '' };
   const requests: SavedRequest[] = [];
+  const folders: Folder[] = [];
+  let position = 0;
 
   const ignored = resources.filter((r) => /^(grpc_request|websocket_request)$/.test(text(r._type))).length;
   if (ignored > 0) warnings.push(`${ignored} requisição(ões) gRPC/WebSocket não são suportadas e foram ignoradas.`);
 
-  const walk = (parentId: unknown, prefix: string) => {
+  const walk = (parentId: unknown, folderId: string | null, canInherit: boolean) => {
     const children = resources
       .filter((r) => r.parentId === parentId && (r._type === 'request' || r._type === 'request_group'))
       .sort((a, b) => Number(a.metaSortKey ?? 0) - Number(b.metaSortKey ?? 0));
     for (const child of children) {
       const label = text(child.name) || 'Requisição';
-      const title = prefix ? `${prefix} / ${label}` : label;
-      if (child._type === 'request_group') walk(child._id, title);
-      else requests.push(convertRequest(child, title, collection.id, (m) => warnings.push(m)));
+      const warn = (m: string) => warnings.push(m);
+      if (child._type === 'request_group') {
+        const groupAuth = asJson(child.authentication).type ? convertAuth(child.authentication, label, warn).auth : undefined;
+        const id = generateId();
+        folders.push({
+          id,
+          collectionId: collection.id,
+          parentId: folderId,
+          name: label,
+          collapsed: false,
+          baseUrl: '',
+          auth: groupAuth,
+          position: position++,
+        });
+        walk(child._id, id, canInherit || Boolean(groupAuth));
+      } else {
+        requests.push(
+          convertRequest(child, label, { collectionId: collection.id, folderId, position: position++, canInherit }, warn)
+        );
+      }
     }
   };
-  walk(workspace._id, '');
+  walk(workspace._id, null, false);
 
   if (resources.some((r) => r._type === 'request' && /\{%/.test(JSON.stringify(r)))) {
     warnings.push('Tags de template "{% %}" do Insomnia não têm equivalente e foram mantidas como texto.');
   }
   const variables = collectEnvironment(resources, workspace._id, warnings);
-  return { collection, requests, environment: variables.length > 0 ? { name, variables } : undefined, warnings };
+  return { collection, requests, folders, environment: variables.length > 0 ? { name, variables } : undefined, warnings };
 }

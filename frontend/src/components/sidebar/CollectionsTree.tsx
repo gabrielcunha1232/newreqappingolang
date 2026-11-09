@@ -2,12 +2,14 @@ import { useState } from 'react';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import type { WorkspaceActions } from '../../hooks/useWorkspace';
 import { methodClass, methodShort } from '../../lib/format';
-import type { Collection, SavedRequest } from '../../types';
+import { requestsInTreeOrder, treeChildren, type TreeNode } from '../../lib/tree';
+import type { Collection, Folder, SavedRequest } from '../../types';
 import { ContextMenu } from '../common/ContextMenu';
 import { Icon } from '../common/Icon';
 import { InlineInput } from '../common/InlineInput';
 import {
   CollectionMenu,
+  FolderMenu,
   RequestMenu,
   TreeBackgroundMenu,
   UngroupedMenu,
@@ -19,12 +21,13 @@ type Editing = TreeEdit | null;
 
 /** Sobre o que o menu de contexto foi aberto. */
 type MenuTarget =
-  | { kind: 'request' | 'collection'; id: string }
+  | { kind: 'request' | 'collection' | 'folder'; id: string }
   | { kind: 'ungrouped' }
   | { kind: 'background' };
 
 interface CollectionsTreeProps {
   collections: Collection[];
+  folders: Folder[];
   requests: SavedRequest[];
   activeRequestId: string | null;
   actions: WorkspaceActions;
@@ -40,7 +43,7 @@ function matches(request: SavedRequest, term: string) {
   );
 }
 
-export function CollectionsTree({ collections, requests, activeRequestId, actions, commands }: CollectionsTreeProps) {
+export function CollectionsTree({ collections, folders, requests, activeRequestId, actions, commands }: CollectionsTreeProps) {
   const [search, setSearch] = useState('');
   const [editing, setEditing] = useState<Editing>(null);
   const { menu, openAt, openBelow, close } = useContextMenu<MenuTarget>();
@@ -49,7 +52,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
   const visible = requests.filter((r) => matches(r, term));
   const orphans = visible.filter((r) => !r.collectionId);
 
-  const isEditing = (kind: 'request' | 'collection' | 'baseUrl', id: string) =>
+  const isEditing = (kind: 'request' | 'collection' | 'baseUrl' | 'folder' | 'folderBaseUrl', id: string) =>
     editing !== null && editing.kind === kind && 'id' in editing && editing.id === id;
 
   const renderRequest = (request: SavedRequest) => {
@@ -97,17 +100,97 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
     );
   };
 
+  const renderFolder = (folder: Folder) => {
+    const count = requestsInTreeOrder(folder.collectionId, folder.id, folders, visible).length;
+    if (term && count === 0) return null;
+    const expanded = !folder.collapsed || Boolean(term);
+    const children = treeChildren(folder.collectionId, folder.id, folders, visible);
+
+    return (
+      <div key={folder.id} className="tree-group">
+        <div
+          className="tree-head folder"
+          onClick={() => actions.setFolderCollapsed(folder.id, !folder.collapsed)}
+          onContextMenu={(event) => openAt(event, { kind: 'folder', id: folder.id })}
+        >
+          <Icon name="chevron" size={12} className={'tree-chevron' + (expanded ? ' open' : '')} />
+          <Icon name={expanded ? 'folder-open' : 'folder'} className="tree-folder" />
+          {isEditing('folder', folder.id) ? (
+            <InlineInput
+              className="tree-input"
+              initialValue={folder.name}
+              ariaLabel="Renomear pasta"
+              onCommit={(value) => {
+                actions.renameFolder(folder.id, value);
+                setEditing(null);
+              }}
+              onCancel={() => setEditing(null)}
+            />
+          ) : (
+            <span
+              className="tree-label"
+              title={folder.name}
+              onDoubleClick={(event) => {
+                event.stopPropagation();
+                setEditing({ kind: 'folder', id: folder.id });
+              }}
+            >
+              {folder.name}
+            </span>
+          )}
+          <span className="tree-count">{count}</span>
+          <button
+            className="tree-more"
+            onClick={(event) => openBelow(event, { kind: 'folder', id: folder.id })}
+            aria-label={`Opções da pasta ${folder.name}`}
+          >
+            ⋯
+          </button>
+        </div>
+
+        {isEditing('folderBaseUrl', folder.id) ? (
+          <InlineInput
+            className="tree-input base-url-input"
+            initialValue={folder.baseUrl}
+            placeholder="https://api.exemplo.com"
+            ariaLabel="URL base da pasta"
+            onCommit={(value) => {
+              actions.setFolderBaseUrl(folder.id, value);
+              setEditing(null);
+            }}
+            onCancel={() => setEditing(null)}
+          />
+        ) : (
+          folder.baseUrl && <div className="tree-base-url">{folder.baseUrl}</div>
+        )}
+
+        {expanded && (
+          <div className="tree-children">
+            {children.map(renderNode)}
+            {children.length === 0 && <div className="tree-empty">Pasta vazia</div>}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderNode = (node: TreeNode) => (node.kind === 'folder' ? renderFolder(node.folder) : renderRequest(node.request));
+
   const menuContext = { actions, commands, onEdit: setEditing };
 
   const renderMenu = (target: MenuTarget) => {
     switch (target.kind) {
       case 'request': {
         const request = requests.find((r) => r.id === target.id);
-        return request && <RequestMenu request={request} collections={collections} {...menuContext} />;
+        return request && <RequestMenu request={request} collections={collections} folders={folders} {...menuContext} />;
       }
       case 'collection': {
         const collection = collections.find((c) => c.id === target.id);
         return collection && <CollectionMenu collection={collection} {...menuContext} />;
+      }
+      case 'folder': {
+        const folder = folders.find((f) => f.id === target.id);
+        return folder && <FolderMenu folder={folder} folders={folders} {...menuContext} />;
       }
       case 'ungrouped':
         return <UngroupedMenu actions={actions} commands={commands} />;
@@ -156,6 +239,7 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
           const items = visible.filter((r) => r.collectionId === collection.id);
           if (term && items.length === 0) return null;
           const expanded = !collection.collapsed || Boolean(term);
+          const nodes = treeChildren(collection.id, null, folders, visible);
 
           return (
             <div key={collection.id} className="tree-group">
@@ -217,10 +301,10 @@ export function CollectionsTree({ collections, requests, activeRequestId, action
               )}
 
               {expanded && (
-                <>
-                  {items.map(renderRequest)}
-                  {items.length === 0 && <div className="tree-empty">Coleção vazia</div>}
-                </>
+                <div className="tree-children">
+                  {nodes.map(renderNode)}
+                  {nodes.length === 0 && <div className="tree-empty">Coleção vazia</div>}
+                </div>
               )}
             </div>
           );

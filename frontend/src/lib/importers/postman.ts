@@ -1,16 +1,16 @@
-import type { BodyType, Collection, KeyValue, RequestAuth, SavedRequest } from '../../types';
+import type { BodyType, Collection, Folder, KeyValue, RequestAuth, SavedRequest } from '../../types';
 import { defaultAuth, defaultOAuth2, newKeyValue, newRequest } from '../factories';
 import { generateId } from '../id';
 import { uniqueName } from '../openapi/importOpenApi';
 import { paramsFromUrl } from '../query';
 import { asJson, asList, isJson, text, type CollectionImport, type Json } from './common';
 
-/* Coleção do Postman (formato 2.0 ou 2.1) → coleção do app. Pastas viram prefixo no título. */
-
 interface WalkContext {
   collectionId: string;
   warn: (message: string) => void;
   requests: SavedRequest[];
+  folders: Folder[];
+  nextPosition: () => number;
 }
 
 /** No formato 2.1 as opções são lista de {key, value}; no 2.0, um objeto. */
@@ -125,14 +125,26 @@ function eventScript(events: unknown, listen: string): string {
   return Array.isArray(exec) ? exec.join('\n') : text(exec);
 }
 
-function convertRequest(item: Json, title: string, inherited: unknown, ctx: WalkContext): SavedRequest {
+function isQueryApiKey(auth: unknown): boolean {
+  return isJson(auth) && auth.type === 'apikey' && authOptions(auth, 'apikey').in === 'query';
+}
+
+function containerAuth(auth: unknown, label: string, warn: (m: string) => void): RequestAuth | undefined {
+  if (!isJson(auth) || !auth.type || auth.type === 'inherit' || isQueryApiKey(auth)) return undefined;
+  return convertAuth(auth, label, warn).auth;
+}
+
+function convertRequest(item: Json, title: string, folderId: string | null, inherited: unknown, ctx: WalkContext): SavedRequest {
   const source = typeof item.request === 'string' ? { url: item.request } : asJson(item.request);
   const headers = rows(source.header);
   const urlData = asJson(source.url);
 
   const ownAuth = source.auth;
   const useInherited = ownAuth === undefined || ownAuth === null || asJson(ownAuth).type === 'inherit';
-  const { auth, queryKey } = convertAuth(useInherited ? inherited : ownAuth, title, ctx.warn);
+  const { auth, queryKey } =
+    useInherited && !isQueryApiKey(inherited)
+      ? { auth: { ...defaultAuth(), type: isJson(inherited) ? ('inherit' as const) : ('none' as const) }, queryKey: undefined }
+      : convertAuth(useInherited ? inherited : ownAuth, title, ctx.warn);
 
   let url = rawUrl(source.url);
   if (queryKey) url += `${url.includes('?') ? '&' : '?'}${queryKey.key}=${queryKey.value}`;
@@ -140,6 +152,8 @@ function convertRequest(item: Json, title: string, inherited: unknown, ctx: Walk
 
   return {
     ...newRequest(ctx.collectionId),
+    folderId,
+    position: ctx.nextPosition(),
     title,
     method: text(source.method).toUpperCase() || 'GET',
     url,
@@ -153,18 +167,28 @@ function convertRequest(item: Json, title: string, inherited: unknown, ctx: Walk
   };
 }
 
-function walk(items: unknown, prefix: string, inherited: unknown, ctx: WalkContext): void {
+function walk(items: unknown, parentId: string | null, inherited: unknown, ctx: WalkContext): void {
   for (const item of asList(items)) {
     const name = text(item.name) || 'Requisição';
-    const title = prefix ? `${prefix} / ${name}` : name;
     if (Array.isArray(item.item)) {
       if (eventScript(item.event, 'prerequest') || eventScript(item.event, 'test')) {
-        ctx.warn(`Pasta "${title}": scripts de pasta não são suportados e foram ignorados.`);
+        ctx.warn(`Pasta "${name}": scripts de pasta não são suportados e foram ignorados.`);
       }
+      const id = generateId();
+      ctx.folders.push({
+        id,
+        collectionId: ctx.collectionId,
+        parentId,
+        name,
+        collapsed: false,
+        baseUrl: '',
+        auth: containerAuth(item.auth, name, ctx.warn),
+        position: ctx.nextPosition(),
+      });
       const own = asJson(item.auth).type ? item.auth : undefined;
-      walk(item.item, title, asJson(own).type === 'inherit' || !own ? inherited : own, ctx);
+      walk(item.item, id, asJson(own).type === 'inherit' || !own ? inherited : own, ctx);
     } else {
-      ctx.requests.push(convertRequest(item, title, inherited, ctx));
+      ctx.requests.push(convertRequest(item, name, parentId, inherited, ctx));
     }
   }
 }
@@ -179,18 +203,33 @@ export function importPostman(input: Json, existingNames: string[]): CollectionI
   const info = asJson(data.info);
 
   const name = uniqueName(text(info.name) || 'Coleção do Postman', existingNames);
-  const collection: Collection = { id: generateId(), name, collapsed: false, baseUrl: '' };
-  const ctx: WalkContext = { collectionId: collection.id, warn: (m) => warnings.push(m), requests: [] };
+  const warn = (message: string) => warnings.push(message);
+  const collection: Collection = {
+    id: generateId(),
+    name,
+    collapsed: false,
+    baseUrl: '',
+    auth: containerAuth(data.auth, name, warn),
+  };
+  let position = 0;
+  const ctx: WalkContext = {
+    collectionId: collection.id,
+    warn,
+    requests: [],
+    folders: [],
+    nextPosition: () => position++,
+  };
 
   if (eventScript(data.event, 'prerequest') || eventScript(data.event, 'test')) {
     warnings.push('Scripts no nível da coleção não são suportados e foram ignorados.');
   }
-  walk(data.item, '', data.auth, ctx);
+  walk(data.item, null, data.auth, ctx);
 
   const variables = rows(data.variable);
   return {
     collection,
     requests: ctx.requests,
+    folders: ctx.folders,
     environment: variables.length > 0 ? { name, variables } : undefined,
     warnings,
   };

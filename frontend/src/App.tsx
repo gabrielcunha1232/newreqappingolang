@@ -1,8 +1,9 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { AppShell } from './components/layout/AppShell';
 import { DocsTabsHost } from './components/docs/DocsTabsHost';
 import type { EndpointActions } from './components/docs/endpointActions';
 import { ApiScanner } from './components/sidebar/ApiScanner';
+import { AuthSettingsDialog, type AuthTarget } from './components/sidebar/AuthSettingsDialog';
 import { CollectionsTree } from './components/sidebar/CollectionsTree';
 import type { TreeCommands } from './components/sidebar/CollectionsTreeMenus';
 import { HistoryList } from './components/sidebar/HistoryList';
@@ -31,7 +32,7 @@ import { useRequestRunner } from './hooks/useRequestRunner';
 import { useToast } from './hooks/useToast';
 import { useWorkspace } from './hooks/useWorkspace';
 import { useWorkspaceHandlers } from './hooks/useWorkspaceHandlers';
-import type { RequestAuth, SidebarView } from './types';
+import type { SidebarView } from './types';
 
 /**
  * Composição da aplicação: liga os hooks de estado (camada de estado/serviços)
@@ -46,13 +47,9 @@ function App() {
   const logger = useConsole();
   const toast = useToast();
   const dock = useDockLayout();
-  const { updateRequest } = workspace.actions;
-  const onAuthRenewed = useCallback(
-    (requestId: string, auth: RequestAuth) => updateRequest(requestId, { auth }),
-    [updateRequest]
-  );
+  const [authTarget, setAuthTarget] = useState<AuthTarget | null>(null);
   const runner = useRequestRunner({
-    onAuthRenewed,
+    onAuthRenewed: workspace.actions.storeRenewedAuth,
     log: logger.log,
     onComplete: history.actions.add,
     onEnvironmentChanges: environments.actions.applyChanges,
@@ -91,6 +88,10 @@ function App() {
   });
 
   const { state } = workspace;
+  const authOwner =
+    authTarget?.kind === 'folder'
+      ? state.folders.find((f) => f.id === authTarget.id)
+      : state.collections.find((c) => c.id === authTarget?.id);
 
   const endpointActions = useMemo<EndpointActions>(
     () => ({ tryIt: docs.tryIt, copyCurl: curl.copyAsCurl, copyText: handlers.copyText }),
@@ -104,6 +105,7 @@ function App() {
       copyCurl: curl.copyAsCurl,
       generateCode: codeGeneration.open,
       runCollection: collectionRunner.open,
+      configureAuth: setAuthTarget,
       importCollection: collectionImport.openDialog,
       copyText: handlers.copyText,
       importSpec: openApiImport.openDialog,
@@ -131,6 +133,7 @@ function App() {
             <div className="side-view" hidden={sidebarView !== 'collections'}>
               <CollectionsTree
                 collections={state.collections}
+                folders={state.folders}
                 requests={state.requests}
                 activeRequestId={state.activeRequestId}
                 actions={workspace.actions}
@@ -186,6 +189,7 @@ function App() {
               scopes={docs.scopes}
               activeId={docs.activeId}
               requests={state.requests}
+              folders={state.folders}
               focus={docs.focus}
               endpointActions={endpointActions}
               onExportOpenApi={docs.exportOpenApi}
@@ -242,6 +246,20 @@ function App() {
           session={collectionRunner.session}
           controls={collectionRunner}
           onSaveReport={(report) => handlers.saveText('forkarsenet-runner', report)}
+        />
+      )}
+      {authTarget && authOwner && (
+        <AuthSettingsDialog
+          kind={authTarget.kind}
+          name={authOwner.name}
+          auth={authOwner.auth}
+          variables={environments.variables}
+          onClose={() => setAuthTarget(null)}
+          onChange={(auth) =>
+            authTarget.kind === 'folder'
+              ? workspace.actions.setFolderAuth(authTarget.id, auth)
+              : workspace.actions.setCollectionAuth(authTarget.id, auth)
+          }
         />
       )}
       <Toast message={toast.message} />

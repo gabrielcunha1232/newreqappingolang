@@ -41,8 +41,8 @@ export function ImportCollectionDialog({ onClose, onImport }: ImportCollectionDi
       <form className="modal-form" onSubmit={submit}>
         <div className="modal-body">
           <p className="hint">
-            Coleção Postman v2.0 ou v2.1, ou export do Insomnia no formato 4 (JSON). Pastas viram prefixo no título, e as
-            variáveis criam um novo ambiente.
+            Coleção Postman v2.0 ou v2.1, ou export do Insomnia no formato 4 (JSON). As pastas são mantidas, e as variáveis
+            criam um novo ambiente.
           </p>
 
           <label className="import-file">

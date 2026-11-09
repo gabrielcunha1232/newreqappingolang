@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
+import { folderChain, requestsInTreeOrder, resolveInherited } from '../lib/tree';
 import type { SavedRequest } from '../types';
 import type { Logger } from './useConsole';
 import type { RunResult, useRequestRunner } from './useRequestRunner';
@@ -46,11 +47,16 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
   const [session, setSession] = useState<RunnerSession | null>(null);
   const stopRequested = useRef(false);
   const { state } = workspace;
+  const latestState = useRef(state);
+  latestState.current = state;
 
   const open = useCallback(
-    (collectionId: string | null) => {
-      const requests = state.requests.filter((r) => r.collectionId === collectionId);
-      const title = state.collections.find((c) => c.id === collectionId)?.name ?? 'Sem grupo';
+    (collectionId: string | null, folderId: string | null = null) => {
+      const requests = requestsInTreeOrder(collectionId, folderId, state.folders, state.requests);
+      const title =
+        folderChain(folderId, state.folders)[0]?.name ??
+        state.collections.find((c) => c.id === collectionId)?.name ??
+        'Sem grupo';
       setSession({
         title,
         collectionId,
@@ -61,7 +67,7 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
         stopOnFailure: false,
       });
     },
-    [state.requests, state.collections]
+    [state.requests, state.collections, state.folders]
   );
 
   const stop = useCallback(() => {
@@ -90,7 +96,6 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
     if (!session || session.running) return;
     const { collectionId, delayMs, stopOnFailure, title } = session;
     const queue = session.items.filter((item) => item.selected).map((item) => item.request.id);
-    const collection = state.collections.find((c) => c.id === collectionId);
 
     const update = (requestId: string, changes: Partial<RunItem>) =>
       setSession((s) => s && { ...s, items: s.items.map((i) => (i.request.id === requestId ? { ...i, ...changes } : i)) });
@@ -119,7 +124,13 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
       const request = session.items.find((item) => item.request.id === requestId)!.request;
       update(requestId, { state: 'running' });
 
-      const result = await runner.send(request, collection, environment);
+      const current = latestState.current;
+      const resolved = resolveInherited(
+        request,
+        current.folders,
+        current.collections.find((c) => c.id === collectionId)
+      );
+      const result = await runner.send(resolved.request, resolved.collection, environment);
       environment = result.environment;
       executed++;
       const failed = runFailed(result);
@@ -132,7 +143,7 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
 
     log(passed === executed ? 'ok' : 'warn', `Runner: "${title}" terminou com ${passed} de ${executed} aprovada(s).`);
     setSession((s) => s && { ...s, running: false, finished: true });
-  }, [session, state.collections, variables, runner, log]);
+  }, [session, variables, runner, log]);
 
   return useMemo(
     () => ({ session, open, close, stop, start, toggle, setOptions }),
