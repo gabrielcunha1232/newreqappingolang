@@ -9,6 +9,7 @@ import type { TreeCommands } from './components/sidebar/CollectionsTreeMenus';
 import { HistoryList } from './components/sidebar/HistoryList';
 import { Sidebar } from './components/sidebar/Sidebar';
 import { GlobalSearchDialog } from './components/common/GlobalSearchDialog';
+import { HelpDialog } from './components/common/HelpDialog';
 import { Toast } from './components/common/Toast';
 import { Workspace } from './components/workspace/Workspace';
 import { ImportOpenApiDialog } from './components/import/ImportOpenApiDialog';
@@ -54,6 +55,7 @@ function App() {
   const dock = useDockLayout();
   const [authTarget, setAuthTarget] = useState<AuthTarget | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [helpTopic, setHelpTopic] = useState<string | null>(null);
   const secretsRef = useRef(environments.secrets);
   secretsRef.current = environments.secrets;
   const mask = useCallback((text: string) => hideSecrets(text, secretsRef.current), []);
@@ -94,7 +96,7 @@ function App() {
     log: logger.log,
     notify: toast.show,
   });
-  useKeyboardShortcuts({ ...handlers.shortcuts, globalSearch: () => setSearchOpen(true) });
+  useKeyboardShortcuts({ ...handlers.shortcuts, globalSearch: () => setSearchOpen(true), help: () => setHelpTopic('inicio') });
   const menus = useAppMenus({
     workspace,
     dock,
@@ -110,6 +112,7 @@ function App() {
     onExportBackup: dataTransfer.exportBackup,
     onRestoreBackup: dataTransfer.openRestore,
     onGlobalSearch: () => setSearchOpen(true),
+    onHelp: (topic = 'inicio') => setHelpTopic(topic),
   });
 
   const { state } = workspace;
@@ -291,6 +294,7 @@ function App() {
         <ImportCollectionDialog onClose={collectionImport.closeDialog} onImport={collectionImport.importText} />
       )}
       {searchOpen && <GlobalSearchDialog items={searchItems} onClose={() => setSearchOpen(false)} />}
+      {helpTopic && <HelpDialog initialTopic={helpTopic} onClose={() => setHelpTopic(null)} />}
       {dataTransfer.restoreOpen && (
         <RestoreBackupDialog
           onClose={dataTransfer.closeRestore}

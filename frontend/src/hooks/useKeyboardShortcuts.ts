@@ -4,6 +4,7 @@ interface Shortcuts {
   newRequest: () => void;
   closeTab: () => void;
   globalSearch: () => void;
+  help: () => void;
 }
 
 /** Ctrl+T abre uma nova requisição; Ctrl+W fecha a aba ativa. */
@@ -13,6 +14,11 @@ export function useKeyboardShortcuts(shortcuts: Shortcuts) {
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'F1' && !document.querySelector('[aria-modal="true"]')) {
+        event.preventDefault();
+        ref.current.help();
+        return;
+      }
       if (!(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
       // Com um modal aberto, os atalhos não mexem nas abas que estão por trás dele.
       if (document.querySelector('[aria-modal="true"]')) return;

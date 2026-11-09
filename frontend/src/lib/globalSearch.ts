@@ -40,7 +40,7 @@ export interface SearchSources {
 
 const KIND_ORDER: SearchKind[] = ['request', 'folder', 'collection', 'environment', 'command'];
 
-function normalize(text: string): string {
+export function normalize(text: string): string {
   return text
     .normalize('NFD')
     .replace(/[̀-ͯ]/g, '')

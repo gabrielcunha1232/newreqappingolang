@@ -24,12 +24,13 @@ interface Deps {
   onExportBackup: () => void;
   onRestoreBackup: () => void;
   onGlobalSearch: () => void;
+  onHelp: (topic?: string) => void;
 }
 
 export const GLOBAL_SEARCH_LABEL = 'Busca global';
 
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch, onHelp }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -109,10 +110,8 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
     {
       label: 'Ajuda',
       items: [
-        {
-          label: 'Atalhos de teclado',
-          onSelect: () => toast.show('Ctrl+K busca global · Ctrl+T nova aba · Ctrl+W fecha aba · Ctrl+Enter envia'),
-        },
+        { label: 'Guia de funcionalidades', shortcut: 'F1', onSelect: () => onHelp() },
+        { label: 'Atalhos de teclado', onSelect: () => onHelp('atalhos') },
         {
           label: 'Sobre o Forkarsenet',
           onSelect: () => toast.show('Forkarsenet — cliente HTTP em Go + Wails.'),

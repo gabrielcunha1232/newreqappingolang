@@ -2108,6 +2108,95 @@ input[type='checkbox'] {
   width: 84px;
 }
 
+.help {
+  display: flex;
+  height: min(70vh, 620px);
+  min-height: 0;
+}
+
+.help-nav {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  gap: 8px;
+  width: 220px;
+  padding: 12px;
+  border-right: 1px solid var(--line);
+}
+
+.help-search {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.help-topics {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.help-topic,
+.help-topic:hover {
+  padding: 6px 8px;
+  background: none;
+  border: 0;
+  color: var(--text-soft);
+  font-size: 12px;
+  text-align: left;
+}
+
+.help-topic:hover {
+  background: var(--hover);
+  color: var(--text-strong);
+}
+
+.help-topic.active {
+  background: var(--selected);
+  color: var(--text-strong);
+}
+
+.help-content {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 20px;
+  overflow: auto;
+  color: var(--text-soft);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.help-content h3 {
+  margin: 0 0 10px;
+  color: var(--text-strong);
+  font-size: 16px;
+}
+
+.help-content p {
+  margin: 0 0 10px;
+}
+
+.help-content ul {
+  margin: 0 0 10px;
+  padding-left: 18px;
+}
+
+.help-content li {
+  margin-bottom: 4px;
+}
+
+.help-code {
+  margin: 0 0 10px;
+  padding: 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--input);
+  font: 12px var(--mono);
+  overflow: auto;
+}
+
 .secret-tools {
   white-space: nowrap;
 }
