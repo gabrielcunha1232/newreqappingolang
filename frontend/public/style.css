@@ -2440,21 +2440,6 @@ input[type='checkbox'] {
   margin: 0 16px 10px;
 }
 
-.theme-import {
-  cursor: pointer;
-}
-
-.theme-import input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-}
-
-.theme-import:focus-within {
-  outline: 1px solid var(--accent);
-}
-
 .theme-foot {
   justify-content: flex-start;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent } from 'react';
 import { paintAppearance } from '../../hooks/useAppearance';
 import { downloadText } from '../../lib/download';
 import { generateId } from '../../lib/id';
@@ -54,6 +54,7 @@ export function AppearanceDialog({ settings, onSave, onClose }: AppearanceDialog
   const [draft, setDraft] = useState(settings);
   const [filter, setFilter] = useState<Filter>('all');
   const [error, setError] = useState('');
+  const fileInput = useRef<HTMLInputElement>(null);
   const active = resolveTheme(draft);
   const themes = allThemes(draft);
   const hasImported = draft.custom.length > 0;
@@ -160,12 +161,12 @@ export function AppearanceDialog({ settings, onSave, onClose }: AppearanceDialog
         )}
 
         <footer className="modal-foot theme-foot">
-          <label className="link theme-import">
-            <input type="file" accept=".json,application/json" onChange={importTheme} />
-            Importar
-          </label>
-          <button type="button" className="link" onClick={() => downloadText(themeFileName(active.name), serializeTheme(active))}>
-            Exportar
+          <input ref={fileInput} type="file" accept=".json,application/json" hidden aria-label="Arquivo de tema" onChange={importTheme} />
+          <button type="button" onClick={() => fileInput.current?.click()}>
+            Importar tema
+          </button>
+          <button type="button" onClick={() => downloadText(themeFileName(active.name), serializeTheme(active))}>
+            Exportar tema
           </button>
           <span className="theme-foot-gap" />
           <button type="button" onClick={cancel}>
