@@ -42,6 +42,7 @@ import { useWorkspace } from './hooks/useWorkspace';
 import { useWorkspaceHandlers } from './hooks/useWorkspaceHandlers';
 import { buildSearchItems } from './lib/globalSearch';
 import { hideSecrets } from './lib/secrets';
+import { resolveTheme } from './lib/themes';
 import type { AppSnapshot } from './services/persistenceService';
 import type { HistoryEntry, LogLevel, SidebarView } from './types';
 
@@ -211,6 +212,8 @@ function App() {
     <>
       <AppShell
         menus={menus}
+        themeName={resolveTheme(appearance.settings).name}
+        onOpenTheme={appearance.openDialog}
         sidebar={
           <Sidebar view={sidebarView} onViewChange={setSidebarView}>
             <div className="side-view" hidden={sidebarView !== 'collections'}>

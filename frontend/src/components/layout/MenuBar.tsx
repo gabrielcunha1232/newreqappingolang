@@ -4,9 +4,11 @@ import { ContextMenu, MenuItem, MenuSeparator, type MenuPosition } from '../comm
 
 interface MenuBarProps {
   menus: MenuDefinition[];
+  themeName: string;
+  onOpenTheme: () => void;
 }
 
-export function MenuBar({ menus }: MenuBarProps) {
+export function MenuBar({ menus, themeName, onOpenTheme }: MenuBarProps) {
   const [open, setOpen] = useState<{ index: number; position: MenuPosition } | null>(null);
 
   return (
@@ -32,8 +34,15 @@ export function MenuBar({ menus }: MenuBarProps) {
           {menu.label}
         </span>
       ))}
-      <span className="menubar-right">
-        Tema: <b>Escuro</b>　⚙
+      <span
+        role="button"
+        tabIndex={0}
+        className="menubar-right"
+        title="Trocar tema"
+        onClick={onOpenTheme}
+        onKeyDown={(event) => event.key === 'Enter' && onOpenTheme()}
+      >
+        Tema: <b>{themeName}</b>
       </span>
 
       {open && (
