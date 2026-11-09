@@ -12,9 +12,26 @@ export interface KeyValue {
   description: string;
 }
 
-export type AuthType = 'none' | 'bearer' | 'basic' | 'apikey';
+export type AuthType = 'none' | 'bearer' | 'basic' | 'apikey' | 'oauth2';
 
-export type BodyType = 'json' | 'text';
+export type BodyType = 'json' | 'text' | 'form' | 'graphql';
+
+export type OAuth2Grant = 'client_credentials' | 'authorization_code';
+
+/** Configuração e token atual do OAuth2. Os campos de texto aceitam {{variáveis}}. */
+export interface OAuth2Settings {
+  grant: OAuth2Grant;
+  tokenUrl: string;
+  authUrl: string;
+  redirectUri: string;
+  clientId: string;
+  clientSecret: string;
+  scope: string;
+  accessToken: string;
+  refreshToken: string;
+  /** Momento em que o token expira (ms desde a época); null = o servidor não informou. */
+  expiresAt: number | null;
+}
 
 export interface RequestAuth {
   type: AuthType;
@@ -23,6 +40,7 @@ export interface RequestAuth {
   password: string;
   apiKeyName: string;
   apiKeyValue: string;
+  oauth2: OAuth2Settings;
 }
 
 export interface Collection {
@@ -61,6 +79,10 @@ export interface SavedRequest {
   auth: RequestAuth;
   bodyType: BodyType;
   body: string;
+  /** Campos do corpo quando bodyType = 'form'. */
+  formFields?: KeyValue[];
+  /** Variáveis (JSON) quando bodyType = 'graphql'; a query fica em `body`. */
+  graphqlVariables?: string;
   preScript: string;
   postScript: string;
   /** Presente quando a requisição veio do scanner de código. */
@@ -123,7 +145,7 @@ export interface ApiResponseDoc {
 }
 
 export interface ApiSecurity {
-  type: Exclude<AuthType, 'none'>;
+  type: Exclude<AuthType, 'none' | 'oauth2'>;
   /** Nome do cabeçalho, para API key. */
   name?: string;
 }
@@ -156,6 +178,8 @@ export interface ApiEndpointGroup {
 /** Estado transitório de execução de uma requisição (não é persistido). */
 export interface RequestRuntime {
   response: Response | null;
+  /** Última resposta anterior a esta, para comparação. */
+  previous: Response | null;
   error: string;
   loading: boolean;
   /** Resultados do pm.test no pós-processamento; null = não houve script. */

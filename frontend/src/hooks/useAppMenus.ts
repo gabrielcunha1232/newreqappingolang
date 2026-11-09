@@ -16,12 +16,15 @@ interface Deps {
   onShowDocs: () => void;
   onImportSpec: () => void;
   onImportCurl: () => void;
+  onImportCollection: () => void;
+  /** Gera código da requisição ativa. */
+  onGenerateCode: () => void;
   /** Copia a requisição ativa como cURL. */
   onCopyCurl: () => void;
 }
 
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onCopyCurl }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -40,6 +43,7 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
         },
         { label: 'Importar OpenAPI / Swagger…', onSelect: onImportSpec },
         { label: 'Importar cURL…', onSelect: onImportCurl },
+        { label: 'Importar Postman / Insomnia…', onSelect: onImportCollection },
         'separator',
         { label: 'Fechar aba', shortcut: 'Ctrl+W', onSelect: actions.closeActiveTab },
       ],
@@ -49,6 +53,7 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
       items: [
         { label: 'Duplicar requisição', onSelect: () => activeId && actions.duplicateRequest(activeId) },
         { label: 'Copiar como cURL', onSelect: onCopyCurl },
+        { label: 'Gerar código…', onSelect: onGenerateCode },
         { label: 'Limpar console', onSelect: logger.clear },
       ],
     },

@@ -10,6 +10,7 @@ import type {
 } from '../types';
 import { HTTP_METHODS } from './factories';
 import { extractPathParams, splitBaseAndPath, tagFromPath } from './pathTemplate';
+import { bodyExample, defaultContentType } from './requestBody';
 
 /*
  * Adaptadores das fontes de endpoints para o modelo neutro ApiEndpoint.
@@ -68,7 +69,7 @@ function headerParams(request: SavedRequest, security: ApiSecurity | undefined):
 }
 
 function requestBody(request: SavedRequest): ApiRequestBody | undefined {
-  const example = request.body.trim();
+  const example = bodyExample(request).trim();
   const schema = request.doc?.requestSchema;
   if ((!example && !schema) || !METHODS_WITH_BODY.has(request.method.toUpperCase())) return undefined;
 
@@ -76,7 +77,7 @@ function requestBody(request: SavedRequest): ApiRequestBody | undefined {
     (row) => row.enabled && row.key.trim().toLowerCase() === 'content-type'
   );
   const contentType =
-    optionalText(contentTypeHeader?.value ?? '') ?? (request.bodyType === 'json' ? 'application/json' : 'text/plain');
+    optionalText(contentTypeHeader?.value ?? '') ?? defaultContentType(request);
   return { contentType, example: example || undefined, schema };
 }
 
@@ -114,6 +115,9 @@ function security(request: SavedRequest): ApiSecurity | undefined {
       return undefined;
     case 'apikey':
       return { type: 'apikey', name: optionalText(auth.apiKeyName) };
+    case 'oauth2':
+      // Na chamada, OAuth2 é um Bearer; a configuração do fluxo não é documentada.
+      return { type: 'bearer' };
     default:
       return { type: auth.type };
   }

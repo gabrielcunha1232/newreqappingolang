@@ -7,6 +7,9 @@ export interface TreeCommands {
   showDocs: (collectionId: string | null, requestId?: string) => void;
   exportOpenApi: (collectionId: string | null) => void;
   copyCurl: (requestId: string) => void;
+  generateCode: (requestId: string) => void;
+  runCollection: (collectionId: string | null) => void;
+  importCollection: () => void;
   copyText: (text: string, label: string) => void;
   importSpec: () => void;
   importCurl: () => void;
@@ -36,6 +39,7 @@ export function RequestMenu({
       <MenuItem onSelect={() => commands.showDocs(request.collectionId, request.id)}>Ver na documentação</MenuItem>
       <MenuSeparator />
       <MenuItem onSelect={() => commands.copyCurl(request.id)}>Copiar como cURL</MenuItem>
+      <MenuItem onSelect={() => commands.generateCode(request.id)}>Gerar código…</MenuItem>
       <MenuItem onSelect={() => commands.copyText(request.url, 'URL')}>Copiar URL</MenuItem>
       <MenuSeparator />
       <MenuLabel>Mover para</MenuLabel>
@@ -68,6 +72,7 @@ export function CollectionMenu({ collection, actions, commands, onEdit }: MenuCo
     <>
       <MenuLabel>{collection.name}</MenuLabel>
       <MenuItem onSelect={() => actions.createRequest(collection.id)}>Nova requisição aqui</MenuItem>
+      <MenuItem onSelect={() => commands.runCollection(collection.id)}>Executar coleção…</MenuItem>
       <MenuItem onSelect={() => commands.showDocs(collection.id)}>Ver documentação</MenuItem>
       <MenuItem onSelect={() => commands.exportOpenApi(collection.id)}>Exportar OpenAPI</MenuItem>
       <MenuSeparator />
@@ -93,6 +98,7 @@ export function UngroupedMenu({ actions, commands }: Omit<MenuContext, 'onEdit'>
     <>
       <MenuLabel>Sem grupo</MenuLabel>
       <MenuItem onSelect={() => actions.createRequest(null)}>Nova requisição aqui</MenuItem>
+      <MenuItem onSelect={() => commands.runCollection(null)}>Executar requisições…</MenuItem>
       <MenuItem onSelect={() => commands.showDocs(null)}>Ver documentação</MenuItem>
       <MenuItem onSelect={() => commands.exportOpenApi(null)}>Exportar OpenAPI</MenuItem>
     </>
@@ -118,6 +124,7 @@ export function TreeBackgroundMenu({
       <MenuSeparator />
       <MenuItem onSelect={commands.importSpec}>Importar OpenAPI / Swagger…</MenuItem>
       <MenuItem onSelect={commands.importCurl}>Importar cURL…</MenuItem>
+      <MenuItem onSelect={commands.importCollection}>Importar Postman / Insomnia…</MenuItem>
       <MenuSeparator />
       <MenuItem disabled={collections.length === 0} onSelect={() => setAllCollapsed(false)}>
         Expandir todas

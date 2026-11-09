@@ -6,9 +6,10 @@ import type { TestResult } from '../../lib/scripts/types';
 import { EmptyState } from '../common/EmptyState';
 import { DataTable } from './DataTable';
 import { JsonCode } from './JsonCode';
+import { ResponseDiff } from './ResponseDiff';
 import { TestResults } from './TestResults';
 
-type Mode = 'pretty' | 'raw' | 'preview' | 'table' | 'tests';
+type Mode = 'pretty' | 'raw' | 'preview' | 'table' | 'tests' | 'diff';
 
 const MODES: Array<{ id: Mode; label: string }> = [
   { id: 'pretty', label: 'Pretty' },
@@ -41,6 +42,8 @@ export function ResponseMeta({ response, loading, onCopy }: ResponseMetaProps) {
 
 interface ResponseViewerProps {
   response: Response | null;
+  /** Resposta da execução anterior; habilita a comparação. */
+  previous: Response | null;
   error: string;
   loading: boolean;
   /** Resultados do pós-processamento; null = a requisição não tem script. */
@@ -48,10 +51,10 @@ interface ResponseViewerProps {
   scriptError: string;
 }
 
-export function ResponseViewer({ response, error, loading, tests, scriptError }: ResponseViewerProps) {
+export function ResponseViewer({ response, previous, error, loading, tests, scriptError }: ResponseViewerProps) {
   const [selected, setSelected] = useState<Mode>('pretty');
   // Sem script de pós-processamento a aba Testes some; volta para o modo padrão.
-  const mode = selected === 'tests' && tests === null ? 'pretty' : selected;
+  const mode = (selected === 'tests' && tests === null) || (selected === 'diff' && !previous) ? 'pretty' : selected;
   const failed = tests?.filter((t) => !t.passed).length ?? 0;
 
   const body = response?.body ?? '';
@@ -77,11 +80,13 @@ export function ResponseViewer({ response, error, loading, tests, scriptError }:
   }
 
   const renderContent = () => {
-    if (!body && mode !== 'tests') return <EmptyState icon="∅" title="Corpo vazio" />;
+    if (!body && mode !== 'tests' && mode !== 'diff') return <EmptyState icon="∅" title="Corpo vazio" />;
 
     switch (mode) {
       case 'tests':
         return <TestResults tests={tests ?? []} scriptError={scriptError} />;
+      case 'diff':
+        return previous && <ResponseDiff previous={previous} current={response} />;
       case 'raw':
         return <JsonCode text={body} highlight={false} />;
       case 'preview':
@@ -119,6 +124,11 @@ export function ResponseViewer({ response, error, loading, tests, scriptError }:
             {m.label}
           </button>
         ))}
+        {previous && (
+          <button className={mode === 'diff' ? 'active' : ''} onClick={() => setSelected('diff')}>
+            Comparar
+          </button>
+        )}
         {tests !== null && (
           <button
             className={'tests-tab' + (mode === 'tests' ? ' active' : '') + (failed > 0 || scriptError ? ' failing' : ' passing')}

@@ -100,6 +100,15 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     toast.show('Logs salvos.');
   }, [logger.entries, toast]);
 
+  const saveText = useCallback(
+    (prefix: string, content: string) => {
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      downloadText(`${prefix}-${stamp}.json`, content);
+      toast.show('Relatório salvo.');
+    },
+    [toast]
+  );
+
   /** Copia para a área de transferência e confirma ("URL copiada."). */
   const copyText = useCallback(
     (text: string, label: string) => {
@@ -175,6 +184,7 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     sendActiveRequest,
     copyActiveResponse,
     saveLogs,
+    saveText,
     copyText,
     openHistoryEntry,
     openHistoryAsNew,

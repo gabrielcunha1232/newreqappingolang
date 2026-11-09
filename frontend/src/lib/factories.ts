@@ -1,5 +1,5 @@
 import type { Endpoint } from '../../bindings/changeme/internal/models/models';
-import type { Environment, KeyValue, RequestAuth, SavedRequest } from '../types';
+import type { Environment, KeyValue, OAuth2Settings, RequestAuth, SavedRequest } from '../types';
 import { sourceFromScan } from './endpointSource';
 import { generateId } from './id';
 
@@ -7,6 +7,21 @@ export const HTTP_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'HEAD', 'O
 
 export function newKeyValue(partial: Partial<KeyValue> = {}): KeyValue {
   return { id: generateId(), enabled: true, key: '', value: '', description: '', ...partial };
+}
+
+export function defaultOAuth2(): OAuth2Settings {
+  return {
+    grant: 'client_credentials',
+    tokenUrl: '',
+    authUrl: '',
+    redirectUri: 'http://localhost/callback',
+    clientId: '',
+    clientSecret: '',
+    scope: '',
+    accessToken: '',
+    refreshToken: '',
+    expiresAt: null,
+  };
 }
 
 export function defaultAuth(): RequestAuth {
@@ -17,6 +32,7 @@ export function defaultAuth(): RequestAuth {
     password: '',
     apiKeyName: 'X-API-Key',
     apiKeyValue: '',
+    oauth2: defaultOAuth2(),
   };
 }
 

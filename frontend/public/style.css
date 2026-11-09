@@ -2025,3 +2025,149 @@ input[type='checkbox'] {
     display: none;
   }
 }
+
+/* ===== GraphQL ===== */
+.graphql-editor {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.graphql-editor section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== Comparação de respostas ===== */
+.response-diff {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.diff-summary {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding: 6px 10px;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+
+.diff-lines {
+  margin: 0;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
+}
+
+.diff-line {
+  display: block;
+  padding: 0 10px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.diff-line.added {
+  background: rgba(74, 222, 128, 0.13);
+  color: #86efac;
+}
+
+.diff-line.removed {
+  background: var(--danger-bg);
+  color: var(--danger-text);
+}
+
+/* ===== Collection Runner ===== */
+.runner-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+}
+
+.runner-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+
+.runner-options input[type='number'] {
+  width: 84px;
+}
+
+.runner-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 46vh;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.runner-item {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.runner-item:last-child {
+  border-bottom: 0;
+}
+
+.runner-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.runner-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.runner-outcome.passed {
+  color: #86efac;
+}
+
+.runner-outcome.failed {
+  color: var(--danger-text);
+}
+
+.runner-detail {
+  margin: 4px 0 0 22px;
+  color: var(--danger-text);
+  word-break: break-word;
+}
+
+.runner-summary {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+/* ===== Geração de código ===== */
+.codegen-output {
+  min-height: 300px;
+  resize: vertical;
+  white-space: pre;
+}
+
+.oauth-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}

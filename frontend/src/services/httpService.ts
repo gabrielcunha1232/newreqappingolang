@@ -3,6 +3,7 @@ import { Request, type Response } from '../../bindings/changeme/internal/models/
 import { findJsonError } from '../lib/jsonBody';
 import { fillPathParams } from '../lib/pathTemplate';
 import { encodeQuery } from '../lib/query';
+import { serializeBody } from '../lib/requestBody';
 import { resolveUrl } from '../lib/url';
 import { findUnresolved, interpolate } from '../lib/variables';
 import type { Collection, RequestAuth, SavedRequest } from '../types';
@@ -26,6 +27,8 @@ function authHeaders(auth: RequestAuth, sub: (text: string) => string): Record<s
       return { Authorization: `Basic ${encodeBase64(`${sub(auth.username)}:${sub(auth.password)}`)}` };
     case 'apikey':
       return auth.apiKeyName.trim() ? { [sub(auth.apiKeyName.trim())]: sub(auth.apiKeyValue) } : {};
+    case 'oauth2':
+      return auth.oauth2.accessToken ? { Authorization: `Bearer ${auth.oauth2.accessToken}` } : {};
     default:
       return {};
   }
@@ -61,13 +64,17 @@ export function buildHttpRequest(
   }
   Object.assign(headers, authHeaders(saved.auth, sub));
 
-  const body = sub(saved.body);
+  const serialized = serializeBody(saved, sub);
+  if (serialized.error) return { ok: false, error: serialized.error };
+  const { body, unresolvedText, contentType } = serialized;
+  if (contentType && body && !Object.keys(headers).some((name) => name.toLowerCase() === 'content-type')) {
+    headers['Content-Type'] = contentType;
+  }
   const bodyWarnings: string[] = [];
+  if (saved.auth.type === 'oauth2' && !saved.auth.oauth2.accessToken) {
+    bodyWarnings.push('OAuth2 sem token: obtenha um na aba Autorização.');
+  }
   if (saved.bodyType === 'json' && body.trim()) {
-    // Como no Postman: corpo JSON leva o Content-Type, a menos que o usuário defina outro.
-    if (!Object.keys(headers).some((name) => name.toLowerCase() === 'content-type')) {
-      headers['Content-Type'] = 'application/json';
-    }
     const jsonError = findJsonError(saved.body);
     if (jsonError) {
       bodyWarnings.push(
@@ -77,7 +84,7 @@ export function buildHttpRequest(
   }
   // Checa a URL antes da codificação ("{{" vira "%7B%7B" depois dela).
   const warnings = findUnresolved(
-    [resolved, body, ...Object.keys(headers), ...Object.values(headers)].join('\n'),
+    [resolved, unresolvedText, ...Object.keys(headers), ...Object.values(headers)].join('\n'),
     vars
   )
     .map((name) => `Variável {{${name}}} não definida no ambiente ativo.`)

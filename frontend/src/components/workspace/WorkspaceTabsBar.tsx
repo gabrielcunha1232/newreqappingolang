@@ -15,6 +15,7 @@ export interface RequestTabsProps {
   onAdd: () => void;
   onDuplicate: (id: string) => void;
   onCopyCurl: (id: string) => void;
+  onGenerateCode: (id: string) => void;
   onShowDocs: (request: SavedRequest) => void;
 }
 

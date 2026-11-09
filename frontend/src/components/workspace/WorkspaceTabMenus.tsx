@@ -28,6 +28,7 @@ export function RequestTabMenu({ tab, tabs }: { tab: SavedRequest; tabs: Request
       <MenuSeparator />
       <MenuItem onSelect={() => tabs.onDuplicate(tab.id)}>Duplicar</MenuItem>
       <MenuItem onSelect={() => tabs.onCopyCurl(tab.id)}>Copiar como cURL</MenuItem>
+      <MenuItem onSelect={() => tabs.onGenerateCode(tab.id)}>Gerar código…</MenuItem>
       <MenuItem onSelect={() => tabs.onShowDocs(tab)}>Ver na documentação</MenuItem>
     </>
   );

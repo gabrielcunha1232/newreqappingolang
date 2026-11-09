@@ -56,6 +56,8 @@ function deserialize(state: Partial<PersistedState>): AppSnapshot {
       auth: { ...defaultAuth(), ...request.auth },
       bodyType: request.bodyType ?? 'json',
       body: request.body ?? '',
+      formFields: request.formFields,
+      graphqlVariables: request.graphqlVariables,
       preScript: request.preScript ?? '',
       postScript: request.postScript ?? '',
       source: request.source,

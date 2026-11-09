@@ -11,11 +11,12 @@ import {
 import type { ScriptLog, ScriptOutput, TestResult } from '../lib/scripts/types';
 import { maskHeaderValue } from '../lib/secrets';
 import { buildHttpRequest, sendHttpRequest } from '../services/httpService';
+import { renewTokenIfNeeded } from '../services/oauthService';
 import { executeScript } from '../services/scriptService';
-import type { Collection, HistoryEntry, LogLevel, RequestRuntime, SavedRequest } from '../types';
+import type { Collection, HistoryEntry, LogLevel, RequestAuth, RequestRuntime, SavedRequest } from '../types';
 import type { Logger } from './useConsole';
 
-const IDLE: RequestRuntime = { response: null, error: '', loading: false, tests: null, scriptError: '' };
+const IDLE: RequestRuntime = { response: null, previous: null, error: '', loading: false, tests: null, scriptError: '' };
 
 const SCRIPT_LOG_LEVEL: Record<ScriptLog['level'], LogLevel> = { info: 'info', warn: 'warn', error: 'error' };
 
@@ -25,6 +26,8 @@ export interface RunResult {
   timeSpent: number | null;
   error: string;
   tests: TestResult[];
+  /** Erro que interrompeu o script de pós-processamento. */
+  scriptError: string;
   /** Variáveis do ambiente depois dos scripts (para a próxima requisição de uma sequência). */
   environment: Record<string, string>;
 }
@@ -34,13 +37,15 @@ interface RunnerDeps {
   onComplete: (entry: Omit<HistoryEntry, 'id' | 'timestamp'>) => void;
   /** Grava no ambiente ativo o que os scripts mudaram; false = não há ambiente ativo. */
   onEnvironmentChanges: (changes: Record<string, string | null>) => boolean;
+  /** Grava na requisição o token OAuth2 renovado no envio. */
+  onAuthRenewed: (requestId: string, auth: RequestAuth) => void;
 }
 
 /**
  * Executa requisições: pré-processamento → montagem → envio → pós-processamento.
  * Guarda resposta, erro, carregamento e testes por requisição.
  */
-export function useRequestRunner({ log, onComplete, onEnvironmentChanges }: RunnerDeps) {
+export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuthRenewed }: RunnerDeps) {
   const [runtime, setRuntime] = useState<Record<string, RequestRuntime>>({});
 
   const patch = useCallback((id: string, changes: Partial<RequestRuntime>) => {
@@ -78,6 +83,7 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges }: Runn
         timeSpent: null,
         error: '',
         tests: [],
+        scriptError: '',
         environment,
         ...changes,
       });
@@ -96,7 +102,21 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges }: Runn
         }
       };
 
-      patch(saved.id, { error: '', response: null, loading: true, tests: null, scriptError: '' });
+      setRuntime((prev) => {
+        const current = prev[saved.id] ?? IDLE;
+        return {
+          ...prev,
+          [saved.id]: {
+            ...current,
+            error: '',
+            response: null,
+            previous: current.response ?? current.previous,
+            loading: true,
+            tests: null,
+            scriptError: '',
+          },
+        };
+      });
 
       /* 1. Pré-processamento: pode mudar a requisição e as variáveis antes da montagem. */
       if (saved.preScript.trim()) {
@@ -112,6 +132,21 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges }: Runn
         applyEnvironment(output.environmentChanges);
         locals = output.variables;
         effective = applyScriptRequest(saved, output.request);
+      }
+
+      /* OAuth2: renova o token vencido antes de montar o cabeçalho. */
+      if (effective.auth.type === 'oauth2') {
+        try {
+          const renewed = await renewTokenIfNeeded(effective.auth.oauth2, { ...environment, ...locals });
+          if (renewed) {
+            const auth = { ...effective.auth, oauth2: { ...effective.auth.oauth2, ...renewed } };
+            effective = { ...effective, auth };
+            onAuthRenewed(saved.id, auth);
+            log('ok', 'OAuth2: token renovado.');
+          }
+        } catch (err) {
+          return fail(`Falha ao obter o token OAuth2: ${err instanceof Error ? err.message : String(err)}`);
+        }
       }
 
       /* 2. Montagem: variáveis locais (pm.variables) têm prioridade sobre as do ambiente. */
@@ -143,6 +178,7 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges }: Runn
 
       /* 4. Pós-processamento: testes e variáveis extraídas da resposta. */
       let tests: TestResult[] = [];
+      let scriptError = '';
       if (saved.postScript.trim()) {
         const output = await executeScript({
           phase: 'post',
@@ -158,14 +194,14 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges }: Runn
         tests.forEach((test) =>
           log(test.passed ? 'ok' : 'error', `Teste ${test.passed ? '✓' : '✗'} ${test.name}${test.error ? ` — ${test.error}` : ''}`)
         );
-        const scriptError = output.error ? `Erro no script de pós-processamento: ${output.error}` : '';
+        scriptError = output.error ? `Erro no script de pós-processamento: ${output.error}` : '';
         if (scriptError) log('error', scriptError);
         patch(saved.id, { tests, scriptError });
       }
 
-      return result({ status: response.status_code, timeSpent: response.time_spent, tests });
+      return result({ status: response.status_code, timeSpent: response.time_spent, tests, scriptError });
     },
-    [log, onComplete, onEnvironmentChanges, patch, reportScript, logRequest]
+    [log, onComplete, onEnvironmentChanges, onAuthRenewed, patch, reportScript, logRequest]
   );
 
   const get = useCallback((id: string | null) => (id && runtime[id]) || IDLE, [runtime]);

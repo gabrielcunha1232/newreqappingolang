@@ -1,8 +1,10 @@
 import { useMemo } from 'react';
 import { findJsonError, formatJsonBody } from '../../lib/jsonBody';
 import { extractPathParams, splitBaseAndPath } from '../../lib/pathTemplate';
+import { variablesToMap } from '../../lib/variables';
 import type { BodyType, RequestPart, SavedRequest } from '../../types';
 import { CodeEditor } from '../editor/CodeEditor';
+import { useWorkbench } from '../workspace/WorkbenchContext';
 import { AuthEditor } from './AuthEditor';
 import { KeyValueTable } from './KeyValueTable';
 import { PathVariablesTable } from './PathVariablesTable';
@@ -49,7 +51,9 @@ export function ParamsPart({ request, onChange }: RequestPartProps) {
 }
 
 export function AuthPart({ request, onChange }: RequestPartProps) {
-  return <AuthEditor auth={request.auth} onChange={(auth) => onChange({ auth })} />;
+  const { environment } = useWorkbench();
+  const variables = useMemo(() => variablesToMap(environment.active?.variables ?? []), [environment.active]);
+  return <AuthEditor auth={request.auth} variables={variables} onChange={(auth) => onChange({ auth })} />;
 }
 
 export function HeadersPart({ request, onChange }: RequestPartProps) {
@@ -69,6 +73,19 @@ const BODY_PLACEHOLDER = `{
   "token": "{{token}}"
 }`;
 
+const BODY_TYPES: Array<{ id: BodyType; label: string }> = [
+  { id: 'json', label: 'JSON' },
+  { id: 'text', label: 'Texto' },
+  { id: 'form', label: 'Form' },
+  { id: 'graphql', label: 'GraphQL' },
+];
+
+const GRAPHQL_PLACEHOLDER = `query Usuario($id: ID!) {
+  usuario(id: $id) {
+    nome
+  }
+}`;
+
 export function BodyPart({ request, onChange, variableNames }: RequestPartProps) {
   const isJson = request.bodyType === 'json';
   const error = isJson ? findJsonError(request.body) : null;
@@ -83,16 +100,16 @@ export function BodyPart({ request, onChange, variableNames }: RequestPartProps)
     <div className="body-editor">
       <div className="body-toolbar">
         <div className="segmented" role="radiogroup" aria-label="Tipo do corpo">
-          {(['json', 'text'] as BodyType[]).map((type) => (
+          {BODY_TYPES.map(({ id, label }) => (
             <button
-              key={type}
+              key={id}
               type="button"
               role="radio"
-              aria-checked={request.bodyType === type}
-              className={request.bodyType === type ? 'active' : ''}
-              onClick={() => onChange({ bodyType: type })}
+              aria-checked={request.bodyType === id}
+              className={request.bodyType === id ? 'active' : ''}
+              onClick={() => onChange({ bodyType: id })}
             >
-              {type === 'json' ? 'JSON' : 'Texto'}
+              {label}
             </button>
           ))}
         </div>
@@ -115,15 +132,56 @@ export function BodyPart({ request, onChange, variableNames }: RequestPartProps)
         )}
       </div>
 
-      <CodeEditor
-        value={request.body}
-        onChange={(body) => onChange({ body })}
-        language={isJson ? 'json' : 'text'}
-        variableNames={variableNames}
-        placeholder={isJson ? BODY_PLACEHOLDER : 'Corpo da requisição'}
-        ariaLabel="Corpo da requisição"
-        onFormat={() => reformat(2)}
-      />
+      {request.bodyType === 'form' && (
+        <KeyValueTable
+          rows={request.formFields ?? []}
+          onChange={(formFields) => onChange({ formFields })}
+          addLabel="Adicionar campo"
+          keyPlaceholder="campo"
+          valuePlaceholder="valor"
+        />
+      )}
+
+      {request.bodyType === 'graphql' && (
+        <div className="graphql-editor">
+          <section>
+            <h4 className="part-heading">Query</h4>
+            <CodeEditor
+              key="graphql-query"
+              value={request.body}
+              onChange={(body) => onChange({ body })}
+              language="text"
+              variableNames={variableNames}
+              placeholder={GRAPHQL_PLACEHOLDER}
+              ariaLabel="Query GraphQL"
+            />
+          </section>
+          <section>
+            <h4 className="part-heading">Variáveis (JSON)</h4>
+            <CodeEditor
+              key="graphql-variables"
+              value={request.graphqlVariables ?? ''}
+              onChange={(graphqlVariables) => onChange({ graphqlVariables })}
+              language="json"
+              variableNames={variableNames}
+              placeholder={'{ "id": "1" }'}
+              ariaLabel="Variáveis GraphQL"
+            />
+          </section>
+        </div>
+      )}
+
+      {(isJson || request.bodyType === 'text') && (
+        <CodeEditor
+          value={request.body}
+          onChange={(body) => onChange({ body })}
+          language={isJson ? 'json' : 'text'}
+          variableNames={variableNames}
+          placeholder={isJson ? BODY_PLACEHOLDER : 'Corpo da requisição'}
+          ariaLabel="Corpo da requisição"
+          onFormat={() => reformat(2)}
+        />
+      )}
 
       {isJson && (
         <p className="hint body-hint">

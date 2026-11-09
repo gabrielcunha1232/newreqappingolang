@@ -1,18 +1,22 @@
 import type { AuthType, RequestAuth } from '../../types';
+import { OAuth2Editor } from './OAuth2Editor';
 
 const AUTH_TYPES: Array<{ value: AuthType; label: string }> = [
   { value: 'bearer', label: 'Bearer Token' },
   { value: 'basic', label: 'Basic Auth' },
   { value: 'apikey', label: 'API Key' },
+  { value: 'oauth2', label: 'OAuth 2.0' },
   { value: 'none', label: 'Sem autenticação' },
 ];
 
 interface AuthEditorProps {
   auth: RequestAuth;
   onChange: (auth: RequestAuth) => void;
+  /** Variáveis do ambiente ativo, usadas ao pedir o token OAuth2. */
+  variables: Record<string, string>;
 }
 
-export function AuthEditor({ auth, onChange }: AuthEditorProps) {
+export function AuthEditor({ auth, onChange, variables }: AuthEditorProps) {
   const set = (changes: Partial<RequestAuth>) => onChange({ ...auth, ...changes });
 
   return (
@@ -70,6 +74,10 @@ export function AuthEditor({ auth, onChange }: AuthEditorProps) {
             onChange={(event) => set({ apiKeyValue: event.target.value })}
           />
         </>
+      )}
+
+      {auth.type === 'oauth2' && (
+        <OAuth2Editor settings={auth.oauth2} variables={variables} onChange={(oauth2) => set({ oauth2 })} />
       )}
 
       {auth.type === 'none' && <p className="hint">Esta requisição não envia credenciais.</p>}

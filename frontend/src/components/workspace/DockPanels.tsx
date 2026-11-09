@@ -112,6 +112,7 @@ function ResponsePanel() {
   return (
     <PanelFrame>
       <ResponseViewer
+        previous={request.runtime.previous}
         response={request.runtime.response}
         error={request.runtime.error}
         loading={request.runtime.loading}

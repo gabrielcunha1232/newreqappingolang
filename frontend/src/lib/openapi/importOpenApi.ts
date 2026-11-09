@@ -84,7 +84,7 @@ function pickContentType(types: string[]): string | undefined {
   return types.find(isJsonType) ?? types[0];
 }
 
-function uniqueName(name: string, existing: string[]): string {
+export function uniqueName(name: string, existing: string[]): string {
   const taken = new Set(existing.map((n) => n.toLowerCase()));
   if (!taken.has(name.toLowerCase())) return name;
   for (let n = 2; ; n++) {

@@ -77,8 +77,10 @@ func (b *BaseParser) extractEndpointsFromFile(filePath string) ([]models.Endpoin
 
 	var endpoints []models.Endpoint
 
+	groups := collectGroups(fileAst)
+
 	ast.Inspect(fileAst, func(n ast.Node) bool {
-		if endpoint, ok := b.inspectNode(n, filePath); ok {
+		if endpoint, ok := b.inspectNode(n, filePath, groups); ok {
 			endpoints = append(endpoints, endpoint)
 		}
 		return true
@@ -87,7 +89,7 @@ func (b *BaseParser) extractEndpointsFromFile(filePath string) ([]models.Endpoin
 	return endpoints, nil
 }
 
-func (b *BaseParser) inspectNode(n ast.Node, sourceFile string) (models.Endpoint, bool) {
+func (b *BaseParser) inspectNode(n ast.Node, sourceFile string, groups map[string]nodeGroup) (models.Endpoint, bool) {
 	callExpr, ok := n.(*ast.CallExpr)
 	if !ok {
 		return models.Endpoint{}, false
@@ -103,10 +105,19 @@ func (b *BaseParser) inspectNode(n ast.Node, sourceFile string) (models.Endpoint
 		return models.Endpoint{}, false
 	}
 
+	ident, ok := selector.X.(*ast.Ident)
+	var prefixoTotal string
+	if ok {
+		prefixoTotal = resolvePrefix(ident.Name, groups)
+	}
+
+
 	if basicLit, ok := callExpr.Args[0].(*ast.BasicLit); ok && basicLit.Kind == token.STRING {
+		rotaAtual := strings.Trim(basicLit.Value, "\"`")
+
 		return models.Endpoint{
 			Method: verboHttp,
-			Path: strings.Trim(basicLit.Value, "\"`"),
+			Path: prefixoTotal + rotaAtual,
 			SourceFile: sourceFile,
 		}, true
 	}

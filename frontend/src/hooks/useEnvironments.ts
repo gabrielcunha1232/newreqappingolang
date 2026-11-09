@@ -23,6 +23,13 @@ export function useEnvironments() {
     setActiveId(env.id);
   }, []);
 
+  /** Ambiente que veio numa importação: passa a ser o ativo, para a coleção funcionar de imediato. */
+  const add = useCallback((name: string, variables: KeyValue[]) => {
+    const env: Environment = { id: generateId(), name, variables };
+    setEnvironments((prev) => [...prev, env]);
+    setActiveId(env.id);
+  }, []);
+
   const rename = useCallback((id: string, name: string) => {
     const trimmed = name.trim();
     if (!trimmed) return;
@@ -55,7 +62,7 @@ export function useEnvironments() {
     activeId,
     active,
     variables,
-    actions: { hydrate, select: setActiveId, create, rename, remove, setVariables, applyChanges },
+    actions: { hydrate, select: setActiveId, create, add, rename, remove, setVariables, applyChanges },
   };
 }
 
