@@ -1,5 +1,6 @@
 import type { Response } from '../bindings/changeme/internal/models/models';
 import type { TestResult } from './lib/scripts/types';
+import type { AppearanceSettings } from './lib/themes';
 
 /* ===== Domínio ===== */
 
@@ -278,4 +279,5 @@ export interface PersistedState {
   activeEnvironmentId?: string | null;
   history?: HistoryEntry[];
   responses?: Record<string, StoredResponse>;
+  appearance?: AppearanceSettings;
 }

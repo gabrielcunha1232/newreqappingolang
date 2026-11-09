@@ -2080,8 +2080,8 @@ input[type='checkbox'] {
 }
 
 .diff-line.added {
-  background: rgba(74, 222, 128, 0.13);
-  color: #86efac;
+  background: color-mix(in srgb, var(--green) 13%, transparent);
+  color: var(--green);
 }
 
 .diff-line.removed {
@@ -2255,6 +2255,91 @@ input[type='checkbox'] {
   min-width: 0;
   font-size: 12px;
   overflow-wrap: anywhere;
+}
+
+.theme-groups {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 52vh;
+  overflow: auto;
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.theme-card-wrap {
+  position: relative;
+}
+
+.theme-card-wrap .row-remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+}
+
+.theme-card,
+.theme-card:hover {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  padding: 7px;
+  background: var(--surface);
+  text-align: left;
+}
+
+.theme-card:hover {
+  border-color: var(--line-strong);
+}
+
+.theme-card.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.theme-preview {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 34px;
+  padding: 6px;
+  border: 1px solid;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+.theme-preview span {
+  flex: 1;
+  height: 100%;
+  border-radius: 2px;
+}
+
+.theme-name {
+  font-size: 12px;
+}
+
+.theme-import input {
+  display: none;
+}
+
+.theme-import span {
+  padding: 7px 11px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: linear-gradient(var(--surface-3), var(--surface-2));
+  cursor: pointer;
+}
+
+.theme-import input:focus-visible + span {
+  border-color: var(--accent);
+}
+
+.runner-options .spacer {
+  flex: 1;
 }
 
 .help {
@@ -2496,7 +2581,7 @@ input[type='checkbox'] {
 }
 
 .runner-outcome.passed {
-  color: #86efac;
+  color: var(--green);
 }
 
 .runner-outcome.failed {

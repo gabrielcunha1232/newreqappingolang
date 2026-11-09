@@ -26,12 +26,13 @@ interface Deps {
   onGlobalSearch: () => void;
   onHelp: (topic?: string) => void;
   onCompareEnvironments: () => void;
+  onAppearance: () => void;
 }
 
 export const GLOBAL_SEARCH_LABEL = 'Busca global';
 
 /** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch, onHelp, onCompareEnvironments }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch, onHelp, onCompareEnvironments, onAppearance }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -72,6 +73,8 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
     {
       label: 'Visualizar',
       items: [
+        { label: 'Tema…', onSelect: onAppearance },
+        'separator',
         ...MAIN_PANELS.map(
           (id): MenuEntry => ({
             label: `Painel ${PANEL_TITLES[id]}`,

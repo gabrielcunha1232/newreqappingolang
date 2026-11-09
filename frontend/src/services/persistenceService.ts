@@ -2,6 +2,7 @@ import { Load, Save } from '../../bindings/changeme/collectionservice';
 import { UNGROUPED_SCOPE } from '../lib/apiDocsScope';
 import { defaultAuth, newKeyValue } from '../lib/factories';
 import { reconcileParams } from '../lib/query';
+import { sanitizeAppearance, type AppearanceSettings } from '../lib/themes';
 import { normalizeBaseUrl } from '../lib/url';
 import type {
   Collection,
@@ -26,6 +27,7 @@ export interface AppSnapshot {
   activeEnvironmentId: string | null;
   history: HistoryEntry[];
   responses: Record<string, StoredResponse>;
+  appearance?: AppearanceSettings;
 }
 
 /** Arquivos antigos guardavam os cabeçalhos como objeto JSON em string. */
@@ -108,6 +110,7 @@ export function deserialize(state: Partial<PersistedState>): AppSnapshot {
     activeEnvironmentId: state.activeEnvironmentId ?? null,
     history: state.history ?? [],
     responses: Object.fromEntries(Object.entries(state.responses ?? {}).filter(([id]) => ids.has(id))),
+    appearance: sanitizeAppearance(state.appearance),
   };
 }
 

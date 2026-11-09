@@ -49,8 +49,8 @@ const theme = EditorView.theme(
       border: 'none',
       borderRight: '1px solid var(--line)',
     },
-    '.cm-activeLine': { backgroundColor: 'rgba(255, 255, 255, 0.03)' },
-    '.cm-activeLineGutter': { backgroundColor: 'rgba(255, 255, 255, 0.05)', color: 'var(--text-soft)' },
+    '.cm-activeLine': { backgroundColor: 'color-mix(in srgb, var(--text) 4%, transparent)' },
+    '.cm-activeLineGutter': { backgroundColor: 'color-mix(in srgb, var(--text) 6%, transparent)', color: 'var(--text-soft)' },
     '&.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground, .cm-selectionBackground':
       { backgroundColor: 'var(--accent-alpha)' },
     '.cm-matchingBracket': { backgroundColor: 'var(--surface-3)', outline: '1px solid var(--line-strong)' },
@@ -73,7 +73,7 @@ const theme = EditorView.theme(
     '.cm-panels': { backgroundColor: 'var(--surface-2)', color: 'var(--text)' },
     '.cm-panels input, .cm-panels button': { fontSize: '12px' },
     '.cm-foldPlaceholder': { backgroundColor: 'var(--surface-3)', border: 'none', color: 'var(--muted)' },
-    '.cm-var': { color: 'var(--blue)', backgroundColor: 'rgba(96, 165, 250, 0.12)', borderRadius: '3px' },
+    '.cm-var': { color: 'var(--blue)', backgroundColor: 'color-mix(in srgb, var(--blue) 12%, transparent)', borderRadius: '3px' },
     '.cm-var-missing': {
       color: 'var(--red)',
       textDecoration: 'underline dotted var(--red)',

@@ -8,6 +8,7 @@ import { CollectionsTree } from './components/sidebar/CollectionsTree';
 import type { TreeCommands } from './components/sidebar/CollectionsTreeMenus';
 import { HistoryList } from './components/sidebar/HistoryList';
 import { Sidebar } from './components/sidebar/Sidebar';
+import { AppearanceDialog } from './components/common/AppearanceDialog';
 import { GlobalSearchDialog } from './components/common/GlobalSearchDialog';
 import { HelpDialog } from './components/common/HelpDialog';
 import { Toast } from './components/common/Toast';
@@ -20,6 +21,7 @@ import { CollectionRunnerDialog } from './components/runner/CollectionRunnerDial
 import { GenerateCodeDialog } from './components/request/GenerateCodeDialog';
 import { CompareEnvironmentsDialog } from './components/request/CompareEnvironmentsDialog';
 import { useApiDocs } from './hooks/useApiDocs';
+import { useAppearance } from './hooks/useAppearance';
 import { GLOBAL_SEARCH_LABEL, useAppMenus } from './hooks/useAppMenus';
 import { useConsole } from './hooks/useConsole';
 import { useCodeGeneration } from './hooks/useCodeGeneration';
@@ -40,6 +42,7 @@ import { useWorkspace } from './hooks/useWorkspace';
 import { useWorkspaceHandlers } from './hooks/useWorkspaceHandlers';
 import { buildSearchItems } from './lib/globalSearch';
 import { hideSecrets } from './lib/secrets';
+import type { AppSnapshot } from './services/persistenceService';
 import type { HistoryEntry, LogLevel, SidebarView } from './types';
 
 /**
@@ -56,6 +59,8 @@ function App() {
   const toast = useToast();
   const dock = useDockLayout();
   const [authTarget, setAuthTarget] = useState<AuthTarget | null>(null);
+  const appearance = useAppearance();
+  const { setSettings: setAppearance } = appearance;
   const [searchOpen, setSearchOpen] = useState(false);
   const [helpTopic, setHelpTopic] = useState<string | null>(null);
   const secretsRef = useRef(environments.secrets);
@@ -92,10 +97,22 @@ function App() {
   const collectionRunner = useCollectionRunner({ workspace, variables: environments.variables, runner, log: logMasked });
 
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
-  usePersistence(handlers.snapshot, handlers.hydrate);
+  const snapshot = useMemo<AppSnapshot>(
+    () => ({ ...handlers.snapshot, appearance: appearance.settings }),
+    [handlers.snapshot, appearance.settings]
+  );
+  const hydrateHandlers = handlers.hydrate;
+  const hydrate = useCallback(
+    (loaded: AppSnapshot) => {
+      hydrateHandlers(loaded);
+      if (loaded.appearance) setAppearance(loaded.appearance);
+    },
+    [hydrateHandlers, setAppearance]
+  );
+  usePersistence(snapshot, hydrate);
   const dataTransfer = useDataTransfer({
-    snapshot: handlers.snapshot,
-    hydrate: handlers.hydrate,
+    snapshot,
+    hydrate,
     log: logger.log,
     notify: toast.show,
   });
@@ -117,6 +134,7 @@ function App() {
     onGlobalSearch: () => setSearchOpen(true),
     onHelp: (topic = 'inicio') => setHelpTopic(topic),
     onCompareEnvironments: () => environmentCompare.open(workspace.state.activeRequestId),
+    onAppearance: appearance.openDialog,
   });
 
   const { state } = workspace;
@@ -308,6 +326,9 @@ function App() {
           onRun={environmentCompare.run}
           onClose={environmentCompare.close}
         />
+      )}
+      {appearance.dialogOpen && (
+        <AppearanceDialog settings={appearance.settings} onSave={setAppearance} onClose={appearance.closeDialog} />
       )}
       {helpTopic && <HelpDialog initialTopic={helpTopic} onClose={() => setHelpTopic(null)} />}
       {dataTransfer.restoreOpen && (
