@@ -19,6 +19,9 @@ interface Deps {
   onGenerateCode: () => void;
   onCopyCurl: () => void;
   onExportBackup: () => void;
+  onExportBackupWithSecrets: () => void;
+  onSecurity: () => void;
+  vaultEnabled: boolean;
   onRestoreBackup: () => void;
   onGlobalSearch: () => void;
   onHelp: (topic?: string) => void;
@@ -28,7 +31,7 @@ interface Deps {
 
 export const GLOBAL_SEARCH_LABEL = 'Busca global';
 
-export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch, onHelp, onCompareEnvironments, onAppearance }: Deps): MenuDefinition[] {
+export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onExportBackupWithSecrets, onSecurity, vaultEnabled, onRestoreBackup, onGlobalSearch, onHelp, onCompareEnvironments, onAppearance }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;
 
@@ -49,8 +52,14 @@ export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onS
         { label: 'Importar cURL…', onSelect: onImportCurl },
         { label: 'Importar Postman / Insomnia…', onSelect: onImportCollection },
         'separator',
-        { label: 'Fazer backup', onSelect: onExportBackup },
+        { label: 'Fazer backup (sem segredos)', onSelect: onExportBackup },
+        {
+          label: vaultEnabled ? 'Fazer backup com segredos (criptografado)' : 'Fazer backup com segredos (texto puro)',
+          onSelect: onExportBackupWithSecrets,
+        },
         { label: 'Restaurar backup…', onSelect: onRestoreBackup },
+        'separator',
+        { label: 'Segurança e senha mestra…', onSelect: onSecurity },
         'separator',
         { label: 'Fechar aba', shortcut: 'Ctrl+W', onSelect: actions.closeActiveTab },
       ],

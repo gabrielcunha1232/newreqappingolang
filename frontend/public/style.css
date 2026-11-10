@@ -2813,3 +2813,91 @@ input[type='checkbox'] {
 .tree-head.folder + .tree-base-url {
   margin-left: 42px;
 }
+
+.vault-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vault-section + .vault-section {
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.vault-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.vault-head h3 {
+  margin: 0;
+  font-size: 13px;
+}
+
+.vault-status {
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: var(--surface-3);
+  color: var(--muted);
+}
+
+.vault-status.on {
+  color: var(--green);
+}
+
+.vault-modes {
+  display: flex;
+  gap: 6px;
+}
+
+.vault-modes button.active {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.vault-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vault-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.vault-field > span {
+  font-size: 12px;
+  color: var(--text-soft);
+}
+
+.vault-warn {
+  font-size: 11px;
+  color: var(--amber);
+}
+
+.vault-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+button.danger {
+  color: var(--red);
+  border-color: var(--red);
+}
+
+button.link-button {
+  margin-right: auto;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+button.link-button:hover {
+  color: var(--text);
+}

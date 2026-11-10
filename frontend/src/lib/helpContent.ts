@@ -47,6 +47,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         'Com Herdar, vale a primeira pasta configurada subindo a árvore e, por último, a coleção.',
         'OAuth 2.0 aceita client credentials e authorization code com PKCE.',
         'Um token vencido é renovado no envio, e um token herdado é guardado na pasta ou coleção dona dele.',
+        'Por padrão, o token de acesso não é salvo no disco: ao reabrir o app, ele é obtido de novo pelo refresh token ou por client credentials.',
       ] },
     ],
   },
@@ -72,7 +73,7 @@ export const HELP_TOPICS: HelpTopic[] = [
       { items: [
         'Console, histórico, erros, cURL, código gerado e OpenAPI mostram {{nome}} no lugar do valor.',
         'Por isso, um cURL copiado com variável secreta precisa do valor antes de rodar no terminal.',
-        'O valor continua em texto puro no arquivo do app e no backup.',
+        'No disco, o valor só fica protegido com a senha mestra ativa (veja "Segurança e senha mestra").',
         'O corpo da resposta não é mascarado, e valores com menos de 4 caracteres não são substituídos nos textos.',
       ] },
     ],
@@ -211,8 +212,23 @@ export const HELP_TOPICS: HelpTopic[] = [
     title: 'Exportar e backup',
     blocks: [
       { text: '"Exportar para Postman", no menu da coleção, gera uma Collection v2.1. Tokens, senhas e campos com nome sensível saem em branco, e {{variáveis}} são mantidas. Scripts saem como estão. Exemplos e ambientes não são exportados.' },
-      { text: 'Em Arquivo, "Fazer backup" salva coleções, pastas, ambientes, histórico e abas em um JSON. Esse arquivo contém tokens e senhas em texto puro.' },
+      { text: 'Em Arquivo, "Fazer backup (sem segredos)" salva coleções, pastas, ambientes, histórico e abas em um JSON, deixando tokens, senhas e variáveis secretas em branco.' },
+      { text: '"Fazer backup com segredos" inclui tudo: com a senha mestra ativa, os segredos saem criptografados e a restauração pede essa senha; sem ela, saem em texto puro.' },
       { text: '"Restaurar backup…" substitui tudo depois da confirmação. O app baixa uma cópia dos dados atuais antes; confira se ela foi salva.' },
+    ],
+  },
+  {
+    id: 'seguranca',
+    title: 'Segurança e senha mestra',
+    blocks: [
+      { text: 'Em Arquivo → "Segurança e senha mestra…", ative uma senha mestra para criptografar no disco os segredos: tokens, senhas, API keys, client secrets, refresh tokens, cabeçalhos e parâmetros com nome sensível e variáveis secretas.' },
+      { items: [
+        'A criptografia usa AES-256-GCM com chave derivada da senha (PBKDF2-SHA256, 600 mil iterações). A senha nunca é salva.',
+        'Ao abrir o app, a senha é pedida. Sem ela, "Esqueci a senha" abre os dados com os segredos em branco e desativa a proteção.',
+        'Na mesma janela é possível alterar ou desativar a senha.',
+        'Por padrão, tokens de acesso OAuth 2.0 não são salvos e segredos conhecidos são mascarados nas respostas e no histórico gravados.',
+        'Enquanto o app está aberto, os segredos ficam em memória normalmente.',
+      ] },
     ],
   },
   {
@@ -270,7 +286,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         'Requisições em andamento não podem ser canceladas.',
         'Corpo multipart e respostas binárias não são suportados.',
         'Timeout, TLS e proxy não são configuráveis.',
-        'Segredos ficam em texto puro no disco.',
+        'Sem a senha mestra ativa, segredos ficam em texto puro no disco.',
       ] },
     ],
   },

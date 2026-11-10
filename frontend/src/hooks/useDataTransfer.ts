@@ -2,12 +2,15 @@ import { useCallback, useMemo, useState } from 'react';
 import { parseBackup, serializeBackup } from '../lib/backup';
 import { downloadText } from '../lib/download';
 import { buildPostmanCollection, postmanFileName } from '../lib/exporters/postman';
-import { deserialize, type AppSnapshot } from '../services/persistenceService';
+import { injectSecrets } from '../lib/secretFields';
+import { isEncryptedVault, openVault, type VaultSession } from '../lib/vault';
+import { deserialize, storedState, withoutSecrets, type AppSnapshot } from '../services/persistenceService';
 import type { Logger } from './useConsole';
 import type { ShowToast } from './useToast';
 
 interface Deps {
   snapshot: AppSnapshot;
+  session: VaultSession | null;
   hydrate: (snapshot: AppSnapshot) => void;
   log: Logger;
   notify: ShowToast;
@@ -18,13 +21,23 @@ export interface BackupSummary {
   collections: number;
   requests: number;
   environments: number;
+  encrypted: boolean;
 }
 
 function stamp(): string {
   return new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
 }
 
-export function useDataTransfer({ snapshot, hydrate, log, notify }: Deps) {
+async function fullBackup(snapshot: AppSnapshot, session: VaultSession | null): Promise<string> {
+  const everything: AppSnapshot = {
+    ...snapshot,
+    security: { ...snapshot.security, persistAccessTokens: true, maskStoredResponses: false },
+  };
+  const state = session ? await storedState(everything, session) : everything;
+  return serializeBackup({ ...state, security: snapshot.security });
+}
+
+export function useDataTransfer({ snapshot, session, hydrate, log, notify }: Deps) {
   const [restoreOpen, setRestoreOpen] = useState(false);
 
   const exportPostman = useCallback(
@@ -43,11 +56,29 @@ export function useDataTransfer({ snapshot, hydrate, log, notify }: Deps) {
 
   const exportBackup = useCallback(() => {
     const fileName = `forkarsenet-backup-${stamp()}.json`;
-    downloadText(fileName, serializeBackup(snapshot));
-    log('ok', `Backup: dados salvos em ${fileName}`);
-    log('warn', 'Backup: o arquivo contém tokens e senhas salvos no app. Guarde-o em local seguro.');
-    notify('Backup salvo. Ele contém seus tokens e senhas: guarde com cuidado.');
+    downloadText(fileName, serializeBackup(withoutSecrets(snapshot)));
+    log('ok', `Backup: dados salvos em ${fileName}, sem tokens, senhas e variáveis secretas.`);
+    notify('Backup salvo sem segredos.');
   }, [snapshot, log, notify]);
+
+  const exportBackupWithSecrets = useCallback(async () => {
+    const fileName = `forkarsenet-backup-completo-${stamp()}.json`;
+    try {
+      downloadText(fileName, await fullBackup(snapshot, session));
+    } catch (err) {
+      log('error', `Backup: ${err instanceof Error ? err.message : String(err)}`);
+      notify('Não foi possível gerar o backup.');
+      return;
+    }
+    if (session) {
+      log('ok', `Backup: dados salvos em ${fileName}. Os segredos estão criptografados com a senha mestra atual.`);
+      notify('Backup salvo com segredos criptografados.');
+    } else {
+      log('ok', `Backup: dados salvos em ${fileName}`);
+      log('warn', 'Backup: o arquivo contém tokens e senhas em texto puro. Ative a senha mestra para criptografá-los.');
+      notify('Backup salvo. Ele contém seus tokens e senhas em texto puro: guarde com cuidado.');
+    }
+  }, [snapshot, session, log, notify]);
 
   const inspectBackup = useCallback((content: string): BackupSummary => {
     const { exportedAt, state } = parseBackup(content);
@@ -56,27 +87,42 @@ export function useDataTransfer({ snapshot, hydrate, log, notify }: Deps) {
       collections: state.collections?.length ?? 0,
       requests: state.requests?.length ?? 0,
       environments: state.environments?.length ?? 0,
+      encrypted: isEncryptedVault(state.vault),
     };
   }, []);
 
   const restoreBackup = useCallback(
-    (content: string) => {
-      const restored = deserialize(parseBackup(content).state);
+    async (content: string, password = '') => {
+      const { state } = parseBackup(content);
+      let restored = deserialize(state);
+      if (isEncryptedVault(state.vault)) {
+        const { secrets } = await openVault(state.vault, password);
+        restored = injectSecrets(restored, secrets);
+      }
       const safetyCopy = `forkarsenet-antes-da-restauracao-${stamp()}.json`;
-      downloadText(safetyCopy, serializeBackup(snapshot));
+      downloadText(safetyCopy, await fullBackup(snapshot, session));
       hydrate(restored);
       setRestoreOpen(false);
       log('ok', `Backup restaurado. Os dados anteriores foram salvos em ${safetyCopy}`);
       notify('Backup restaurado.');
     },
-    [snapshot, hydrate, log, notify]
+    [snapshot, session, hydrate, log, notify]
   );
 
   const openRestore = useCallback(() => setRestoreOpen(true), []);
   const closeRestore = useCallback(() => setRestoreOpen(false), []);
 
   return useMemo(
-    () => ({ restoreOpen, openRestore, closeRestore, exportPostman, exportBackup, inspectBackup, restoreBackup }),
-    [restoreOpen, openRestore, closeRestore, exportPostman, exportBackup, inspectBackup, restoreBackup]
+    () => ({
+      restoreOpen,
+      openRestore,
+      closeRestore,
+      exportPostman,
+      exportBackup,
+      exportBackupWithSecrets,
+      inspectBackup,
+      restoreBackup,
+    }),
+    [restoreOpen, openRestore, closeRestore, exportPostman, exportBackup, exportBackupWithSecrets, inspectBackup, restoreBackup]
   );
 }

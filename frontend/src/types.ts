@@ -1,6 +1,8 @@
 import type { Response } from '../bindings/changeme/internal/models/models';
 import type { TestResult } from './lib/scripts/types';
+import type { SecuritySettings } from './lib/secretFields';
 import type { AppearanceSettings } from './lib/themes';
+import type { EncryptedVault } from './lib/vault';
 
 
 export interface KeyValue {
@@ -234,4 +236,6 @@ export interface PersistedState {
   history?: HistoryEntry[];
   responses?: Record<string, StoredResponse>;
   appearance?: AppearanceSettings;
+  security?: SecuritySettings;
+  vault?: EncryptedVault;
 }

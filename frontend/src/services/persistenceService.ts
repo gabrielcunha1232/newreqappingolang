@@ -2,8 +2,16 @@ import { Load, Save } from '../../bindings/changeme/collectionservice';
 import { UNGROUPED_SCOPE } from '../lib/apiDocsScope';
 import { defaultAuth, newKeyValue } from '../lib/factories';
 import { reconcileParams } from '../lib/query';
+import {
+  extractSecrets,
+  maskStoredBodies,
+  sanitizeSecurity,
+  stripAccessTokens,
+  type SecuritySettings,
+} from '../lib/secretFields';
 import { sanitizeAppearance, type AppearanceSettings } from '../lib/themes';
 import { normalizeBaseUrl } from '../lib/url';
+import { sealSecrets, type VaultSession } from '../lib/vault';
 import type {
   Collection,
   Environment,
@@ -28,6 +36,7 @@ export interface AppSnapshot {
   history: HistoryEntry[];
   responses: Record<string, StoredResponse>;
   appearance?: AppearanceSettings;
+  security: SecuritySettings;
 }
 
 function migrateHeaders(headers: KeyValue[] | string | undefined): KeyValue[] {
@@ -106,16 +115,35 @@ export function deserialize(state: Partial<PersistedState>): AppSnapshot {
     history: state.history ?? [],
     responses: Object.fromEntries(Object.entries(state.responses ?? {}).filter(([id]) => ids.has(id))),
     appearance: sanitizeAppearance(state.appearance),
+    security: sanitizeSecurity(state.security),
   };
 }
 
-export async function loadState(): Promise<AppSnapshot | null> {
+export async function loadRawState(): Promise<Partial<PersistedState> | null> {
   const raw = await Load();
   if (!raw) return null;
-  return deserialize(JSON.parse(raw) as Partial<PersistedState>);
+  return JSON.parse(raw) as Partial<PersistedState>;
 }
 
-export async function saveState(snapshot: AppSnapshot): Promise<void> {
-  const state: PersistedState = { ...snapshot };
-  await Save(JSON.stringify(state));
+export function withoutSecrets(snapshot: AppSnapshot): AppSnapshot {
+  return extractSecrets(stripAccessTokens(maskStoredBodies(snapshot))).state;
+}
+
+export async function storedState(snapshot: AppSnapshot, session: VaultSession | null): Promise<PersistedState> {
+  let state = snapshot;
+  if (snapshot.security.maskStoredResponses) state = maskStoredBodies(state);
+  if (!snapshot.security.persistAccessTokens) state = stripAccessTokens(state);
+  if (!session) return state;
+  const { state: stripped, secrets } = extractSecrets(state);
+  return { ...stripped, vault: await sealSecrets(session, secrets) };
+}
+
+let pending: Promise<void> = Promise.resolve();
+
+export function saveState(snapshot: AppSnapshot, session: VaultSession | null): Promise<void> {
+  const run = async () => {
+    await Save(JSON.stringify(await storedState(snapshot, session)));
+  };
+  pending = pending.then(run, run);
+  return pending;
 }

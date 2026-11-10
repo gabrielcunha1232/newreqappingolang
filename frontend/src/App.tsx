@@ -11,6 +11,8 @@ import { Sidebar } from './components/sidebar/Sidebar';
 import { AppearanceDialog } from './components/common/AppearanceDialog';
 import { GlobalSearchDialog } from './components/common/GlobalSearchDialog';
 import { HelpDialog } from './components/common/HelpDialog';
+import { SecurityDialog } from './components/common/SecurityDialog';
+import { UnlockDialog } from './components/common/UnlockDialog';
 import { Toast } from './components/common/Toast';
 import { Workspace } from './components/workspace/Workspace';
 import { ImportOpenApiDialog } from './components/import/ImportOpenApiDialog';
@@ -38,6 +40,7 @@ import { useOpenApiImport } from './hooks/useOpenApiImport';
 import { usePersistence } from './hooks/usePersistence';
 import { useRequestRunner } from './hooks/useRequestRunner';
 import { useToast } from './hooks/useToast';
+import { useVault } from './hooks/useVault';
 import { useWorkspace } from './hooks/useWorkspace';
 import { useWorkspaceHandlers } from './hooks/useWorkspaceHandlers';
 import { buildSearchItems } from './lib/globalSearch';
@@ -94,21 +97,25 @@ function App() {
   const collectionRunner = useCollectionRunner({ workspace, variables: environments.variables, runner, log: logMasked });
 
   const handlers = useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast });
+  const vault = useVault();
+  const { setSettings: setSecurity, adopt: adoptVault } = vault.actions;
   const snapshot = useMemo<AppSnapshot>(
-    () => ({ ...handlers.snapshot, appearance: appearance.settings }),
-    [handlers.snapshot, appearance.settings]
+    () => ({ ...handlers.snapshot, appearance: appearance.settings, security: vault.settings }),
+    [handlers.snapshot, appearance.settings, vault.settings]
   );
   const hydrateHandlers = handlers.hydrate;
   const hydrate = useCallback(
     (loaded: AppSnapshot) => {
       hydrateHandlers(loaded);
       if (loaded.appearance) setAppearance(loaded.appearance);
+      setSecurity(loaded.security);
     },
-    [hydrateHandlers, setAppearance]
+    [hydrateHandlers, setAppearance, setSecurity]
   );
-  usePersistence(snapshot, hydrate);
+  const persistence = usePersistence(snapshot, vault.session, hydrate, adoptVault);
   const dataTransfer = useDataTransfer({
     snapshot,
+    session: vault.session,
     hydrate,
     log: logger.log,
     notify: toast.show,
@@ -127,6 +134,9 @@ function App() {
     onGenerateCode: () => codeGeneration.open(workspace.state.activeRequestId),
     onCopyCurl: () => curl.copyAsCurl(workspace.state.activeRequestId),
     onExportBackup: dataTransfer.exportBackup,
+    onExportBackupWithSecrets: dataTransfer.exportBackupWithSecrets,
+    onSecurity: vault.actions.openDialog,
+    vaultEnabled: vault.enabled,
     onRestoreBackup: dataTransfer.openRestore,
     onGlobalSearch: () => setSearchOpen(true),
     onHelp: (topic = 'inicio') => setHelpTopic(topic),
@@ -330,6 +340,8 @@ function App() {
       {appearance.dialogOpen && (
         <AppearanceDialog settings={appearance.settings} onSave={setAppearance} onClose={appearance.closeDialog} />
       )}
+      {vault.dialogOpen && <SecurityDialog vault={vault} notify={toast.show} />}
+      {persistence.locked && <UnlockDialog onUnlock={persistence.unlock} onDiscard={persistence.discardSecrets} />}
       {helpTopic && <HelpDialog initialTopic={helpTopic} onClose={() => setHelpTopic(null)} />}
       {dataTransfer.restoreOpen && (
         <RestoreBackupDialog

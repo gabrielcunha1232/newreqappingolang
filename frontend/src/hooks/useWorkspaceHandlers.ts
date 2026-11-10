@@ -27,7 +27,7 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
   const { state, activeRequest, actions } = workspace;
 
 
-  const snapshot = useMemo<AppSnapshot>(
+  const snapshot = useMemo<Omit<AppSnapshot, 'security'>>(
     () => ({
       ...state,
       environments: environments.environments,

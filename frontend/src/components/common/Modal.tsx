@@ -9,13 +9,14 @@ interface ModalProps {
   children: ReactNode;
   width?: number;
   initialFocus?: string;
+  closable?: boolean;
 }
 
-export function Modal({ title, onClose, children, width = 520, initialFocus = FOCUSABLE }: ModalProps) {
+export function Modal({ title, onClose, children, width = 520, initialFocus = FOCUSABLE, closable = true }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  const onCloseRef = useRef(closable ? onClose : () => {});
+  onCloseRef.current = closable ? onClose : () => {};
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -50,7 +51,7 @@ export function Modal({ title, onClose, children, width = 520, initialFocus = FO
   };
 
   return createPortal(
-    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
+    <div className="modal-backdrop" onMouseDown={(event) => event.target === event.currentTarget && onCloseRef.current()}>
       <div
         ref={dialogRef}
         className="modal"
@@ -62,9 +63,11 @@ export function Modal({ title, onClose, children, width = 520, initialFocus = FO
       >
         <header className="modal-head">
           <h2 id={titleId}>{title}</h2>
-          <button className="icon" onClick={onClose} aria-label="Fechar">
-            ×
-          </button>
+          {closable && (
+            <button className="icon" onClick={onClose} aria-label="Fechar">
+              ×
+            </button>
+          )}
         </header>
         {children}
       </div>

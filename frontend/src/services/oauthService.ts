@@ -54,7 +54,7 @@ export async function renewTokenIfNeeded(
   const stale = !settings.accessToken || isTokenExpired(settings);
   if (!stale) return null;
 
-  if (settings.accessToken && settings.refreshToken) {
+  if (settings.refreshToken) {
     return requestToken(settings, vars, { grant_type: 'refresh_token', refresh_token: settings.refreshToken });
   }
   if (settings.grant === 'client_credentials' && settings.tokenUrl.trim() && settings.clientId.trim()) {
