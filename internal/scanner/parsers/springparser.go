@@ -164,7 +164,7 @@ func (s *SpringParser) scanDir(dir string) ([]models.Endpoint, error) {
 
 		if d.IsDir() {
 			name := d.Name()
-			if name == "target" || name == "build" || name == "src/test" || name == ".git" {
+			if name == "target" || name == "build" || name == "test" || name == ".git" {
 				return filepath.SkipDir
 			}
 
