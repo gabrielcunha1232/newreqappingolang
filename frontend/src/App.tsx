@@ -251,6 +251,7 @@ function App() {
               onActivate: workspace.actions.activateTab,
               onClose: workspace.actions.closeTab,
               onCloseMany: workspace.actions.closeTabs,
+              onMove: workspace.actions.moveTab,
               onAdd: () => workspace.actions.createRequest(),
               onDuplicate: workspace.actions.duplicateRequest,
               onCopyCurl: curl.copyAsCurl,

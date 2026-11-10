@@ -686,7 +686,8 @@ input[type='checkbox'] {
   box-shadow: inset 0 2px 0 var(--accent);
 }
 
-.request-tab small {
+.request-tab small,
+.tabs-list-menu small.tab-method {
   background: var(--m-get-bg);
   color: var(--m-get-fg);
   padding: 3px 5px;
@@ -696,18 +697,22 @@ input[type='checkbox'] {
   font-weight: bold;
 }
 
-.request-tab small.m-post {
+.request-tab small.m-post,
+.tabs-list-menu small.m-post {
   background: var(--m-post-bg);
   color: var(--m-post-fg);
 }
 
 .request-tab small.m-put,
-.request-tab small.m-patch {
+.request-tab small.m-patch,
+.tabs-list-menu small.m-put,
+.tabs-list-menu small.m-patch {
   background: var(--m-put-bg);
   color: var(--m-put-fg);
 }
 
-.request-tab small.m-delete {
+.request-tab small.m-delete,
+.tabs-list-menu small.m-delete {
   background: var(--m-del-bg);
   color: var(--m-del-fg);
 }
@@ -738,6 +743,98 @@ input[type='checkbox'] {
   background: none;
   padding: 0 0 0 10px;
   color: var(--muted);
+}
+
+.request-tab .tab-close {
+  margin-left: 6px;
+  padding: 0 5px;
+  border-radius: 3px;
+  line-height: 18px;
+  opacity: 0.55;
+}
+
+.request-tab:hover .tab-close,
+.request-tab.active .tab-close {
+  opacity: 1;
+}
+
+.request-tab .tab-close:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.request-tab:not(.active):hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.request-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.request-tab.dragging {
+  opacity: 0.45;
+}
+
+.request-tab.drop-before {
+  box-shadow: inset 2px 0 0 var(--accent);
+}
+
+.request-tab.drop-after {
+  box-shadow: inset -2px 0 0 var(--accent);
+}
+
+.tabs-scroll.fade-left.fade-right {
+  mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+}
+
+.tabs-scroll.fade-left:not(.fade-right) {
+  mask-image: linear-gradient(to right, transparent, #000 24px);
+}
+
+.tabs-scroll.fade-right:not(.fade-left) {
+  mask-image: linear-gradient(to right, #000 calc(100% - 24px), transparent);
+}
+
+.tabs-nav {
+  flex: none;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  justify-content: center;
+  font-size: 15px;
+  line-height: 1;
+}
+
+.tabs-nav:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.tabs-count {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.tabs-list-menu {
+  min-width: 240px;
+  max-width: 360px;
+}
+
+.tabs-list-menu .menu-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tabs-list-menu small.tab-method {
+  margin-right: 7px;
 }
 
 .addtab {

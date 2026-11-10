@@ -52,6 +52,7 @@ export function useWorkspace() {
       activateTab: (id: string) => dispatch({ type: 'tab/activate', id }),
       closeTabs: (ids: string[]) => dispatch({ type: 'tab/close-many', ids }),
       closeActiveTab: () => dispatch({ type: 'tab/close-active' }),
+      moveTab: (id: string, toIndex: number) => dispatch({ type: 'tab/move', id, toIndex }),
 
       openDocs: (scopeId: string) => dispatch({ type: 'docs/open', id: scopeId }),
       closeDocs: (scopeId: string) => dispatch({ type: 'docs/close', id: scopeId }),

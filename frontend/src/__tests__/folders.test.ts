@@ -90,3 +90,13 @@ test('Insomnia mantém pastas e herança', () => {
   assert.strictEqual(ins.requests.find((x) => x.title === 'first')!.auth.type, 'none');
   assert.strictEqual(resolveInherited(ins.requests.find((x) => x.title === 'in')!, ins.folders, ins.collection).request.auth.token, 'GT');
 });
+
+test('reordena abas abertas', () => {
+  const base: WorkspaceState = { ...initialWorkspace(), openRequestIds: ['a', 'b', 'c', 'd'], activeRequestId: 'b' };
+  assert.deepEqual(R(base, { type: 'tab/move', id: 'a', toIndex: 2 }).openRequestIds, ['b', 'c', 'a', 'd']);
+  assert.deepEqual(R(base, { type: 'tab/move', id: 'd', toIndex: 0 }).openRequestIds, ['d', 'a', 'b', 'c']);
+  assert.deepEqual(R(base, { type: 'tab/move', id: 'b', toIndex: 99 }).openRequestIds, ['a', 'c', 'd', 'b']);
+  assert.strictEqual(R(base, { type: 'tab/move', id: 'b', toIndex: 1 }), base);
+  assert.strictEqual(R(base, { type: 'tab/move', id: 'x', toIndex: 0 }), base);
+  assert.strictEqual(R(base, { type: 'tab/move', id: 'a', toIndex: 3 }).activeRequestId, 'b');
+});

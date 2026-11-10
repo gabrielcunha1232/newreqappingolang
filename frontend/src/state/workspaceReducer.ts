@@ -35,6 +35,7 @@ export type WorkspaceAction =
   | { type: 'tab/activate'; id: string }
   | { type: 'tab/close-active' }
   | { type: 'tab/close-many'; ids: string[] }
+  | { type: 'tab/move'; id: string; toIndex: number }
   | { type: 'docs/close-many'; ids: string[] }
   | { type: 'docs/open'; id: string }
   | { type: 'docs/close'; id: string }
@@ -253,6 +254,15 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
 
     case 'tab/close-many':
       return action.ids.reduce(closeTab, state);
+
+    case 'tab/move': {
+      const from = state.openRequestIds.indexOf(action.id);
+      if (from === -1) return state;
+      const rest = state.openRequestIds.filter((x) => x !== action.id);
+      const to = Math.max(0, Math.min(action.toIndex, rest.length));
+      if (to === from) return state;
+      return { ...state, openRequestIds: [...rest.slice(0, to), action.id, ...rest.slice(to)] };
+    }
 
     case 'docs/close-many':
       return action.ids.reduce(closeDocs, state);
