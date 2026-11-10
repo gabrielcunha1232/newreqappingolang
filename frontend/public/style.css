@@ -2786,6 +2786,13 @@ input[type='checkbox'] {
   padding-left: 8px;
 }
 
+.tree-head.tag-group {
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
 .tree-head.folder {
   padding-top: 5px;
   padding-bottom: 5px;

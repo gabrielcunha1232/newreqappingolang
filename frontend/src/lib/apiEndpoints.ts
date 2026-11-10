@@ -160,6 +160,22 @@ export function groupEndpoints(endpoints: ApiEndpoint[]): ApiEndpointGroup[] {
     .map(([tag, list]) => ({ tag, endpoints: [...list].sort(compareEndpoints) }));
 }
 
+export function requestTag(request: SavedRequest): string {
+  const tags = request.doc?.tags;
+  return tags?.length ? tags[0] : tagFromPath(splitBaseAndPath(request.url).path);
+}
+
+export function groupRequestsByTag(requests: SavedRequest[]): { tag: string; requests: SavedRequest[] }[] {
+  const groups = new Map<string, SavedRequest[]>();
+  for (const request of requests) {
+    const tag = requestTag(request);
+    groups.set(tag, [...(groups.get(tag) ?? []), request]);
+  }
+  return [...groups.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([tag, list]) => ({ tag, requests: list }));
+}
+
 export function matchesEndpoint(endpoint: ApiEndpoint, term: string): boolean {
   if (!term) return true;
   return [endpoint.method, endpoint.path, endpoint.summary ?? '', endpoint.tags.join(' ')]

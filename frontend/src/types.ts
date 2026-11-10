@@ -47,6 +47,8 @@ export interface Collection {
   collapsed: boolean;
   baseUrl: string;
   auth?: RequestAuth;
+  groupByTag?: boolean;
+  collapsedGroups?: string[];
 }
 
 export interface Folder {

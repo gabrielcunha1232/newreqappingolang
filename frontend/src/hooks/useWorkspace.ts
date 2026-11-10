@@ -74,6 +74,9 @@ export function useWorkspace() {
         dispatch({ type: 'collection/update', id, changes: { baseUrl: normalizeBaseUrl(baseUrl) } }),
       setCollectionCollapsed: (id: string, collapsed: boolean) =>
         dispatch({ type: 'collection/update', id, changes: { collapsed } }),
+      setCollectionGrouped: (id: string, groupByTag: boolean) =>
+        dispatch({ type: 'collection/update', id, changes: { groupByTag } }),
+      toggleCollectionGroup: (id: string, tag: string) => dispatch({ type: 'collection/toggle-group', id, tag }),
       setCollectionAuth: (id: string, auth: RequestAuth | undefined) =>
         dispatch({ type: 'collection/update', id, changes: { auth } }),
       deleteCollection: (id: string) => dispatch({ type: 'collection/delete', id }),

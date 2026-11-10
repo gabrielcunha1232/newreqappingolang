@@ -89,7 +89,12 @@ export function CollectionMenu({ collection, actions, commands, onEdit }: MenuCo
     <>
       <MenuLabel>{collection.name}</MenuLabel>
       <MenuItem onSelect={() => actions.createRequest(collection.id)}>Nova requisição aqui</MenuItem>
-      <MenuItem onSelect={() => onEdit({ kind: 'folder', id: actions.createFolder(collection.id, null) })}>Nova pasta</MenuItem>
+      <MenuItem
+        disabled={collection.groupByTag}
+        onSelect={() => onEdit({ kind: 'folder', id: actions.createFolder(collection.id, null) })}
+      >
+        Nova pasta
+      </MenuItem>
       <MenuItem onSelect={() => commands.runCollection(collection.id)}>Executar coleção…</MenuItem>
       <MenuItem onSelect={() => commands.showDocs(collection.id)}>Ver documentação</MenuItem>
       <MenuItem onSelect={() => commands.exportOpenApi(collection.id)}>Exportar OpenAPI</MenuItem>
@@ -103,6 +108,9 @@ export function CollectionMenu({ collection, actions, commands, onEdit }: MenuCo
       )}
       <MenuItem onSelect={() => actions.setCollectionCollapsed(collection.id, !collection.collapsed)}>
         {collection.collapsed ? 'Expandir' : 'Recolher'}
+      </MenuItem>
+      <MenuItem checked={collection.groupByTag} onSelect={() => actions.setCollectionGrouped(collection.id, !collection.groupByTag)}>
+        Agrupar por grupos
       </MenuItem>
       <MenuSeparator />
       <MenuItem danger onSelect={() => actions.deleteCollection(collection.id)}>

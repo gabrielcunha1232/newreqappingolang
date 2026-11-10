@@ -32,6 +32,7 @@ export const HELP_TOPICS: HelpTopic[] = [
         'Pastas podem ter subpastas, URL base e autorização próprias.',
         'Excluir uma pasta não apaga o conteúdo: ele sobe um nível.',
         'Requisições podem mudar de coleção ou pasta pelo menu "Mover para". Pastas só se movem dentro da mesma coleção.',
+        'No menu da coleção, "Agrupar por grupos" mostra as requisições separadas pelos mesmos grupos da documentação (tag ou primeiro trecho do caminho). É só visualização: as pastas ficam ocultas e a reordenação por arraste fica desativada enquanto o modo estiver ligado.',
         'Duplo clique ou F2 renomeia uma requisição.',
         'Arraste para reordenar. Soltar no meio de uma pasta ou sobre uma coleção coloca o item dentro dela. O arraste fica desativado durante a busca.',
       ] },

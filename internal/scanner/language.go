@@ -14,6 +14,7 @@ const (
 	FrameworkFiber   Framework = "fiber"
 	FrameworkEcho    Framework = "echo"
 	FrameworkChi     Framework = "chi"
+	FrameworkNetHttp Framework = "nethttp"
 	FrameworkUnknown Framework = "unknown"
 	FrameworkSpring Framework = "spring"
 )
@@ -123,7 +124,7 @@ func (l *Language) detectGolangFramework(dir string) error {
 		return err
 	}
 
-	l.Framework = FrameworkUnknown
+	l.Framework = FrameworkNetHttp
 
 	return nil
 }

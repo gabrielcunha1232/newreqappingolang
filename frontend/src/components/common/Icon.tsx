@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-export type IconName = 'folder' | 'folder-open' | 'chevron' | 'tray' | 'lock' | 'lock-open' | 'eye' | 'eye-off';
+export type IconName = 'folder' | 'folder-open' | 'chevron' | 'tray' | 'tag' | 'lock' | 'lock-open' | 'eye' | 'eye-off';
 
 const PATHS: Record<IconName, ReactNode> = {
   folder: (
@@ -21,6 +21,16 @@ const PATHS: Record<IconName, ReactNode> = {
     </>
   ),
   chevron: <path d="M9 6l6 6-6 6" />,
+  tag: (
+    <>
+      <path
+        d="M3.5 4.5v6.3a1.5 1.5 0 0 0 .44 1.06l8.2 8.2a1.5 1.5 0 0 0 2.12 0l5.8-5.8a1.5 1.5 0 0 0 0-2.12l-8.2-8.2A1.5 1.5 0 0 0 10.8 3.5H4.5a1 1 0 0 0-1 1z"
+        fill="currentColor"
+        fillOpacity={0.12}
+      />
+      <circle cx={8} cy={8} r={1.4} />
+    </>
+  ),
   tray: (
     <>
       <path

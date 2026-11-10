@@ -1,4 +1,5 @@
 import { assert, test } from 'vitest';
+import { groupRequestsByTag } from '../lib/apiEndpoints';
 import { importCollectionText } from '../lib/importers/index';
 import { defaultAuth, newRequest } from '../lib/factories';
 import { descendantFolderIds, requestsInTreeOrder, resolveInherited, treeChildren } from '../lib/tree';
@@ -99,4 +100,16 @@ test('reordena abas abertas', () => {
   assert.strictEqual(R(base, { type: 'tab/move', id: 'b', toIndex: 1 }), base);
   assert.strictEqual(R(base, { type: 'tab/move', id: 'x', toIndex: 0 }), base);
   assert.strictEqual(R(base, { type: 'tab/move', id: 'a', toIndex: 3 }).activeRequestId, 'b');
+});
+
+test('agrupa requisições por grupo e alterna grupos recolhidos', () => {
+  const r = (id: string, url: string, tags?: string[]) => ({ ...newRequest('c'), id, url, doc: tags ? { tags } : undefined });
+  const groups = groupRequestsByTag([r('1', 'http://x/users/1'), r('2', 'http://x/auth/login'), r('3', 'http://x/users'), r('4', 'http://x/other', ['auth'])]);
+  assert.deepEqual(groups.map((g) => [g.tag, g.requests.map((q) => q.id)]), [['auth', ['2', '4']], ['users', ['1', '3']]]);
+
+  let s: WorkspaceState = { ...initialWorkspace(), collections: [col] };
+  s = R(s, { type: 'collection/toggle-group', id: 'c', tag: 'users' });
+  assert.deepEqual(s.collections[0].collapsedGroups, ['users']);
+  s = R(s, { type: 'collection/toggle-group', id: 'c', tag: 'users' });
+  assert.deepEqual(s.collections[0].collapsedGroups, []);
 });

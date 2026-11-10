@@ -42,6 +42,7 @@ export type WorkspaceAction =
   | { type: 'collection/create'; collection: Collection }
   | { type: 'collection/update'; id: string; changes: Partial<Collection> }
   | { type: 'collection/delete'; id: string }
+  | { type: 'collection/toggle-group'; id: string; tag: string }
   | { type: 'collection/import'; collection: Collection; requests: SavedRequest[]; folders: Folder[] }
   | { type: 'scanner/import'; dir: string; endpoints: Endpoint[]; baseUrl: string };
 
@@ -282,6 +283,21 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
         collections: state.collections.map((c) =>
           c.id === action.id ? { ...c, ...action.changes } : c
         ),
+      };
+
+    case 'collection/toggle-group':
+      return {
+        ...state,
+        collections: state.collections.map((c) => {
+          if (c.id !== action.id) return c;
+          const collapsed = c.collapsedGroups ?? [];
+          return {
+            ...c,
+            collapsedGroups: collapsed.includes(action.tag)
+              ? collapsed.filter((tag) => tag !== action.tag)
+              : [...collapsed, action.tag],
+          };
+        }),
       };
 
     case 'collection/delete':

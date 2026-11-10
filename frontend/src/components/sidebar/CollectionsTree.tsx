@@ -1,6 +1,7 @@
 import { useRef, useState, type DragEvent } from 'react';
 import { useContextMenu } from '../../hooks/useContextMenu';
 import type { WorkspaceActions } from '../../hooks/useWorkspace';
+import { groupRequestsByTag } from '../../lib/apiEndpoints';
 import { methodClass, methodShort } from '../../lib/format';
 import { reorderTree, requestsInTreeOrder, treeChildren, type TreeDragNode, type TreeDropTarget, type TreeNode } from '../../lib/tree';
 import type { Collection, Folder, SavedRequest } from '../../types';
@@ -109,7 +110,7 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
 
   const dropClass = (id: string) => (dropHint?.id === id ? ` drop-${dropHint.zone}` : '');
 
-  const renderRequest = (request: SavedRequest) => {
+  const renderRequest = (request: SavedRequest, reorderable = true) => {
     if (isEditing('request', request.id)) {
       return (
         <InlineInput
@@ -133,13 +134,14 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
         tabIndex={0}
         className={'tree-item' + (request.id === activeRequestId ? ' selected' : '') + dropClass(request.id)}
         title={`${request.method} ${request.url}`}
-        {...dragProps({ kind: 'request', id: request.id })}
-        {...dropProps(request.id, ['before', 'after'], (zone) => ({
-          collectionId: request.collectionId ?? null,
-          parentId: request.folderId ?? null,
-          anchorId: request.id,
-          after: zone === 'after',
-        }))}
+        {...(reorderable && dragProps({ kind: 'request', id: request.id }))}
+        {...(reorderable &&
+          dropProps(request.id, ['before', 'after'], (zone) => ({
+            collectionId: request.collectionId ?? null,
+            parentId: request.folderId ?? null,
+            anchorId: request.id,
+            after: zone === 'after',
+          })))}
         onClick={() => actions.openTab(request.id)}
         onDoubleClick={() => setEditing({ kind: 'request', id: request.id })}
         onContextMenu={(event) => openAt(event, { kind: 'request', id: request.id })}
@@ -239,6 +241,40 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
         )}
       </div>
     );
+  };
+
+  const renderTagGroups = (collection: Collection) => {
+    const groups = groupRequestsByTag(requestsInTreeOrder(collection.id, null, folders, visible));
+    if (groups.length === 0) return <div className="tree-empty">Coleção vazia</div>;
+
+    return groups.map((group) => {
+      const expanded = Boolean(term) || !collection.collapsedGroups?.includes(group.tag);
+      const toggle = () => actions.toggleCollectionGroup(collection.id, group.tag);
+      return (
+        <div key={`tag:${group.tag}`} className="tree-group">
+          <div
+            role="button"
+            tabIndex={0}
+            aria-expanded={expanded}
+            className="tree-head tag-group"
+            title={`Grupo ${group.tag}`}
+            onClick={toggle}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                toggle();
+              }
+            }}
+          >
+            <Icon name="chevron" size={12} className={'tree-chevron' + (expanded ? ' open' : '')} />
+            <Icon name="tag" className="tree-folder" />
+            <span className="tree-label">{group.tag}</span>
+            <span className="tree-count">{group.requests.length}</span>
+          </div>
+          {expanded && <div className="tree-children">{group.requests.map((request) => renderRequest(request, false))}</div>}
+        </div>
+      );
+    });
   };
 
   const renderNode = (node: TreeNode) => (node.kind === 'folder' ? renderFolder(node.folder) : renderRequest(node.request));
@@ -373,8 +409,14 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
 
               {expanded && (
                 <div className="tree-children">
-                  {nodes.map(renderNode)}
-                  {nodes.length === 0 && <div className="tree-empty">Coleção vazia</div>}
+                  {collection.groupByTag ? (
+                    renderTagGroups(collection)
+                  ) : (
+                    <>
+                      {nodes.map(renderNode)}
+                      {nodes.length === 0 && <div className="tree-empty">Coleção vazia</div>}
+                    </>
+                  )}
                 </div>
               )}
             </div>
