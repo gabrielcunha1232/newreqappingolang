@@ -46,10 +46,6 @@ import { resolveTheme } from './lib/themes';
 import type { AppSnapshot } from './services/persistenceService';
 import type { HistoryEntry, LogLevel, SidebarView } from './types';
 
-/**
- * Composição da aplicação: liga os hooks de estado (camada de estado/serviços)
- * aos componentes visuais. Regras de negócio ficam em hooks/, services/ e lib/.
- */
 function App() {
   const [sidebarView, setSidebarView] = useState<SidebarView>('collections');
 

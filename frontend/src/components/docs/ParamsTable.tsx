@@ -10,7 +10,6 @@ interface ParamsTableProps {
   params: ApiParam[];
 }
 
-/** Tabela somente leitura de parâmetros, no formato do Swagger UI. */
 export function ParamsTable({ params }: ParamsTableProps) {
   return (
     <table className="gridtable docs-params">

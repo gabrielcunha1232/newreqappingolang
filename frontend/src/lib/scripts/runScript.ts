@@ -1,11 +1,6 @@
 import { AssertionError, expect } from './expect';
 import type { ScriptInput, ScriptLog, ScriptLogLevel, ScriptOutput, ScriptRequest, TestResult } from './types';
 
-/*
- * Executa um script de usuário com a API `pm` (compatível com o essencial do
- * Postman). Função pura, sem DOM: roda dentro do Web Worker (sandbox) e pode
- * ser testada fora do navegador.
- */
 
 function stringify(value: unknown): string {
   if (typeof value === 'string') return value;
@@ -23,7 +18,6 @@ function errorText(err: unknown): string {
   return String(err);
 }
 
-/** Valores de variáveis são sempre texto (como no Postman). */
 function asVariable(value: unknown): string {
   return typeof value === 'string' ? value : stringify(value);
 }
@@ -40,7 +34,6 @@ function headerApi(request: ScriptRequest) {
       return key === undefined ? undefined : request.headers[key];
     },
     has: (name: string) => findHeader(request.headers, name) !== undefined,
-    /** Adiciona ou substitui ({ key, value } ou nome, valor). */
     upsert: (header: string | { key: string; value: unknown }, value?: unknown) => {
       const name = typeof header === 'string' ? header : header.key;
       const text = asVariable(typeof header === 'string' ? value : header.value);
@@ -109,7 +102,6 @@ export function runScript(input: ScriptInput): ScriptOutput {
       toObject: () => ({ ...environment }),
     },
     variables: {
-      /** Locais primeiro, depois o ambiente (como no Postman). */
       get: (name: string) => variables[name] ?? environment[name],
       has: (name: string) => name in variables || name in environment,
       set: (name: string, value: unknown) => {
@@ -160,7 +152,6 @@ export function runScript(input: ScriptInput): ScriptOutput {
 
   let error: string | undefined;
   try {
-    // "use strict" impede que atribuições sem declaração criem globais no worker.
     const run = new Function('pm', 'console', `"use strict";\n${input.code}`);
     run(pm, console);
   } catch (err) {

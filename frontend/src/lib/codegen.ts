@@ -8,7 +8,6 @@ export const CODE_TARGETS: Array<{ id: CodeTarget; label: string }> = [
   { id: 'go', label: 'Go (net/http)' },
 ];
 
-/** Strings em JSON são literais válidos nas três linguagens geradas. */
 const str = (text: string) => JSON.stringify(text);
 
 function entries(source: CurlSource): Array<[string, string]> {
@@ -41,7 +40,6 @@ function toPython(source: CurlSource): string {
   }
   if (source.body) {
     lines.push(`body = ${str(source.body)}`);
-    // Sem encode, o requests tentaria latin-1 e falharia com acentos fora dela.
     args.push('data=body.encode("utf-8")');
   }
   lines.push('', `response = requests.request(${args.join(', ')})`, 'print(response.status_code, response.text)');

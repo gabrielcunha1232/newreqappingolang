@@ -13,7 +13,6 @@ const MAX_FILE_BYTES = 10 * 1024 * 1024;
 
 interface ImportOpenApiDialogProps {
   onClose: () => void;
-  /** Lança Error com mensagem para o usuário se a spec for inválida. */
   onImportText: (text: string, origin: string) => void;
   onImportUrl: (url: string) => Promise<void>;
 }
@@ -22,7 +21,6 @@ function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-/** Escolha da origem da spec (arquivo, URL ou texto colado) e importação. */
 export function ImportOpenApiDialog({ onClose, onImportText, onImportUrl }: ImportOpenApiDialogProps) {
   const [source, setSource] = useState<Source>('file');
   const [file, setFile] = useState<File | null>(null);
@@ -47,7 +45,6 @@ export function ImportOpenApiDialog({ onClose, onImportText, onImportUrl }: Impo
       } else {
         onImportText(text, 'texto colado');
       }
-      // Sucesso: quem abriu o diálogo o fecha.
     } catch (err) {
       setError(errorMessage(err));
       setBusy(false);

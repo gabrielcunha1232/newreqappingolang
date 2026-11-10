@@ -12,13 +12,7 @@ import { HTTP_METHODS } from './factories';
 import { extractPathParams, splitBaseAndPath, tagFromPath } from './pathTemplate';
 import { bodyExample, defaultContentType } from './requestBody';
 
-/*
- * Adaptadores das fontes de endpoints para o modelo neutro ApiEndpoint.
- * Novas fontes (import OpenAPI, cURL, scanners de outras linguagens)
- * ganham um adaptador aqui; os componentes de documentação não mudam.
- */
 
-/** Cabeçalhos que a documentação representa de outra forma (corpo e segurança). */
 const IMPLICIT_HEADERS = new Set(['accept', 'content-type', 'authorization']);
 
 const METHODS_WITH_BODY = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
@@ -82,15 +76,9 @@ function requestBody(request: SavedRequest): ApiRequestBody | undefined {
 }
 
 function paramKey(param: ApiParam): string {
-  // Nomes de cabeçalho não diferenciam maiúsculas.
   return `${param.in}:${param.in === 'header' ? param.name.toLowerCase() : param.name}`;
 }
 
-/**
- * Completa os parâmetros da requisição com o que a origem declarou (tipo,
- * obrigatoriedade, descrição). A requisição manda: parâmetro removido dela
- * some da documentação.
- */
 function withDeclared(params: ApiParam[], declared: ApiParam[] = []): ApiParam[] {
   const byKey = new Map(declared.map((param) => [paramKey(param), param]));
   return params.map((param) => {
@@ -107,7 +95,6 @@ function withDeclared(params: ApiParam[], declared: ApiParam[] = []): ApiParam[]
   });
 }
 
-/** Só o tipo e o nome do cabeçalho: tokens e senhas nunca vão para a documentação. */
 function security(request: SavedRequest): ApiSecurity | undefined {
   const { auth } = request;
   switch (auth.type) {
@@ -117,21 +104,18 @@ function security(request: SavedRequest): ApiSecurity | undefined {
     case 'apikey':
       return { type: 'apikey', name: optionalText(auth.apiKeyName) };
     case 'oauth2':
-      // Na chamada, OAuth2 é um Bearer; a configuração do fluxo não é documentada.
       return { type: 'bearer' };
     default:
       return { type: auth.type };
   }
 }
 
-/** Títulos gerados automaticamente não servem de resumo. */
 function summary(request: SavedRequest): string | undefined {
   const title = request.title.trim();
   const generated = title === `${request.method} ${request.url}`.trim() || title === 'Nova requisição';
   return generated ? undefined : optionalText(title);
 }
 
-/** Converte uma requisição salva (de qualquer origem) em endpoint documentado. */
 export function endpointFromRequest(request: SavedRequest, collection?: Collection): ApiEndpoint {
   const { base, path } = splitBaseAndPath(request.url);
   const auth = security(request);
@@ -165,7 +149,6 @@ function compareEndpoints(a: ApiEndpoint, b: ApiEndpoint): number {
   return a.path.localeCompare(b.path) || methodRank(a.method) - methodRank(b.method);
 }
 
-/** Agrupa pela primeira tag (como o Swagger UI), em ordem alfabética. */
 export function groupEndpoints(endpoints: ApiEndpoint[]): ApiEndpointGroup[] {
   const groups = new Map<string, ApiEndpoint[]>();
   for (const endpoint of endpoints) {

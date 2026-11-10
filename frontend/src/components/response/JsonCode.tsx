@@ -5,7 +5,6 @@ interface JsonCodeProps {
   highlight: boolean;
 }
 
-/** Código com numeração de linhas e, opcionalmente, realce de JSON. */
 export function JsonCode({ text, highlight }: JsonCodeProps) {
   const lines = text.split('\n');
 

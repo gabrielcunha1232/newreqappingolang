@@ -1,10 +1,6 @@
 import { Request } from '../../bindings/changeme/internal/models/models';
 import { sendHttpRequest } from './httpService';
 
-/**
- * Baixa uma especificação OpenAPI/Swagger. Usa o cliente HTTP do Go (e não
- * fetch) porque o webview bloquearia por CORS a maioria das APIs.
- */
 export async function fetchSpecText(url: string): Promise<string> {
   const target = url.trim();
   if (!/^https?:\/\//i.test(target)) throw new Error('Informe uma URL http(s) completa.');

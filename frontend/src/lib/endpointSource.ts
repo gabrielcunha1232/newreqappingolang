@@ -34,12 +34,10 @@ export function languageLabel(language: string): string {
   return LANGUAGE_LABELS[language] ?? language;
 }
 
-/** "C:\api\handlers\user.go" → "user.go" */
 export function fileName(path: string): string {
   return path.split(/[\\/]/).pop() || path;
 }
 
-/** Metadados do endpoint retornado pelo scanner do backend. */
 export function sourceFromScan(endpoint: Endpoint): ApiEndpointSource {
   return { file: endpoint.source_file, language: languageFromFile(endpoint.source_file) };
 }

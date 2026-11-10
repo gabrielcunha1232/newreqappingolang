@@ -4,7 +4,6 @@ import { importPostman, isPostmanCollection } from './postman';
 
 export type { CollectionImport } from './common';
 
-/** Detecta o formato pelo conteúdo. Lança Error com mensagem para o usuário. */
 export function importCollectionText(content: string, existingNames: string[]): CollectionImport {
   let data: unknown;
   try {

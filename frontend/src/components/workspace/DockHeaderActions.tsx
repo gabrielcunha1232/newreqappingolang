@@ -4,7 +4,6 @@ import { isRequestPart } from '../../lib/panels';
 import { ResponseMeta } from '../response/ResponseViewer';
 import { useWorkbench } from './WorkbenchContext';
 
-/** Ações à direita das abas de cada grupo: status da resposta, encaixar e maximizar. */
 export function DockHeaderActions({ activePanel, group, containerApi }: IDockviewHeaderActionsProps) {
   const { request, logs, dock } = useWorkbench();
   const [maximized, setMaximized] = useState(() => group.api.isMaximized());

@@ -3,17 +3,12 @@ import type { EnvironmentActions } from '../../hooks/useEnvironments';
 import type { LayoutPreset } from '../../lib/dockLayout';
 import type { Environment, LogEntry, RequestPart, RequestRuntime, SavedRequest } from '../../types';
 
-/**
- * Tudo o que os painéis do workspace precisam. Os painéis são montados pelo
- * dockview (fora da árvore de props), por isso leem daqui em vez de props.
- */
 export interface WorkbenchValue {
   request: {
     active: SavedRequest | null;
     runtime: RequestRuntime;
     onChange: (changes: Partial<SavedRequest>) => void;
     onSend: () => void;
-    /** Abre a documentação da coleção da requisição ativa, no endpoint dela. */
     onShowDocs: () => void;
     onPasteCurl: (command: string) => void;
     onCopyCurl: () => void;

@@ -6,11 +6,6 @@ export function isObject(value: unknown): value is SpecObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/**
- * Lê uma especificação em JSON ou YAML. O CORE_SCHEMA não aceita merge keys
- * nem converte datas: mais seguro para arquivos de origem desconhecida e
- * mantém datas como texto.
- */
 export function parseSpecText(text: string): SpecObject {
   const trimmed = text.trim();
   if (!trimmed) throw new Error('A especificação está vazia.');

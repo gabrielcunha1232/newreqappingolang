@@ -26,7 +26,6 @@ export function useEnvironments() {
     setActiveId(env.id);
   }, []);
 
-  /** Ambiente que veio numa importação: passa a ser o ativo, para a coleção funcionar de imediato. */
   const add = useCallback((name: string, variables: KeyValue[]) => {
     const env: Environment = { id: generateId(), name, variables };
     setEnvironments((prev) => [...prev, env]);
@@ -48,7 +47,6 @@ export function useEnvironments() {
     setEnvironments((prev) => prev.map((e) => (e.id === id ? { ...e, variables } : e)));
   }, []);
 
-  /** Alterações feitas por scripts; retorna false se não há ambiente ativo para guardá-las. */
   const applyChanges = useCallback(
     (changes: Record<string, string | null>): boolean => {
       if (!activeId) return false;

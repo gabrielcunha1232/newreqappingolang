@@ -10,7 +10,6 @@ const MENU_WIDTH = 210;
 const MENU_HEIGHT = 280;
 const MARGIN = 8;
 
-/** Posição abaixo do elemento clicado (botão ⋯, barra de menus). */
 export function menuPositionFor(event: ReactMouseEvent<HTMLElement>): MenuPosition {
   const rect = event.currentTarget.getBoundingClientRect();
   const x = Math.min(rect.left, window.innerWidth - MENU_WIDTH - MARGIN);
@@ -19,7 +18,6 @@ export function menuPositionFor(event: ReactMouseEvent<HTMLElement>): MenuPositi
   return { x, y };
 }
 
-/** Posição do cursor (clique direito). */
 export function menuPositionAt(event: ReactMouseEvent): MenuPosition {
   return { x: event.clientX, y: event.clientY };
 }
@@ -32,15 +30,10 @@ interface ContextMenuProps {
   children: ReactNode;
 }
 
-/**
- * Menu flutuante (clique direito, botão ⋯, barra de menus). Fica dentro da
- * janela, fecha com Esc/clique fora e navega com as setas.
- */
 export function ContextMenu({ position, onClose, children }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [placed, setPlaced] = useState(position);
 
-  // Mede o menu de verdade e o empurra para dentro da janela.
   useLayoutEffect(() => {
     const menu = ref.current;
     if (!menu) return;

@@ -19,11 +19,9 @@ interface ScriptEditorProps {
   onChange: (value: string) => void;
 }
 
-/** Editor de script pre/post com trechos prontos à direita. */
 export function ScriptEditor({ phase, value, onChange }: ScriptEditorProps) {
   const ref = useRef<HTMLTextAreaElement>(null);
 
-  /** Insere na posição do cursor; trechos (`block`) ficam em linha própria. */
   const insert = (code: string, block = true) => {
     const textarea = ref.current;
     const at = textarea ? textarea.selectionStart : value.length;
@@ -53,7 +51,6 @@ export function ScriptEditor({ phase, value, onChange }: ScriptEditorProps) {
           aria-label={phase === 'pre' ? 'Script de pré-processamento' : 'Script de pós-processamento'}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={(event) => {
-            // Tab indenta em vez de sair do campo.
             if (event.key !== 'Tab' || event.shiftKey) return;
             event.preventDefault();
             insert('  ', false);

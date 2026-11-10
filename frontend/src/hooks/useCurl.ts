@@ -11,7 +11,6 @@ import type { useWorkspace } from './useWorkspace';
 
 interface Deps {
   workspace: ReturnType<typeof useWorkspace>;
-  /** Variáveis do ambiente ativo (o cURL copiado sai com elas resolvidas). */
   variables: Record<string, string>;
   log: Logger;
   notify: ShowToast;
@@ -21,12 +20,10 @@ function errorMessage(err: unknown): string {
   return err instanceof Error ? err.message : String(err);
 }
 
-/** Títulos que o app gera sozinho podem ser trocados pelo do cURL importado. */
 function hasCustomTitle(request: SavedRequest): boolean {
   return request.title !== 'Nova requisição' && request.title !== `${request.method} ${request.url}`;
 }
 
-/** Importar (colar ou diálogo) e copiar requisições como cURL. */
 export function useCurl({ workspace, variables, log, notify }: Deps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { state, actions, activeRequest } = workspace;
@@ -36,7 +33,6 @@ export function useCurl({ workspace, variables, log, notify }: Deps) {
     [log]
   );
 
-  /** Colado no campo de URL: substitui método, URL, cabeçalhos, autorização e corpo da requisição ativa. */
   const pasteIntoActive = useCallback(
     (command: string) => {
       if (!activeRequest) return;
@@ -58,7 +54,6 @@ export function useCurl({ workspace, variables, log, notify }: Deps) {
     [activeRequest, actions, reportWarnings, log, notify]
   );
 
-  /** Pelo diálogo: cria uma requisição nova. Lança Error para o diálogo mostrar. */
   const importAsNew = useCallback(
     (command: string) => {
       const { request, warnings } = parseCurl(command);
@@ -71,7 +66,6 @@ export function useCurl({ workspace, variables, log, notify }: Deps) {
     [actions, reportWarnings, log, notify]
   );
 
-  /** Copia como cURL com variáveis, URL base e autorização já aplicadas. */
   const copyAsCurl = useCallback(
     (requestId: string | null) => {
       const request = state.requests.find((r) => r.id === requestId);

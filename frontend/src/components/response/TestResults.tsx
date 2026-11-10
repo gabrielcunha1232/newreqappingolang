@@ -3,11 +3,9 @@ import { EmptyState } from '../common/EmptyState';
 
 interface TestResultsProps {
   tests: TestResult[];
-  /** Erro que interrompeu o script de pós-processamento. */
   scriptError: string;
 }
 
-/** Resultado do pm.test de cada teste do pós-processamento. */
 export function TestResults({ tests, scriptError }: TestResultsProps) {
   const passed = tests.filter((t) => t.passed).length;
 

@@ -4,7 +4,6 @@ import { interpolate } from '../lib/variables';
 import type { OAuth2Settings } from '../types';
 import { sendHttpRequest } from './httpService';
 
-/* Pedidos ao servidor de token, feitos pelo Go para não esbarrar em CORS. */
 
 async function requestToken(
   settings: OAuth2Settings,
@@ -48,10 +47,6 @@ export function exchangeAuthorizationCode(
   });
 }
 
-/**
- * Chamado antes do envio. Renova o token vencido quando dá para fazer isso sem
- * o usuário; retorna null se o token atual deve ser usado como está.
- */
 export async function renewTokenIfNeeded(
   settings: OAuth2Settings,
   vars: Record<string, string>

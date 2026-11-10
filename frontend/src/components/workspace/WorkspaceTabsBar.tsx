@@ -21,7 +21,6 @@ export interface RequestTabsProps {
 
 export interface DocsTabsProps {
   open: DocsScope[];
-  /** Aba de documentação em primeiro plano; null = a requisição ativa está em primeiro plano. */
   activeId: string | null;
   onActivate: (id: string) => void;
   onClose: (id: string) => void;
@@ -36,7 +35,6 @@ interface WorkspaceTabsBarProps {
   docs: DocsTabsProps;
 }
 
-/** Barra de abas do topo: documentação das coleções primeiro, depois as requisições abertas. */
 export function WorkspaceTabsBar({ requests, docs }: WorkspaceTabsBarProps) {
   const showingDocs = docs.activeId !== null;
   const { menu, openAt, close } = useContextMenu<TabTarget>();

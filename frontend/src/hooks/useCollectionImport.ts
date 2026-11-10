@@ -12,7 +12,6 @@ interface Deps {
   notify: ShowToast;
 }
 
-/** Importa coleções do Postman e do Insomnia. Lança Error para o diálogo mostrar. */
 export function useCollectionImport({ workspace, environments, log, notify }: Deps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { state, actions } = workspace;

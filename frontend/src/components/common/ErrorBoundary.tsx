@@ -1,7 +1,6 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react';
 
 interface ErrorBoundaryProps {
-  /** Nome exibido na mensagem (ex.: "painel Resposta"). */
   label: string;
   children: ReactNode;
 }
@@ -10,7 +9,6 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-/** Mostra o erro no lugar do conteúdo em vez de derrubar a tela inteira. */
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { error: null };
 

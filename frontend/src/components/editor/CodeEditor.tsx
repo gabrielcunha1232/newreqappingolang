@@ -9,15 +9,12 @@ interface CodeEditorProps {
   value: string;
   onChange: (value: string) => void;
   language: EditorLanguage;
-  /** Nomes das variáveis do ambiente ativo (destaque e autocompletar). */
   variableNames?: string[];
   placeholder?: string;
   ariaLabel?: string;
-  /** Atalho Shift+Alt+F. */
   onFormat?: () => void;
 }
 
-/** Editor CodeMirror controlado pelo React (value/onChange). */
 export function CodeEditor({
   value,
   onChange,
@@ -33,7 +30,6 @@ export function CodeEditor({
   callbacks.current = { onChange, onFormat };
   const compartments = useRef({ language: new Compartment(), variables: new Compartment(), placeholder: new Compartment() });
 
-  // Cria o editor uma única vez; as partes que mudam são reconfiguradas abaixo.
   useEffect(() => {
     const c = compartments.current;
     const view = new EditorView({
@@ -54,7 +50,6 @@ export function CodeEditor({
                   return true;
                 },
               },
-              // Ctrl+Enter envia a requisição (tratado pelo painel); não insere linha.
               { key: 'Mod-Enter', run: () => true },
             ])
           ),
@@ -72,7 +67,6 @@ export function CodeEditor({
     };
   }, []);
 
-  // Valor alterado por fora (formatar, trocar de requisição).
   useEffect(() => {
     const view = viewRef.current;
     if (!view) return;

@@ -32,6 +32,7 @@ func (s *Scanner) Scan() ([]models.Endpoint, error) {
 		FrameworkFiber: parsers.NewFiberParser(),
 		FrameworkEcho:  parsers.NewEchoParser(),
 		FrameworkChi:   parsers.NewChiParser(),
+		FrameworkSpring: parsers.NewSpringParser(),
 	}
 
 	initparsers, exists := parsersMap[language.Framework]

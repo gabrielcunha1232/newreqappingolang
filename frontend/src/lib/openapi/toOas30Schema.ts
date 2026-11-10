@@ -1,19 +1,10 @@
 import type { JsonSchema } from '../../types';
 import { isObject } from './parseSpec';
 
-/** Palavras-chave cujo valor é um schema (ou lista/mapa de schemas). */
 const NESTED_SCHEMA = new Set(['items', 'not', 'additionalProperties']);
 const SCHEMA_LIST = new Set(['allOf', 'oneOf', 'anyOf']);
 const SCHEMA_MAP = new Set(['properties']);
 
-/**
- * Converte construções do OpenAPI 3.1 (JSON Schema 2020-12) para o
- * equivalente do 3.0, que é a versão exportada:
- *   type: [string, "null"]   → type: string + nullable: true
- *   examples: [a, b]         → example: a
- *   const: x                 → enum: [x]
- *   exclusiveMinimum: 5      → minimum: 5 + exclusiveMinimum: true
- */
 export function toOas30Schema(schema: JsonSchema): JsonSchema {
   const result: JsonSchema = {};
 

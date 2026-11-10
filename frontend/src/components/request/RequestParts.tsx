@@ -12,7 +12,6 @@ import { PathVariablesTable } from './PathVariablesTable';
 export interface RequestPartProps {
   request: SavedRequest;
   onChange: (changes: Partial<SavedRequest>) => void;
-  /** Variáveis do ambiente ativo (usadas no editor do corpo). */
   variableNames: string[];
 }
 
@@ -193,7 +192,6 @@ export function BodyPart({ request, onChange, variableNames }: RequestPartProps)
   );
 }
 
-/** Editor de cada parte, usado tanto nas sub-abas quanto nos painéis destacados. */
 export const REQUEST_PART_EDITORS: Record<RequestPart, (props: RequestPartProps) => JSX.Element> = {
   params: ParamsPart,
   auth: AuthPart,

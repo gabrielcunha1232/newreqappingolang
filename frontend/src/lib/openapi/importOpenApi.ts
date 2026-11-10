@@ -17,16 +17,9 @@ import { exampleFromSchema, schemaType } from './exampleFromSchema';
 import { isObject, type SpecObject } from './parseSpec';
 import { createRefResolver, type RefResolver } from './refs';
 
-/*
- * Especificação OpenAPI 3.x / Swagger 2.0 → coleção com uma requisição por
- * operação. Valores de exemplo vão para a requisição (editável); tipos,
- * descrições, schemas e respostas vão para `doc` (documentação).
- */
 
 export interface OpenApiImportOptions {
-  /** URL de onde a spec foi baixada: resolve servidores relativos ("/api"). */
   sourceUrl?: string;
-  /** Nomes de coleções existentes, para não repetir. */
   existingNames: string[];
 }
 
@@ -46,11 +39,9 @@ interface Context {
   refs: RefResolver;
   warn: (message: string) => void;
   securitySchemes: SpecObject;
-  /** Formatos aceitos globalmente (Swagger 2). */
   consumes: string[];
 }
 
-/* ===== Utilidades ===== */
 
 function asString(value: unknown): string | undefined {
   return typeof value === 'string' && value.trim() ? value.trim() : undefined;
@@ -64,7 +55,6 @@ function asObject(value: unknown): SpecObject {
   return isObject(value) ? value : {};
 }
 
-/** Exemplo em texto para tabelas de parâmetros. */
 function exampleText(value: unknown): string | undefined {
   if (value === undefined || value === null) return undefined;
   return typeof value === 'object' ? JSON.stringify(value) : String(value);
@@ -79,7 +69,6 @@ function isJsonType(contentType: string): boolean {
   return /json/i.test(contentType);
 }
 
-/** Prefere JSON entre os formatos oferecidos. */
 function pickContentType(types: string[]): string | undefined {
   return types.find(isJsonType) ?? types[0];
 }
@@ -93,15 +82,12 @@ export function uniqueName(name: string, existing: string[]): string {
   }
 }
 
-/* ===== Servidor ===== */
 
-/** URL base declarada; relativa ("/api") só vira absoluta se a spec veio de uma URL. */
 function declaredServer(ctx: Context): string | undefined {
   if (ctx.version === 3) {
     const server = asObject(asArray(ctx.spec.servers)[0]);
     const url = asString(server.url);
     if (!url) return undefined;
-    // Variáveis de servidor ({port}) recebem o valor padrão.
     const variables = asObject(server.variables);
     return url.replace(/\{([^}]+)\}/g, (match, name: string) => exampleText(asObject(variables[name]).default) ?? match);
   }
@@ -127,7 +113,6 @@ function resolveServer(ctx: Context, sourceUrl: string | undefined): { baseUrl: 
     try {
       return { baseUrl: normalizeBaseUrl(new URL(declared, sourceUrl).href), pathPrefix: '' };
     } catch {
-      // URL inválida: trata como relativa abaixo.
     }
   }
 
@@ -136,7 +121,6 @@ function resolveServer(ctx: Context, sourceUrl: string | undefined): { baseUrl: 
   return { baseUrl: '', pathPrefix: prefix === '/' ? '' : prefix };
 }
 
-/* ===== Parâmetros ===== */
 
 function typeLabel(schema: SpecObject): string | undefined {
   const type = schemaType(schema);
@@ -154,13 +138,11 @@ interface OperationParam {
   in: string;
   required: boolean;
   description?: string;
-  /** Schema (OpenAPI 3) ou o próprio parâmetro (Swagger 2 guarda type/format nele). */
   schema: SpecObject;
   example?: string;
   raw: SpecObject;
 }
 
-/** Parâmetros do caminho + da operação (a operação sobrescreve por local + nome). */
 function collectParams(ctx: Context, pathItem: SpecObject, operation: SpecObject): OperationParam[] {
   const byKey = new Map<string, OperationParam>();
   for (const entry of [...asArray(pathItem.parameters), ...asArray(operation.parameters)]) {
@@ -185,7 +167,6 @@ function collectParams(ctx: Context, pathItem: SpecObject, operation: SpecObject
   return [...byKey.values()];
 }
 
-/** No Swagger 2, o tipo fica no próprio parâmetro (type, format, items...). */
 const SWAGGER2_SCHEMA_KEYS = ['type', 'format', 'items', 'enum', 'default', 'minimum', 'maximum', 'pattern', 'minLength', 'maxLength'];
 
 function swagger2ParamSchema(ctx: Context, raw: SpecObject): SpecObject {
@@ -193,7 +174,6 @@ function swagger2ParamSchema(ctx: Context, raw: SpecObject): SpecObject {
   return asObject(ctx.refs.deref(picked));
 }
 
-/** Exemplo declarado no schema; em arrays, o do item ("status=available"). */
 function schemaExample(schema: SpecObject): unknown {
   const own = schema.example ?? schema.default ?? asArray(schema.enum)[0];
   if (own !== undefined || schemaType(schema) !== 'array') return own;
@@ -217,20 +197,17 @@ function paramRow(param: OperationParam): KeyValue {
   return newKeyValue({
     key: param.name,
     value: param.example ?? '',
-    // Opcionais ficam na tabela, desligados (fora da URL / do envio).
     enabled: param.required,
     description: param.description ?? '',
   });
 }
 
-/* ===== Autorização ===== */
 
 interface AuthResult {
   auth: RequestAuth;
   queryRows: KeyValue[];
 }
 
-/** Usa o primeiro esquema exigido pela operação (ou o global). */
 function operationAuth(ctx: Context, operation: SpecObject): AuthResult {
   const requirements = asArray(operation.security ?? ctx.spec.security);
   const schemeName = Object.keys(asObject(requirements[0]))[0];
@@ -257,7 +234,6 @@ function operationAuth(ctx: Context, operation: SpecObject): AuthResult {
   return none;
 }
 
-/* ===== Corpo ===== */
 
 interface BodyResult {
   bodyType: BodyType;
@@ -321,7 +297,6 @@ function requestBodyV2(ctx: Context, label: string, operation: SpecObject, param
   return { bodyType: 'text', body: formEncode(values), contentType: 'application/x-www-form-urlencoded' };
 }
 
-/* ===== Respostas ===== */
 
 function responseDocs(ctx: Context, operation: SpecObject): ApiResponseDoc[] {
   return Object.entries(asObject(operation.responses)).map(([status, entry]) => {
@@ -356,7 +331,6 @@ function responseDocs(ctx: Context, operation: SpecObject): ApiResponseDoc[] {
   });
 }
 
-/* ===== Operação ===== */
 
 function buildRequest(
   ctx: Context,
@@ -410,7 +384,6 @@ function buildRequest(
   });
 }
 
-/* ===== Entrada ===== */
 
 export function importOpenApi(spec: SpecObject, options: OpenApiImportOptions): OpenApiImportResult {
   const warnings: string[] = [];

@@ -13,7 +13,6 @@ const STATUS_GROUPS = ['2xx', '3xx', '4xx', '5xx'];
 interface HistoryListProps {
   entries: HistoryEntry[];
   onOpen: (entry: HistoryEntry) => void;
-  /** Cria uma requisição nova mesmo que a original ainda exista. */
   onOpenAsNew: (entry: HistoryEntry) => void;
   onRemove: (id: string) => void;
   onCopyText: (text: string, label: string) => void;

@@ -4,7 +4,6 @@ import { descendantFolderIds, folderPath } from '../../lib/tree';
 import type { Collection, Folder, SavedRequest } from '../../types';
 import { MenuItem, MenuLabel, MenuSeparator } from '../common/ContextMenu';
 
-/** Ações da árvore que dependem de outras partes do app (docs, cURL, área de transferência...). */
 export interface TreeCommands {
   showDocs: (collectionId: string | null, requestId?: string) => void;
   exportOpenApi: (collectionId: string | null) => void;
@@ -20,7 +19,6 @@ export interface TreeCommands {
   importCurl: () => void;
 }
 
-/** Edição inline que um item de menu pode iniciar. */
 export type TreeEdit =
   | { kind: 'request' | 'collection' | 'baseUrl' | 'folder' | 'folderBaseUrl'; id: string }
   | { kind: 'newCollection' };
@@ -148,7 +146,6 @@ export function FolderMenu({ folder, folders, actions, commands, onEdit }: MenuC
   );
 }
 
-/** Grupo "Sem grupo" (requisições fora de coleções). */
 export function UngroupedMenu({ actions, commands }: Omit<MenuContext, 'onEdit'>) {
   return (
     <>
@@ -161,7 +158,6 @@ export function UngroupedMenu({ actions, commands }: Omit<MenuContext, 'onEdit'>
   );
 }
 
-/** Clique direito na área vazia da árvore. */
 export function TreeBackgroundMenu({
   collections,
   actions,

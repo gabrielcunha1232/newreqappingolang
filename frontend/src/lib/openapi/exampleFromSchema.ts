@@ -17,7 +17,6 @@ const STRING_BY_FORMAT: Record<string, string> = {
   binary: '',
 };
 
-/** Tipo principal; no OpenAPI 3.1 "type" pode ser uma lista (["string", "null"]). */
 export function schemaType(schema: Record<string, unknown>): string | undefined {
   const { type } = schema;
   if (Array.isArray(type)) return type.find((t): t is string => typeof t === 'string' && t !== 'null');
@@ -27,11 +26,6 @@ export function schemaType(schema: Record<string, unknown>): string | undefined 
   return undefined;
 }
 
-/**
- * Monta um valor de exemplo a partir de um schema já sem $ref.
- * Em corpos de requisição, campos readOnly (ex.: id gerado) ficam de fora;
- * em respostas, writeOnly (ex.: senha).
- */
 export function exampleFromSchema(schema: unknown, usage: 'request' | 'response', depth = 0): unknown {
   if (!isObject(schema) || depth > MAX_DEPTH) return undefined;
 

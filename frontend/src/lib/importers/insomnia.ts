@@ -5,7 +5,6 @@ import { uniqueName } from '../openapi/importOpenApi';
 import { urlWithParams } from '../query';
 import { asJson, asList, isJson, text, type CollectionImport, type Json } from './common';
 
-/** "{{ _.host }}" → "{{host}}". Tags "{% %}" não têm equivalente e ficam como estão. */
 function convertTemplate(value: unknown): string {
   return text(value).replace(/\{\{\s*(?:_\.)?([\w.-]+)\s*\}\}/g, '{{$1}}');
 }
@@ -115,7 +114,6 @@ function convertRequest(resource: Json, title: string, place: Placement, warn: (
     position: place.position,
     title,
     method: text(resource.method).toUpperCase() || 'GET',
-    // A URL do Insomnia não traz a query: ela fica na lista de parâmetros.
     url: params.length > 0 ? urlWithParams(url, params) : url,
     params,
     headers: rows(resource.headers),
@@ -124,7 +122,6 @@ function convertRequest(resource: Json, title: string, place: Placement, warn: (
   };
 }
 
-/** Objetos aninhados viram "a.b", a forma como os templates referenciam o valor. */
 function flatten(data: Json, prefix = ''): KeyValue[] {
   return Object.entries(data).flatMap(([key, value]) =>
     isJson(value) ? flatten(value, `${prefix}${key}.`) : [newKeyValue({ key: `${prefix}${key}`, value: text(value) })]

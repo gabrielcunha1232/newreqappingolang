@@ -1,21 +1,15 @@
 import { isObject, type SpecObject } from './parseSpec';
 
-/** Schemas mais fundos que isso viram um objeto genérico (protege contra specs enormes). */
 const MAX_DEPTH = 12;
 
 function hasOwn(object: SpecObject, key: string): boolean {
   return Object.prototype.hasOwnProperty.call(object, key);
 }
 
-/** "#/components/schemas/User" → "User" */
 export function refName(ref: string): string {
   return ref.split('/').pop() ?? ref;
 }
 
-/**
- * Resolve referências internas ("#/components/...", "#/definitions/...").
- * Referências externas (outros arquivos/URLs) não são seguidas e são avisadas.
- */
 export function createRefResolver(root: SpecObject, warn: (message: string) => void) {
   const warned = new Set<string>();
   const warnOnce = (message: string) => {
@@ -38,7 +32,6 @@ export function createRefResolver(root: SpecObject, warn: (message: string) => v
     return node;
   }
 
-  /** Segue a cadeia de $ref só no nível de cima (parâmetros, respostas, corpos). */
   function resolve(value: unknown): unknown {
     const seen = new Set<string>();
     let current = value;
@@ -50,7 +43,6 @@ export function createRefResolver(root: SpecObject, warn: (message: string) => v
     return current;
   }
 
-  /** Resolve todas as referências de um schema; ciclos viram uma descrição. */
   function deref(value: unknown, stack: string[] = [], depth = 0): unknown {
     if (depth > MAX_DEPTH) return { type: 'object' };
     if (Array.isArray(value)) return value.map((item) => deref(item, stack, depth + 1));

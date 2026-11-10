@@ -9,12 +9,10 @@ import { ContextMenu, MenuItem, MenuSeparator } from '../common/ContextMenu';
 interface ApiScannerProps {
   onScanComplete: (dir: string, endpoints: Endpoint[], baseUrl: string) => void;
   onEndpointSelect: (endpoint: Endpoint) => void;
-  /** Alternativa ao scanner: importar uma especificação OpenAPI/Swagger. */
   onImportSpec: () => void;
   onCopyText: (text: string, label: string) => void;
 }
 
-/** Escaneia um projeto Go e importa os endpoints encontrados para uma coleção. */
 export function ApiScanner({ onScanComplete, onEndpointSelect, onImportSpec, onCopyText }: ApiScannerProps) {
   const { menu, openAt, close } = useContextMenu<Endpoint>();
   const [directory, setDirectory] = useState('');

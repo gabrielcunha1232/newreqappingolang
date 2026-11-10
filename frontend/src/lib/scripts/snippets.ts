@@ -5,7 +5,6 @@ export interface ScriptSnippet {
   code: string;
 }
 
-/** Trechos prontos inseridos pelo editor de scripts (como os "snippets" do Postman). */
 export const SCRIPT_SNIPPETS: Record<ScriptPhase, ScriptSnippet[]> = {
   pre: [
     {

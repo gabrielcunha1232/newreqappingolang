@@ -22,33 +22,24 @@ const IDLE: RequestRuntime = { response: null, previous: null, error: '', loadin
 
 const SCRIPT_LOG_LEVEL: Record<ScriptLog['level'], LogLevel> = { info: 'info', warn: 'warn', error: 'error' };
 
-/** O que aconteceu num envio (usado também pelo Collection Runner). */
 export interface RunResult {
   status: number | null;
   timeSpent: number | null;
   error: string;
   body: string;
   tests: TestResult[];
-  /** Erro que interrompeu o script de pós-processamento. */
   scriptError: string;
-  /** Variáveis do ambiente depois dos scripts (para a próxima requisição de uma sequência). */
   environment: Record<string, string>;
 }
 
 interface RunnerDeps {
   log: Logger;
   onComplete: (entry: Omit<HistoryEntry, 'id' | 'timestamp'>) => void;
-  /** Grava no ambiente ativo o que os scripts mudaram; false = não há ambiente ativo. */
   onEnvironmentChanges: (changes: Record<string, string | null>) => boolean;
-  /** Grava na requisição o token OAuth2 renovado no envio. */
   onAuthRenewed: (requestId: string, auth: RequestAuth) => void;
   mask: (text: string) => string;
 }
 
-/**
- * Executa requisições: pré-processamento → montagem → envio → pós-processamento.
- * Guarda resposta, erro, carregamento e testes por requisição.
- */
 export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuthRenewed, mask }: RunnerDeps) {
   const [runtime, setRuntime] = useState<Record<string, RequestRuntime>>({});
 
@@ -131,7 +122,6 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         };
       });
 
-      /* 1. Pré-processamento: pode mudar a requisição e as variáveis antes da montagem. */
       if (saved.preScript.trim()) {
         const output = await executeScript({
           phase: 'pre',
@@ -148,7 +138,6 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         effective = applyScriptRequest(saved, output.request);
       }
 
-      /* OAuth2: renova o token vencido antes de montar o cabeçalho. */
       if (effective.auth.type === 'oauth2') {
         try {
           const renewed = await renewTokenIfNeeded(effective.auth.oauth2, { ...environment, ...locals });
@@ -163,14 +152,12 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         }
       }
 
-      /* 2. Montagem: variáveis locais (pm.variables) têm prioridade sobre as do ambiente. */
       const built = buildHttpRequest(effective, collection, { ...environment, ...locals });
       if (!built.ok) return fail(built.error);
       const { request, warnings } = built;
       warnings.forEach((warning) => log('warn', warning));
       logRequest(saved, request);
 
-      /* 3. Envio. */
       let response;
       try {
         response = await sendHttpRequest(request);
@@ -198,7 +185,6 @@ export function useRequestRunner({ log, onComplete, onEnvironmentChanges, onAuth
         missing.forEach((path) => log('warn', `Extração: "${path}" não encontrado na resposta.`));
       }
 
-      /* 4. Pós-processamento: testes e variáveis extraídas da resposta. */
       let tests: TestResult[] = [];
       let scriptError = '';
       if (saved.postScript.trim()) {

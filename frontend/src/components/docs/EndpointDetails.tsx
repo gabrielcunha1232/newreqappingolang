@@ -10,7 +10,6 @@ function isJson(contentType: string | undefined): boolean {
   return /json/i.test(contentType ?? '');
 }
 
-/** Exemplo formatado; texto com {{variáveis}} (JSON inválido) fica como está. */
 function formatExample(example: string, contentType: string | undefined): string {
   if (!isJson(contentType)) return example;
   const parsed = tryParseJson(example);
@@ -61,7 +60,6 @@ interface EndpointDetailsProps {
   onTryIt?: () => void;
 }
 
-/** Corpo expandido de um endpoint: parâmetros, corpo, respostas, segurança e origem. */
 export function EndpointDetails({ endpoint, onTryIt }: EndpointDetailsProps) {
   const { requestBody, responses, params, security, source } = endpoint;
   const bodyExample = useMemo(

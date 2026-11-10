@@ -13,15 +13,12 @@ interface RequestEditorProps {
   request: SavedRequest;
   loading: boolean;
   error: string;
-  /** Partes abertas como painéis próprios (somem das sub-abas). */
   detachedParts: RequestPart[];
   onDetach: (part: RequestPart) => void;
   variableNames: string[];
   onChange: (changes: Partial<SavedRequest>) => void;
   onSend: () => void;
-  /** Abre a documentação da coleção já no endpoint desta requisição. */
   onShowDocs: () => void;
-  /** Comando curl colado no campo de URL. */
   onPasteCurl: (command: string) => void;
   onCopyCurl: () => void;
 }
@@ -56,7 +53,6 @@ export function RequestEditor({
     ] as Array<{ id: SubTab; label: string; badge?: number; dot?: boolean }>
   ).filter((t) => !(isRequestPart(t.id) && detachedParts.includes(t.id)));
 
-  // Se a sub-aba selecionada foi destacada, mostra a primeira que sobrou.
   const tab = subTabs.some((t) => t.id === selected) ? selected : subTabs[0]?.id;
 
   const renderTab = () => {

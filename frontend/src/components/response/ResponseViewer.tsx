@@ -30,7 +30,6 @@ interface ResponseMetaProps {
   onCopy: () => void;
 }
 
-/** Status, tempo e tamanho exibidos no cabeçalho do painel. */
 export function ResponseMeta({ response, loading, onCopy }: ResponseMetaProps) {
   if (loading) return <span className="hint">Aguardando resposta…</span>;
   if (!response) return null;
@@ -48,11 +47,9 @@ export function ResponseMeta({ response, loading, onCopy }: ResponseMetaProps) {
 
 interface ResponseViewerProps {
   response: Response | null;
-  /** Resposta da execução anterior; habilita a comparação. */
   previous: Response | null;
   error: string;
   loading: boolean;
-  /** Resultados do pós-processamento; null = a requisição não tem script. */
   tests: TestResult[] | null;
   scriptError: string;
   doc?: ApiDocMetadata;
@@ -109,7 +106,6 @@ export function ResponseViewer({ response, previous, error, loading, tests, scri
   const hasSchemaTab = Boolean(declared) || (isJson && Boolean(onDocChange));
   const hasExtractTab = isJson && Boolean(extract);
 
-  // Sem script de pós-processamento a aba Testes some; volta para o modo padrão.
   const mode =
     (selected === 'tests' && tests === null) || (selected === 'diff' && !previous) || (selected === 'schema' && !hasSchemaTab) || (selected === 'extract' && !hasExtractTab)
       ? 'pretty'

@@ -5,11 +5,9 @@ const MAX_FILE_BYTES = 20 * 1024 * 1024;
 
 interface ImportCollectionDialogProps {
   onClose: () => void;
-  /** Lança Error com mensagem para o usuário se o conteúdo for inválido. */
   onImport: (content: string, origin: string) => void;
 }
 
-/** Importação de coleções do Postman e do Insomnia, por arquivo ou texto colado. */
 export function ImportCollectionDialog({ onClose, onImport }: ImportCollectionDialogProps) {
   const [file, setFile] = useState<File | null>(null);
   const [content, setContent] = useState('');

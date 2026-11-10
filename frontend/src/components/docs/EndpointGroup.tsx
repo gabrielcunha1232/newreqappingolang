@@ -11,13 +11,11 @@ interface EndpointGroupProps {
   actions: EndpointActions;
 }
 
-/** Seção de endpoints com a mesma tag (recurso), recolhível. */
 export function EndpointGroup({ group, focus, actions }: EndpointGroupProps) {
   const [collapsed, setCollapsed] = useState(false);
   const listId = useId();
   const focusedHere = focus !== null && group.endpoints.some((e) => e.id === focus.endpointId);
 
-  // O endpoint destacado precisa estar visível.
   useEffect(() => {
     if (focusedHere) setCollapsed(false);
   }, [focusedHere, focus?.nonce]);

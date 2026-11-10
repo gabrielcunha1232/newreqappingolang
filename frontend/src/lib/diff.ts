@@ -3,13 +3,8 @@ export interface DiffLine {
   text: string;
 }
 
-/** Acima disto a tabela da LCS ocuparia memória demais para rodar na interface. */
 const MAX_CELLS = 4_000_000;
 
-/**
- * Diferença linha a linha (LCS). Retorna null se os textos forem grandes demais
- * mesmo depois de descartar o início e o fim em comum.
- */
 export function diffLines(before: string, after: string): DiffLine[] | null {
   const a = before.split('\n');
   const b = after.split('\n');

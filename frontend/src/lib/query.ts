@@ -1,12 +1,6 @@
 import type { KeyValue, SavedRequest } from '../types';
 import { newKeyValue } from './factories';
 
-/*
- * A query string da URL e a tabela de parâmetros mostram a mesma coisa:
- * as linhas habilitadas e com nome estão na URL; linhas desabilitadas ou
- * sem nome existem só na tabela. Os valores ficam crus (sem codificação),
- * para que {{variáveis}} continuem legíveis; a codificação acontece no envio.
- */
 
 interface UrlParts {
   base: string;
@@ -34,12 +28,10 @@ export function parseQuery(query: string): Array<{ key: string; value: string }>
     });
 }
 
-/** Linha que aparece na URL. */
 function inUrl(param: KeyValue) {
   return param.enabled && param.key.trim() !== '';
 }
 
-/** Reescreve a query string da URL a partir da tabela de parâmetros. */
 export function urlWithParams(url: string, params: KeyValue[]): string {
   const { base, hash } = splitUrl(url);
   const query = params
@@ -49,10 +41,6 @@ export function urlWithParams(url: string, params: KeyValue[]): string {
   return base + (query ? `?${query}` : '') + hash;
 }
 
-/**
- * Atualiza a tabela a partir da query string digitada na URL, preservando
- * ids e descrições das linhas existentes e as linhas que não estão na URL.
- */
 export function paramsFromUrl(url: string, params: KeyValue[]): KeyValue[] {
   const pairs = parseQuery(splitUrl(url).query);
   const result: KeyValue[] = [];
@@ -71,7 +59,6 @@ export function paramsFromUrl(url: string, params: KeyValue[]): KeyValue[] {
   return result;
 }
 
-/** Aplica uma alteração mantendo URL e parâmetros em sincronia. */
 export function applyRequestChanges(request: SavedRequest, changes: Partial<SavedRequest>): SavedRequest {
   const next = { ...request, ...changes };
   if (changes.url !== undefined && changes.params === undefined) {
@@ -82,11 +69,6 @@ export function applyRequestChanges(request: SavedRequest, changes: Partial<Save
   return next;
 }
 
-/**
- * Deixa URL e tabela consistentes quando vieram de fontes diferentes:
- * requisições salvas antes da sincronização (parâmetros só na tabela) ou
- * criadas a partir de uma URL com query (histórico).
- */
 export function reconcileParams(request: SavedRequest): SavedRequest {
   const pairs = parseQuery(splitUrl(request.url).query);
   const missing = pairs.filter(
@@ -97,17 +79,14 @@ export function reconcileParams(request: SavedRequest): SavedRequest {
 }
 
 function encodePart(text: string): string {
-  // Aceita tanto valores crus ("a b") quanto já codificados ("a%20b").
   let decoded = text;
   try {
     decoded = decodeURIComponent(text);
   } catch {
-    // "%" solto: codifica o texto como está.
   }
   return encodeURIComponent(decoded);
 }
 
-/** Codifica chaves e valores da query string para o envio. */
 export function encodeQuery(url: string): string {
   const { base, query, hash } = splitUrl(url);
   if (!query) return url;

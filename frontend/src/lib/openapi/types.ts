@@ -1,6 +1,5 @@
 import type { JsonSchema } from '../../types';
 
-/* Subconjunto do OpenAPI 3.0 que o app gera. */
 
 export interface OpenApiServer {
   url: string;

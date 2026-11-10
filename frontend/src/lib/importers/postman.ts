@@ -13,7 +13,6 @@ interface WalkContext {
   nextPosition: () => number;
 }
 
-/** No formato 2.1 as opções são lista de {key, value}; no 2.0, um objeto. */
 function authOptions(auth: Json, type: string): Json {
   const raw = auth[type];
   if (Array.isArray(raw)) return Object.fromEntries(asList(raw).map((row) => [text(row.key), row.value]));
@@ -58,7 +57,6 @@ function convertAuth(auth: unknown, label: string, warn: (m: string) => void): {
       return { auth: { ...result, type: 'basic', username: text(options.username), password: text(options.password) } };
     case 'apikey': {
       const pair = { key: text(options.key), value: text(options.value) };
-      // O app só envia API key em cabeçalho; na query ela vira um parâmetro comum.
       if (options.in === 'query') return { auth: result, queryKey: newKeyValue(pair) };
       return { auth: { ...result, type: 'apikey', apiKeyName: pair.key, apiKeyValue: pair.value } };
     }

@@ -12,14 +12,11 @@ interface Deps {
   logger: ReturnType<typeof useConsole>;
   toast: ReturnType<typeof useToast>;
   onShowSidebar: (view: SidebarView) => void;
-  /** Documentação da coleção da requisição ativa. */
   onShowDocs: () => void;
   onImportSpec: () => void;
   onImportCurl: () => void;
   onImportCollection: () => void;
-  /** Gera código da requisição ativa. */
   onGenerateCode: () => void;
-  /** Copia a requisição ativa como cURL. */
   onCopyCurl: () => void;
   onExportBackup: () => void;
   onRestoreBackup: () => void;
@@ -31,7 +28,6 @@ interface Deps {
 
 export const GLOBAL_SEARCH_LABEL = 'Busca global';
 
-/** Itens da barra de menus (Arquivo, Editar, Visualizar, Janela, Ajuda). */
 export function useAppMenus({ workspace, dock, logger, toast, onShowSidebar, onShowDocs, onImportSpec, onImportCurl, onImportCollection, onGenerateCode, onCopyCurl, onExportBackup, onRestoreBackup, onGlobalSearch, onHelp, onCompareEnvironments, onAppearance }: Deps): MenuDefinition[] {
   const { state, actions } = workspace;
   const activeId = state.activeRequestId;

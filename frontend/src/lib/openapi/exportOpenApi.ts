@@ -16,22 +16,15 @@ import type {
   OpenApiServer,
 } from './types';
 
-/*
- * ApiEndpoint[] → documento OpenAPI 3.0. O arquivo é feito para ser
- * compartilhado: credenciais nunca entram (valores de auth, exemplos de
- * campos sensíveis) e caminhos locais de código-fonte ficam de fora.
- */
 
 export interface OpenApiExportInput {
   title: string;
   endpoints: ApiEndpoint[];
-  /** Variáveis do ambiente ativo, para resolver bases como {{baseUrl}}. */
   variables: Record<string, string>;
 }
 
 export interface OpenApiExportResult {
   document: OpenApiDocument;
-  /** Endpoints ignorados ou ajustados, para avisar o usuário. */
   warnings: string[];
 }
 
@@ -40,17 +33,13 @@ const REDACTED = '***';
 
 type Method = keyof OpenApiPathItem;
 
-/* ===== Caminho ===== */
 
 interface ConvertedPath {
   path: string;
-  /** Nomes de {{variáveis}} usadas no meio do caminho (viram parâmetros de caminho). */
   variables: string[];
-  /** Parâmetros opcionais na rota original (o OpenAPI exige todos obrigatórios). */
   optional: Set<string>;
 }
 
-/** "/users/:id", "/files/*path", "/a/{id:[0-9]+}" → "/users/{id}", "/files/{path}", "/a/{id}" */
 export function toOpenApiPath(path: string): ConvertedPath {
   const variables: string[] = [];
   const optional = new Set<string>();
@@ -75,7 +64,6 @@ export function toOpenApiPath(path: string): ConvertedPath {
   return { path: converted.startsWith('/') ? converted : `/${converted}`, variables, optional };
 }
 
-/** Curinga sem nome ("/static/*") ganha um nome válido no OpenAPI. */
 function paramName(name: string): string {
   return name === '*' ? 'wildcard' : name;
 }
@@ -102,25 +90,20 @@ function operationId(method: string, path: string, used: Set<string>): string {
   return id;
 }
 
-/* ===== Servidores ===== */
 
-/** Resolve {{variáveis}} da base; só vale se der uma URL (ou caminho absoluto). */
 function resolveServerUrl(base: string | undefined, variables: Record<string, string>): string | undefined {
   if (!base) return undefined;
   const url = interpolate(base, variables).trim().replace(/\/+$/, '');
   return /^https?:\/\//i.test(url) || url.startsWith('/') ? url : undefined;
 }
 
-/** A base mais usada vira o servidor principal do documento. */
 function primaryServer(urls: Array<string | undefined>): string | undefined {
   const counts = new Map<string, number>();
   for (const url of urls) if (url) counts.set(url, (counts.get(url) ?? 0) + 1);
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0];
 }
 
-/* ===== Exemplos e conteúdo ===== */
 
-/** Troca por "***" os valores de chaves sensíveis (password, token...) em qualquer nível. */
 function redactSensitive(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(redactSensitive);
   if (value && typeof value === 'object') {
@@ -142,19 +125,16 @@ function mediaType(example: string | undefined, contentType: string, declared: J
     const parsed = tryParseJson(example);
     if (parsed.ok) return { schema: schema ?? inferSchema(parsed.value), example: redactSensitive(parsed.value) };
   }
-  // Texto livre ou JSON com {{variáveis}}: vai como string.
   return { schema: schema ?? { type: 'string' }, example };
 }
 
 const PRIMITIVE_TYPES = new Set(['string', 'integer', 'number', 'boolean', 'array', 'object']);
 
-/** Rótulo de exibição ("integer (int64)") → tipo do schema ("integer"). */
 function primitiveType(label: string | undefined): string {
   const type = label?.match(/^[a-z]+/)?.[0];
   return type && PRIMITIVE_TYPES.has(type) && type !== 'array' && type !== 'object' ? type : 'string';
 }
 
-/** Exemplos que só fazem sentido dentro do app ({{variável}}) ou que podem ser credenciais ficam de fora. */
 function shareableExample(param: ApiParam): string | undefined {
   if (!param.example || param.example.includes('{{')) return undefined;
   if (param.in !== 'path' && isSensitiveName(param.name)) return undefined;
@@ -178,7 +158,6 @@ function parameters(endpoint: ApiEndpoint, converted: ConvertedPath): OpenApiPar
     add({
       name,
       in: param.in,
-      // Parâmetros de caminho são sempre obrigatórios no OpenAPI.
       required: param.in === 'path' ? true : param.required,
       description: notes.filter(Boolean).join(' ') || undefined,
       schema: param.schema ? toOas30Schema(param.schema) : { type: primitiveType(param.type) },
@@ -218,7 +197,6 @@ function responses(endpoint: ApiEndpoint): Record<string, OpenApiResponse> {
   );
 }
 
-/* ===== Segurança ===== */
 
 function securityScheme(security: ApiSecurity): [string, OpenApiSecurityScheme] {
   switch (security.type) {
@@ -233,7 +211,6 @@ function securityScheme(security: ApiSecurity): [string, OpenApiSecurityScheme] 
   }
 }
 
-/* ===== Documento ===== */
 
 export function buildOpenApiDocument({ title, endpoints, variables }: OpenApiExportInput): OpenApiExportResult {
   const warnings: string[] = [];
@@ -323,7 +300,6 @@ function sortKeys<T>(record: Record<string, T>): Record<string, T> {
   return Object.fromEntries(Object.entries(record).sort(([a], [b]) => a.localeCompare(b)));
 }
 
-/** "Minha API (dev)" → "minha-api-dev.openapi.json" */
 export function openApiFileName(title: string): string {
   const slug = title
     .normalize('NFD')

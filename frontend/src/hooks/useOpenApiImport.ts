@@ -12,16 +12,10 @@ interface Deps {
   notify: ShowToast;
 }
 
-/**
- * Importa uma especificação OpenAPI/Swagger como coleção e abre a
- * documentação dela. As funções lançam Error com mensagem para o usuário;
- * quem chama (o diálogo) mostra o erro.
- */
 export function useOpenApiImport({ workspace, log, notify }: Deps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const { state, actions } = workspace;
 
-  /** @param origin nome do arquivo ou URL, para mensagens. */
   const importText = useCallback(
     (text: string, origin: string, sourceUrl?: string) => {
       const spec = parseSpecText(text);

@@ -5,14 +5,11 @@ interface InlineInputProps {
   placeholder?: string;
   ariaLabel: string;
   className?: string;
-  /** Chamado com o valor digitado ao pressionar Enter ou sair do campo. */
   onCommit: (value: string) => void;
   onCancel: () => void;
-  /** Se falso, sair do campo cancela em vez de confirmar. */
   commitOnBlur?: boolean;
 }
 
-/** Campo de edição rápida: Enter confirma, Esc cancela. */
 export function InlineInput({
   initialValue = '',
   placeholder,

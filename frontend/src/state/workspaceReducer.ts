@@ -11,12 +11,9 @@ export interface WorkspaceState {
   collections: Collection[];
   folders: Folder[];
   requests: SavedRequest[];
-  /** Requisições abertas como abas, na ordem da barra de abas. */
   openRequestIds: string[];
   activeRequestId: string | null;
-  /** Abas de documentação abertas: id da coleção ou UNGROUPED_SCOPE. */
   openDocIds: string[];
-  /** Aba de documentação em primeiro plano; null = a requisição ativa está em primeiro plano. */
   activeDocId: string | null;
 }
 
@@ -60,7 +57,6 @@ export function initialWorkspace(): WorkspaceState {
   };
 }
 
-/** Abrir ou ativar uma requisição sempre a traz para frente da documentação. */
 function openTab(state: WorkspaceState, id: string): WorkspaceState {
   return {
     ...state,
@@ -80,7 +76,6 @@ function openDocs(state: WorkspaceState, id: string): WorkspaceState {
   };
 }
 
-/** Fechar a documentação ativa ativa a vizinha; sem vizinha, volta para a requisição. */
 function closeDocs(state: WorkspaceState, id: string): WorkspaceState {
   const index = state.openDocIds.indexOf(id);
   if (index === -1) return state;
@@ -103,8 +98,6 @@ function closeTab(state: WorkspaceState, id: string): WorkspaceState {
   return { ...state, openRequestIds, activeRequestId };
 }
 
-// Ao escanear: cria (ou reutiliza) a coleção com o nome da pasta e importa
-// todos os endpoints encontrados como requisições, sem duplicar.
 function importEndpoints(
   state: WorkspaceState,
   dir: string,
@@ -127,7 +120,6 @@ function importEndpoints(
     .filter((endpoint) => !findImported(endpoint))
     .map((endpoint) => requestFromEndpoint(endpoint, collectionId));
 
-  // Requisições importadas antes de existir a origem (arquivo/linguagem) ganham ela ao reescanear.
   const sourceById = new Map(
     endpoints.flatMap((endpoint) => {
       const existingRequest = findImported(endpoint);
@@ -145,7 +137,6 @@ function importEndpoints(
   if (!existing) {
     collections = [...collections, { id: collectionId, name, collapsed: false, baseUrl: base }];
   } else if (base && base !== existing.baseUrl) {
-    // Reescaneou informando outra base: atualiza a coleção existente.
     collections = collections.map((c) => (c.id === collectionId ? { ...c, baseUrl: base } : c));
   }
 
@@ -284,7 +275,6 @@ export function workspaceReducer(state: WorkspaceState, action: WorkspaceAction)
       };
 
     case 'collection/delete':
-      // As requisições da coleção excluída vão para "Sem grupo".
       return {
         ...closeDocs(state, action.id),
         collections: state.collections.filter((c) => c.id !== action.id),

@@ -7,10 +7,6 @@ import type { DockLayout } from './useDockLayout';
 import type { ShowToast } from './useToast';
 import type { useWorkspace } from './useWorkspace';
 
-/**
- * Endpoint a destacar na documentação. O nonce muda a cada pedido, para
- * rolar até o mesmo endpoint de novo mesmo que ele já esteja destacado.
- */
 export interface DocsFocus {
   endpointId: string;
   nonce: number;
@@ -19,13 +15,11 @@ export interface DocsFocus {
 interface Deps {
   workspace: ReturnType<typeof useWorkspace>;
   dockActions: DockLayout['actions'];
-  /** Variáveis do ambiente ativo (resolvem {{baseUrl}} no export). */
   variables: Record<string, string>;
   log: Logger;
   notify: ShowToast;
 }
 
-/** Abas de documentação e a ligação delas com as abas de requisição. */
 export function useApiDocs({ workspace, dockActions, variables, log, notify }: Deps) {
   const { state, actions, activeRequest } = workspace;
   const [focus, setFocus] = useState<DocsFocus | null>(null);
@@ -35,7 +29,6 @@ export function useApiDocs({ workspace, dockActions, variables, log, notify }: D
     [state.openDocIds, state.collections]
   );
 
-  /** Abre a documentação de uma coleção (null = sem grupo), opcionalmente indo até um endpoint. */
   const show = useCallback(
     (collectionId: string | null, endpointId?: string) => {
       actions.openDocs(docsScopeId(collectionId));
@@ -44,13 +37,11 @@ export function useApiDocs({ workspace, dockActions, variables, log, notify }: D
     [actions]
   );
 
-  /** Documentação da coleção da requisição ativa, já no endpoint dela (sem requisição: a primeira coleção). */
   const showForActiveRequest = useCallback(() => {
     if (activeRequest) show(activeRequest.collectionId, activeRequest.id);
     else show(state.collections[0]?.id ?? null);
   }, [activeRequest, state.collections, show]);
 
-  /** "Testar": abre a requisição do endpoint no editor. */
   const tryIt = useCallback(
     (requestId: string) => {
       actions.openTab(requestId);
@@ -59,7 +50,6 @@ export function useApiDocs({ workspace, dockActions, variables, log, notify }: D
     [actions, dockActions]
   );
 
-  /** Baixa a documentação da aba como OpenAPI 3 (JSON); avisos vão para o console. */
   const exportOpenApi = useCallback(
     (scope: DocsScope) => {
       const endpoints = endpointsForScope(scope, state.requests, state.folders);
@@ -78,7 +68,6 @@ export function useApiDocs({ workspace, dockActions, variables, log, notify }: D
     [state.requests, state.folders, variables, log, notify]
   );
 
-  /** Exporta direto da árvore de coleções, sem abrir a documentação. */
   const exportCollection = useCallback(
     (collectionId: string | null) => {
       const [scope] = resolveDocsScopes([docsScopeId(collectionId)], state.collections);

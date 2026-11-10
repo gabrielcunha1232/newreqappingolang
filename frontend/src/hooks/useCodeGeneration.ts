@@ -7,7 +7,6 @@ import type { useWorkspace } from './useWorkspace';
 
 interface Deps {
   workspace: ReturnType<typeof useWorkspace>;
-  /** O código sai com as variáveis já resolvidas, como no "Copiar como cURL". */
   variables: Record<string, string>;
   notify: ShowToast;
 }

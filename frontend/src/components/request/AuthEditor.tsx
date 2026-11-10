@@ -13,7 +13,6 @@ const AUTH_TYPES: Array<{ value: AuthType; label: string }> = [
 interface AuthEditorProps {
   auth: RequestAuth;
   onChange: (auth: RequestAuth) => void;
-  /** Variáveis do ambiente ativo, usadas ao pedir o token OAuth2. */
   variables: Record<string, string>;
   allowInherit?: boolean;
 }

@@ -28,7 +28,6 @@ import {
 import { tags as t } from '@lezer/highlight';
 import { findJsonError } from '../../lib/jsonBody';
 
-/** Tema ligado às variáveis CSS do app (muda junto com a paleta). */
 const theme = EditorView.theme(
   {
     '&': {
@@ -91,7 +90,6 @@ const highlight = HighlightStyle.define([
   { tag: [t.brace, t.squareBracket, t.separator, t.punctuation], color: 'var(--muted)' },
 ]);
 
-/** Recursos comuns a qualquer editor de código do app. */
 export function baseExtensions(): Extension[] {
   return [
     lineNumbers(),
@@ -119,7 +117,6 @@ export function baseExtensions(): Extension[] {
   ];
 }
 
-/** JSON com validação que entende {{variáveis}} (mesma regra do envio). */
 export function jsonExtensions(): Extension[] {
   const jsonLinter = linter(
     (view): Diagnostic[] => {
@@ -136,7 +133,6 @@ export function jsonExtensions(): Extension[] {
 
 const VARIABLE = /\{\{\s*([\w.-]+)\s*\}\}/g;
 
-/** Destaca {{variáveis}} (vermelho se não existir no ambiente) e sugere nomes ao digitar "{{". */
 export function variableExtensions(names: string[]): Extension[] {
   const known = new Set(names);
 
@@ -173,7 +169,6 @@ export function variableExtensions(names: string[]): Extension[] {
         type: 'variable',
         detail: 'ambiente',
         apply: (view: EditorView, _completion: unknown, from: number, to: number) => {
-          // closeBrackets pode já ter inserido "}}" depois do cursor.
           const closed = view.state.sliceDoc(to, to + 2) === '}}';
           const insert = closed ? name : `${name}}}`;
           view.dispatch({

@@ -3,7 +3,6 @@ import type { MouseEvent, ReactNode } from 'react';
 interface WorkspaceTabProps {
   label: string;
   active: boolean;
-  /** Selo à esquerda do título (método HTTP, "DOCS"...). */
   leading?: ReactNode;
   tooltip?: string;
   className?: string;
@@ -12,7 +11,6 @@ interface WorkspaceTabProps {
   onContextMenu?: (event: MouseEvent<HTMLDivElement>) => void;
 }
 
-/** Aba da barra superior: ativa com clique ou Enter, fecha com × ou clique do meio. */
 export function WorkspaceTab({
   label,
   active,

@@ -1,18 +1,12 @@
 import type { PathParamInfo } from '../../lib/pathTemplate';
 
 interface PathVariablesTableProps {
-  /** Variáveis encontradas na URL, na ordem em que aparecem. */
   params: PathParamInfo[];
   values: Record<string, string>;
-  /** Descrições declaradas pela origem (ex.: spec OpenAPI), por nome. */
   descriptions: Record<string, string | undefined>;
   onChange: (values: Record<string, string>) => void;
 }
 
-/**
- * Valores das variáveis de caminho (":id", "{id}"). As linhas vêm da URL:
- * não se adiciona nem remove aqui, só se preenche.
- */
 export function PathVariablesTable({ params, values, descriptions, onChange }: PathVariablesTableProps) {
   return (
     <table className="gridtable path-variables">

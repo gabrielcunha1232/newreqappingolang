@@ -9,12 +9,10 @@ export interface CurlImport {
   warnings: string[];
 }
 
-/** O texto parece um comando curl ("curl ...", "curl.exe ..."). */
 export function looksLikeCurl(text: string): boolean {
   return /^\s*curl(\.exe)?\s/i.test(text);
 }
 
-/* Opções que recebem valor (as demais são tratadas como interruptores). */
 const WITH_VALUE = new Set([
   '-X', '--request', '-H', '--header', '-d', '--data', '--data-raw', '--data-binary', '--data-ascii',
   '--data-urlencode', '--json', '-u', '--user', '-b', '--cookie', '-A', '--user-agent', '-e', '--referer',
@@ -23,7 +21,6 @@ const WITH_VALUE = new Set([
   '-r', '--range', '-c', '--cookie-jar', '--retry', '--limit-rate', '-K', '--config', '--oauth2-bearer',
 ]);
 
-/* Opções sem efeito na requisição em si (saída, TLS, redirecionamento...). */
 const IGNORED = new Set([
   '-L', '--location', '-k', '--insecure', '-s', '--silent', '-S', '--show-error', '-v', '--verbose', '-i',
   '--include', '--compressed', '-#', '--progress-bar', '-f', '--fail', '--http1.1', '--http2', '-o',
@@ -39,13 +36,11 @@ function encodeFormValue(part: string): string {
   return `${part.slice(0, eq)}=${encodeURIComponent(part.slice(eq + 1))}`;
 }
 
-/** Aceita "host:8080/x" (curl assume http://) e mantém caminhos e {{variáveis}}. */
 function normalizeUrl(url: string): string {
   if (/^[a-z][a-z\d+.-]*:\/\//i.test(url) || url.startsWith('/') || url.startsWith('{{')) return url;
   return `http://${url}`;
 }
 
-/** Separa "-XPOST" em ["-X", "POST"] e "--request=POST" em ["--request", "POST"]. */
 function splitOption(token: string): [string, string | undefined] {
   if (token.startsWith('--')) {
     const eq = token.indexOf('=');
@@ -55,7 +50,6 @@ function splitOption(token: string): [string, string | undefined] {
   return [token, undefined];
 }
 
-/** Converte um comando curl em requisição. Lança Error se não houver URL. */
 export function parseCurl(command: string): CurlImport {
   const tokens = tokenizeShell(command.trim());
   if (/^curl(\.exe)?$/i.test(tokens[0] ?? '')) tokens.shift();
@@ -129,7 +123,6 @@ export function parseCurl(command: string): CurlImport {
   if (!url) throw new Error('Nenhuma URL encontrada no comando curl.');
   url = normalizeUrl(url);
 
-  // "Authorization: Bearer x" vira a autorização da requisição (fica mascarada nos logs).
   const bearer = headers.find((h) => h.key.toLowerCase() === 'authorization' && /^bearer\s+/i.test(h.value));
   if (bearer && auth.type === 'none') {
     auth = { ...defaultAuth(), type: 'bearer', token: bearer.value.replace(/^bearer\s+/i, '') };

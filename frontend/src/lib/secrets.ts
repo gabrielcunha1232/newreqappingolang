@@ -36,7 +36,6 @@ export function shareableVariables(variables: Record<string, string>, rows: Secr
   return { ...variables, ...Object.fromEntries(hidden.filter((name) => name in variables).map((name) => [name, `{{${name}}}`])) };
 }
 
-/** Nome de cabeçalho/parâmetro que costuma carregar credencial (token, senha, chave...). */
 export function isSensitiveName(name: string): boolean {
   return SENSITIVE_HEADER.test(name);
 }
@@ -46,10 +45,6 @@ function maskValue(value: string): string {
   return `${value.slice(0, VISIBLE_CHARS)}…`;
 }
 
-/**
- * Esconde valores de cabeçalhos sensíveis para exibição (console/logs).
- * Mantém o esquema de autorização visível: "Bearer abc123xyz" → "Bearer abc1…".
- */
 export function maskHeaderValue(name: string, value: string, alwaysMask = false): string {
   if (!alwaysMask && !SENSITIVE_HEADER.test(name)) return value;
   const scheme = value.match(/^(Bearer|Basic|Digest|Token)\s+(.*)$/i);

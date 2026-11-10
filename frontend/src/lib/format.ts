@@ -36,14 +36,12 @@ export function statusLabel(code: number): string {
   return `${code} ${STATUS_TEXT[code] ?? ''}`.trim();
 }
 
-/** Classe CSS por faixa de status (2xx verde, 3xx azul, 4xx/5xx vermelho). */
 export function statusClass(code: number): string {
   if (code >= 200 && code < 300) return 'status-ok';
   if (code >= 300 && code < 400) return 'status-redirect';
   return 'status-fail';
 }
 
-/** Classe CSS do selo de método ("DELETE" → "method del"). */
 export function methodClass(method: string): string {
   const m = method.toUpperCase();
   if (m === 'DELETE') return 'method del';

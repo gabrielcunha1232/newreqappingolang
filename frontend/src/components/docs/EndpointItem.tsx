@@ -12,12 +12,10 @@ const HIGHLIGHT_MS = 1600;
 
 interface EndpointItemProps {
   endpoint: ApiEndpoint;
-  /** Definido quando este endpoint deve ser aberto e mostrado (muda a cada pedido). */
   focusNonce?: number;
   actions: EndpointActions;
 }
 
-/** Linha recolhível de um endpoint (método, caminho e resumo), como no Swagger UI. */
 export function EndpointItem({ endpoint, focusNonce, actions }: EndpointItemProps) {
   const [expanded, setExpanded] = useState(false);
   const [highlighted, setHighlighted] = useState(false);

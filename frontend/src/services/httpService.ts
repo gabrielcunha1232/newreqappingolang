@@ -34,10 +34,6 @@ function authHeaders(auth: RequestAuth, sub: (text: string) => string): Record<s
   }
 }
 
-/**
- * Monta a requisição enviada ao Go: aplica variáveis do ambiente, URL base da
- * coleção, codifica a query string e junta cabeçalhos habilitados e autenticação.
- */
 export function buildHttpRequest(
   saved: SavedRequest,
   collection: Collection | undefined,
@@ -49,11 +45,9 @@ export function buildHttpRequest(
   if (error) return { ok: false, error };
   if (!base) return { ok: false, error: 'Informe a URL da requisição.' };
 
-  // ":id" / "{id}" recebem os valores da tabela de variáveis de caminho.
   const pathValues = Object.fromEntries(Object.entries(saved.pathValues).map(([name, value]) => [name, sub(value)]));
   const { url: resolved, missing } = fillPathParams(base, pathValues);
 
-  // Os parâmetros já estão na URL (sincronizados com a tabela); só codifica.
   const url = encodeQuery(resolved);
 
   const headers: Record<string, string> = {};
@@ -82,7 +76,6 @@ export function buildHttpRequest(
       );
     }
   }
-  // Checa a URL antes da codificação ("{{" vira "%7B%7B" depois dela).
   const warnings = findUnresolved(
     [resolved, unresolvedText, ...Object.keys(headers), ...Object.values(headers)].join('\n'),
     vars

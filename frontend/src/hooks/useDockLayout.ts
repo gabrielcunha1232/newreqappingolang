@@ -4,10 +4,7 @@ import { applyPreset, closePanel, openPanel, type LayoutPreset } from '../lib/do
 import { isRequestPart } from '../lib/panels';
 import type { PanelId, RequestPart } from '../types';
 
-// v2: descarta layouts salvos com painéis colapsados pela v1.
-// Prefixo antigo mantido de propósito para não perder o layout já salvo.
 const STORAGE_KEY = 'newpostman.dock.v2';
-/** Grupo menor que isso (px) é considerado colapsado/quebrado. */
 const MIN_GROUP_SIZE = 30;
 
 function hasSize(api: DockviewApi) {
@@ -18,10 +15,6 @@ function hasCollapsedGroup(api: DockviewApi) {
   return api.groups.some((g) => g.width < MIN_GROUP_SIZE || g.height < MIN_GROUP_SIZE);
 }
 
-/**
- * No Wails o webview pode ter tamanho 0 antes da janela aparecer; montar o
- * layout nesse momento deixaria todos os painéis com tamanho 0.
- */
 function whenSized(api: DockviewApi, fn: () => void) {
   if (hasSize(api)) fn();
   else requestAnimationFrame(() => whenSized(api, fn));
@@ -32,11 +25,9 @@ function saveLayout(api: DockviewApi) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(api.toJSON()));
   } catch {
-    // Armazenamento indisponível: o layout vale só para esta sessão.
   }
 }
 
-/** Restaura o layout salvo; retorna false se não houver um válido. */
 function restoreLayout(api: DockviewApi): boolean {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -44,13 +35,11 @@ function restoreLayout(api: DockviewApi): boolean {
     api.fromJSON(JSON.parse(raw));
     return api.panels.length > 0;
   } catch {
-    // Layout salvo incompatível (ex.: versão anterior): descarta.
     api.clear();
     return false;
   }
 }
 
-/** Layout livre dos painéis (dockview): abrir, fechar, destacar e layouts prontos. */
 export function useDockLayout() {
   const apiRef = useRef<DockviewApi | null>(null);
   const [openPanels, setOpenPanels] = useState<PanelId[]>([]);
@@ -76,7 +65,6 @@ export function useDockLayout() {
     };
     return {
       toggle: (id: PanelId) => run((api) => (api.getPanel(id) ? closePanel(api, id) : openPanel(api, id))),
-      /** Abre o painel ou, se já estiver aberto, traz ele para frente. */
       open: (id: PanelId) => run((api) => openPanel(api, id)),
       detach: (part: RequestPart) => run((api) => openPanel(api, part)),
       dockBack: (part: RequestPart) => run((api) => closePanel(api, part)),

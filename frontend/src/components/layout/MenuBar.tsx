@@ -24,7 +24,6 @@ export function MenuBar({ menus, themeName, onOpenTheme }: MenuBarProps) {
             setOpen(open?.index === index ? null : { index, position: { x: rect.left - 6, y: rect.bottom + 2 } });
           }}
           onMouseEnter={(event) => {
-            // Com um menu já aberto, passar o mouse troca de menu (como em apps desktop).
             if (open && open.index !== index) {
               const rect = event.currentTarget.getBoundingClientRect();
               setOpen({ index, position: { x: rect.left - 6, y: rect.bottom + 2 } });

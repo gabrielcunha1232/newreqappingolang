@@ -1,10 +1,3 @@
-/*
- * Subconjunto do pm.expect (estilo Chai) usado em testes de API:
- *   pm.expect(x).to.equal(1) / .eql({...}) / .be.ok / .be.true / .be.false
- *   .to.include("a") / .to.have.property("id"[, valor]) / .to.have.lengthOf(3)
- *   .to.be.above(1) / .below(5) / .to.be.a("string") / .to.match(/re/)
- *   .not inverte qualquer asserção.
- */
 
 export class AssertionError extends Error {
   constructor(message: string) {
@@ -41,7 +34,6 @@ function typeOf(value: unknown): string {
   return typeof value;
 }
 
-/** Cria a cadeia de asserções; `negate` vem do `.not`. */
 export function expect(actual: unknown, negate = false): Record<string, unknown> {
   const assert = (passed: boolean, message: string, negatedMessage: string) => {
     if (passed === negate) throw new AssertionError(negate ? negatedMessage : message);
@@ -132,7 +124,6 @@ export function expect(actual: unknown, negate = false): Record<string, unknown>
     length: methods.lengthOf,
   });
 
-  // Palavras de ligação ("to", "be", "have"...) devolvem a própria cadeia.
   for (const word of ['to', 'be', 'been', 'is', 'that', 'which', 'and', 'has', 'have', 'with', 'at', 'of', 'same', 'does']) {
     Object.defineProperty(chain, word, { get: () => chain });
   }

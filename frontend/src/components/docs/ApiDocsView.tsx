@@ -11,24 +11,17 @@ interface ApiDocsViewProps {
   scope: DocsScope;
   requests: SavedRequest[];
   folders: Folder[];
-  /** Endpoint a destacar (vindo do botão "Documentação" do editor). */
   focus: DocsFocus | null;
   endpointActions: EndpointActions;
-  /** Exporta esta documentação como OpenAPI. */
   onExport: () => void;
 }
 
-/**
- * Documentação no estilo Swagger UI de uma coleção. Funciona com qualquer
- * origem de endpoints: scanner, importação ou requisições criadas à mão.
- */
 export function ApiDocsView({ scope, requests, folders, focus, endpointActions, onExport }: ApiDocsViewProps) {
   const [search, setSearch] = useState('');
 
   const endpoints = useMemo(() => endpointsForScope(scope, requests, folders), [scope, requests, folders]);
   const focused = focus && endpoints.some((e) => e.id === focus.endpointId) ? focus : null;
 
-  // Ir até um endpoint não pode esbarrar no filtro digitado antes.
   useEffect(() => {
     if (focused) setSearch('');
   }, [focused]);

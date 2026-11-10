@@ -1,26 +1,18 @@
-/* ==========================================================================
-   Forkarsenet — API Workbench
-   Layout do protótipo newpostman-prototype.html; paleta monocromática.
-   ========================================================================== */
 
-/* ===== Tokens ===== */
 
 :root {
-  /* Paleta monocromática (cinzas) */
-  --gray-0: #000000; /* preto puro: fundo geral */
-  --gray-1: #131416; /* quase preto: fundo dos painéis */
-  --gray-2: #26282c; /* cinza escuro: elementos secundários */
-  --gray-3: #393c41; /* cinza médio-escuro: bordas */
-  --gray-4: #4c5157; /* cinza médio: bordas em foco */
+  --gray-0: #000000;
+  --gray-1: #131416;
+  --gray-2: #26282c;
+  --gray-3: #393c41;
+  --gray-4: #4c5157;
 
-  /* Tons derivados da mesma escala (não fazem parte da paleta base) */
   --gray-05: #0a0b0c;
   --gray-15: #1c1e21;
   --gray-25: #2f3236;
   --gray-light: #d4d7dc;
   --gray-lighter: #e6e8eb;
 
-  /* Superfícies */
   --bg: var(--gray-0);
   --surface: var(--gray-1);
   --surface-2: var(--gray-2);
@@ -31,30 +23,26 @@
   --line: var(--gray-3);
   --line-strong: var(--gray-4);
 
-  /* Texto */
   --text: var(--gray-lighter);
   --text-strong: #ffffff;
   --text-soft: #c4c8ce;
   --muted: #8b9199;
   --muted-2: #62676e;
 
-  /* Destaque (neutro, para manter o tema monocromático) */
   --accent: var(--gray-light);
   --accent-strong: #ffffff;
   --accent-deep: #a9aeb5;
   --on-accent: var(--gray-0);
   --accent-alpha: rgba(212, 215, 220, 0.14);
 
-  /* Feedback (constante em todas as paletas) */
-  --green: #4ade80; /* sucesso */
-  --red: #f87171; /* erro / deletar */
-  --blue: #60a5fa; /* informação / PUT */
-  --amber: #e3b66b; /* aviso */
+  --green: #4ade80;
+  --red: #f87171;
+  --blue: #60a5fa;
+  --amber: #e3b66b;
   --danger-bg: #2a1414;
   --danger-line: #7f2d2d;
   --danger-text: #fca5a5;
 
-  /* Selos de método HTTP */
   --m-get-bg: #14532d;
   --m-get-fg: #86efac;
   --m-post-bg: #59451e;
@@ -64,7 +52,6 @@
   --m-del-bg: #5c2626;
   --m-del-fg: #fca5a5;
 
-  /* Realce de JSON */
   --code-text: var(--text-soft);
   --code-key: #8bc6dd;
   --code-str: #e7a16b;
@@ -74,11 +61,10 @@
   --mono: Consolas, 'Courier New', monospace;
   --sans: Tahoma, Arial, sans-serif;
 
-  --chrome-height: 68px; /* topbar + menubar */
+  --chrome-height: 68px;
   color-scheme: dark;
 }
 
-/* ===== Base ===== */
 
 * {
   box-sizing: border-box;
@@ -208,7 +194,6 @@ input[type='checkbox'] {
   color: var(--muted);
 }
 
-/* ===== Topbar e menus ===== */
 
 .topbar {
   height: 34px;
@@ -236,7 +221,7 @@ input[type='checkbox'] {
   border-bottom: 1px solid var(--line);
   color: var(--text-soft);
   position: relative;
-  z-index: 60; /* acima do backdrop: permite trocar de menu passando o mouse */
+  z-index: 60;
 }
 
 .menubar > span[role='button'] {
@@ -329,7 +314,6 @@ input[type='checkbox'] {
   background: var(--line);
 }
 
-/* ===== Estrutura ===== */
 
 .app {
   height: calc(100vh - var(--chrome-height));
@@ -338,7 +322,6 @@ input[type='checkbox'] {
   min-height: 500px;
 }
 
-/* ===== Sidebar ===== */
 
 .sidebar {
   background: var(--surface);
@@ -486,7 +469,6 @@ input[type='checkbox'] {
   color: var(--text-soft);
 }
 
-/* Coleção aberta: pasta em destaque. */
 .tree-chevron.open + .tree-folder {
   color: var(--text-soft);
 }
@@ -525,7 +507,7 @@ input[type='checkbox'] {
 }
 
 .tree-base-url {
-  margin: -3px 0 3px 48px; /* alinhada ao nome: padding + seta + pasta + espaços */
+  margin: -3px 0 3px 48px;
   font: 11px var(--mono);
   color: var(--blue);
   overflow: hidden;
@@ -610,7 +592,6 @@ input[type='checkbox'] {
   color: var(--accent-strong);
 }
 
-/* Scanner (aba APIs) */
 
 .scanner {
   display: flex;
@@ -652,7 +633,6 @@ input[type='checkbox'] {
   margin: 0;
 }
 
-/* ===== Workspace ===== */
 
 .workspace {
   padding: 10px;
@@ -773,14 +753,11 @@ input[type='checkbox'] {
   white-space: nowrap;
 }
 
-/* ===== Painéis (dockview) ===== */
 
 .workspace-body {
   flex: 1;
   min-height: 0;
   position: relative;
-  /* Contexto de empilhamento próprio: os z-index altos do dockview (99, 999, 9999)
-     ficam confinados aqui e não passam por cima de modais e menus. */
   isolation: isolate;
   display: flex;
   flex-direction: column;
@@ -792,7 +769,6 @@ input[type='checkbox'] {
   position: relative;
 }
 
-/* Coberto por uma aba de documentação: continua com tamanho, só fica invisível. */
 .dock-host.covered {
   visibility: hidden;
 }
@@ -853,7 +829,6 @@ input[type='checkbox'] {
   height: 100%;
 }
 
-/* Cada grupo tem a "moldura" dos painéis do protótipo. */
 .dockview-theme-forkarsenet .dv-groupview {
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -880,7 +855,6 @@ input[type='checkbox'] {
   box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-/* Barra de redimensionamento: aparece dourada ao passar o mouse. */
 .dockview-theme-forkarsenet .dv-sash:hover {
   background-color: var(--line-strong);
 }
@@ -907,7 +881,6 @@ input[type='checkbox'] {
   flex-direction: column;
 }
 
-/* ===== Requisição ===== */
 
 .request-editor {
   display: flex;
@@ -1073,7 +1046,6 @@ input[type='checkbox'] {
   font: 12px/1.6 var(--mono);
 }
 
-/* Editor do corpo (CodeMirror) */
 
 .body-editor {
   display: flex;
@@ -1180,7 +1152,6 @@ input[type='checkbox'] {
   width: 100%;
 }
 
-/* ===== Ambiente ===== */
 
 .env-editor .gridtable {
   font-size: 12px;
@@ -1215,7 +1186,6 @@ input[type='checkbox'] {
   color: var(--red);
 }
 
-/* Variáveis de caminho (aba Parâmetros) */
 
 .params-sections {
   display: flex;
@@ -1250,7 +1220,6 @@ input[type='checkbox'] {
   color: var(--amber);
 }
 
-/* Scripts pre/post */
 
 .script-editor {
   display: grid;
@@ -1290,7 +1259,6 @@ input[type='checkbox'] {
   }
 }
 
-/* ===== Resposta ===== */
 
 .response-viewer {
   display: flex;
@@ -1443,7 +1411,6 @@ input[type='checkbox'] {
   background: var(--text-strong);
 }
 
-/* ===== Console ===== */
 
 .console {
   display: flex;
@@ -1501,7 +1468,6 @@ input[type='checkbox'] {
   cursor: pointer;
 }
 
-/* ===== Erros de renderização ===== */
 
 .error-boundary {
   margin: 12px;
@@ -1522,7 +1488,6 @@ input[type='checkbox'] {
   overflow-wrap: anywhere;
 }
 
-/* ===== Documentação da API ===== */
 
 .docs-view {
   display: flex;
@@ -1614,7 +1579,6 @@ input[type='checkbox'] {
   border-color: var(--line-strong);
 }
 
-/* Endpoint aberto a partir do editor ("Ver na documentação"). */
 .docs-endpoint.highlighted {
   border-color: var(--accent);
   box-shadow: 0 0 0 1px var(--accent);
@@ -1802,7 +1766,6 @@ input[type='checkbox'] {
   justify-content: flex-end;
 }
 
-/* ===== Testes (pós-processamento) ===== */
 
 .response-toolbar button.tests-tab.passing {
   color: var(--green);
@@ -1876,7 +1839,6 @@ input[type='checkbox'] {
   overflow-wrap: anywhere;
 }
 
-/* ===== Modal ===== */
 
 .modal-backdrop {
   position: fixed;
@@ -1945,7 +1907,6 @@ input[type='checkbox'] {
   border-top: 1px solid var(--line);
 }
 
-/* ===== Importação ===== */
 
 .import-file {
   display: flex;
@@ -1972,7 +1933,6 @@ input[type='checkbox'] {
   flex: 1;
 }
 
-/* ===== Estados vazios e toast ===== */
 
 .empty-state {
   flex: 1;
@@ -2014,7 +1974,6 @@ input[type='checkbox'] {
   box-shadow: 0 5px 20px #0009;
 }
 
-/* ===== Responsivo ===== */
 
 @media (max-width: 900px) {
   .app {
@@ -2030,7 +1989,6 @@ input[type='checkbox'] {
   }
 }
 
-/* ===== GraphQL ===== */
 .graphql-editor {
   flex: 1;
   min-height: 0;
@@ -2046,7 +2004,6 @@ input[type='checkbox'] {
   flex-direction: column;
 }
 
-/* ===== Comparação de respostas ===== */
 .response-diff {
   flex: 1;
   min-height: 0;
@@ -2089,7 +2046,6 @@ input[type='checkbox'] {
   color: var(--danger-text);
 }
 
-/* ===== Collection Runner ===== */
 .runner-options {
   display: flex;
   flex-wrap: wrap;
@@ -2706,7 +2662,6 @@ input[type='checkbox'] {
   font-weight: 600;
 }
 
-/* ===== Geração de código ===== */
 .codegen-output {
   min-height: 300px;
   resize: vertical;

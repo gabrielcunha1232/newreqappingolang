@@ -30,7 +30,6 @@ export interface AppSnapshot {
   appearance?: AppearanceSettings;
 }
 
-/** Arquivos antigos guardavam os cabeçalhos como objeto JSON em string. */
 function migrateHeaders(headers: KeyValue[] | string | undefined): KeyValue[] {
   if (Array.isArray(headers)) return headers;
   if (!headers) return [];
@@ -42,7 +41,6 @@ function migrateHeaders(headers: KeyValue[] | string | undefined): KeyValue[] {
       );
     }
   } catch {
-    // Conteúdo inválido: descarta.
   }
   return [];
 }
@@ -52,7 +50,6 @@ export function deserialize(state: Partial<PersistedState>): AppSnapshot {
   const folders = (state.folders ?? []).filter((f) => collectionIds.has(f.collectionId));
   const folderIds = new Set(folders.map((f) => f.id));
 
-  // Versões anteriores guardavam os parâmetros só na tabela (fora da URL).
   const requests: SavedRequest[] = (state.requests ?? []).map((request) =>
     reconcileParams({
       id: request.id,
@@ -79,7 +76,6 @@ export function deserialize(state: Partial<PersistedState>): AppSnapshot {
   );
 
   const ids = new Set(requests.map((r) => r.id));
-  // Arquivos antigos não têm abas abertas: abre a primeira requisição.
   const openRequestIds = state.openRequestIds
     ? state.openRequestIds.filter((id) => ids.has(id))
     : requests.slice(0, 1).map((r) => r.id);
@@ -93,7 +89,6 @@ export function deserialize(state: Partial<PersistedState>): AppSnapshot {
     baseUrl: normalizeBaseUrl(collection.baseUrl),
   }));
 
-  // Abas de documentação de coleções que não existem mais são descartadas.
   const docScopes = new Set([...collections.map((c) => c.id), UNGROUPED_SCOPE]);
   const openDocIds = (state.openDocIds ?? []).filter((id) => docScopes.has(id));
   const activeDocId = state.activeDocId && openDocIds.includes(state.activeDocId) ? state.activeDocId : null;
@@ -114,7 +109,6 @@ export function deserialize(state: Partial<PersistedState>): AppSnapshot {
   };
 }
 
-/** Retorna null quando não há estado salvo (ou o bridge do Wails não existe). */
 export async function loadState(): Promise<AppSnapshot | null> {
   const raw = await Load();
   if (!raw) return null;

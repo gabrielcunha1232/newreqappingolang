@@ -7,16 +7,10 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: ReactNode;
-  /** Largura máxima em px. */
   width?: number;
   initialFocus?: string;
 }
 
-/**
- * Janela modal: fecha com Esc ou clique fora, mantém o Tab dentro dela e
- * devolve o foco para onde estava ao fechar. É renderizada direto no <body>
- * (portal), acima de todo o layout do app, inclusive dos painéis do dockview.
- */
 export function Modal({ title, onClose, children, width = 520, initialFocus = FOCUSABLE }: ModalProps) {
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement>(null);

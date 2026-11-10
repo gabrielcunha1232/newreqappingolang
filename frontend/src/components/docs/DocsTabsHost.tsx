@@ -15,10 +15,6 @@ interface DocsTabsHostProps {
   onExportOpenApi: (scope: DocsScope) => void;
 }
 
-/**
- * Conteúdo das abas de documentação. Todas ficam montadas (só a ativa
- * aparece), para cada aba manter rolagem, filtro e endpoints expandidos.
- */
 export function DocsTabsHost({ scopes, activeId, requests, folders, focus, endpointActions, onExportOpenApi }: DocsTabsHostProps) {
   return (
     <>

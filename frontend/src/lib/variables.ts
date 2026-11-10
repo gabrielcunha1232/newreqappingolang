@@ -13,10 +13,6 @@ export function variablesToMap(variables: KeyValue[]): Record<string, string> {
   return map;
 }
 
-/**
- * Aplica alterações feitas por scripts (pm.environment.set/unset) nas linhas
- * do ambiente: atualiza a linha existente, cria uma nova ou remove (null).
- */
 export function mergeVariableChanges(rows: KeyValue[], changes: Record<string, string | null>): KeyValue[] {
   let next = [...rows];
   for (const [name, value] of Object.entries(changes)) {
@@ -31,14 +27,12 @@ export function mergeVariableChanges(rows: KeyValue[], changes: Record<string, s
   return next;
 }
 
-/** Substitui {{nome}} pelo valor da variável; variáveis desconhecidas ficam como estão. */
 export function interpolate(text: string, vars: Record<string, string>): string {
   return text.replace(VARIABLE_PATTERN, (match, name: string) =>
     Object.prototype.hasOwnProperty.call(vars, name) ? vars[name] : match
   );
 }
 
-/** Lista as variáveis referenciadas no texto que não existem no ambiente. */
 export function findUnresolved(text: string, vars: Record<string, string>): string[] {
   const missing = new Set<string>();
   for (const match of text.matchAll(VARIABLE_PATTERN)) {

@@ -8,7 +8,6 @@ export interface JsonToken {
 const TOKEN_PATTERN =
   /("(?:\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/g;
 
-/** Divide uma linha de JSON formatado em tokens para realce de sintaxe. */
 export function tokenizeJsonLine(line: string): JsonToken[] {
   const tokens: JsonToken[] = [];
   let last = 0;
@@ -48,10 +47,6 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-/**
- * Encontra uma lista de objetos para exibir como tabela: a raiz, ou o primeiro
- * campo de primeiro nível que seja uma lista de objetos (ex.: { data: [...] }).
- */
 export function findTabularData(value: unknown): Record<string, unknown>[] | null {
   const isTable = (v: unknown): v is Record<string, unknown>[] =>
     Array.isArray(v) && v.length > 0 && v.every(isPlainObject);

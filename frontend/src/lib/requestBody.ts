@@ -2,9 +2,7 @@ import type { KeyValue, SavedRequest } from '../types';
 
 export interface SerializedBody {
   body: string;
-  /** Texto antes da codificação, onde {{variáveis}} não resolvidas ainda são visíveis. */
   unresolvedText: string;
-  /** Content-Type padrão, usado se o usuário não definir outro. */
   contentType?: string;
   error?: string;
 }
@@ -35,7 +33,6 @@ function graphqlBody(request: SavedRequest, sub: (text: string) => string): Seri
   };
 }
 
-/** Corpo que será enviado, de acordo com o tipo escolhido na requisição. */
 export function serializeBody(request: SavedRequest, sub: (text: string) => string): SerializedBody {
   switch (request.bodyType) {
     case 'form': {
@@ -59,7 +56,6 @@ export function serializeBody(request: SavedRequest, sub: (text: string) => stri
   }
 }
 
-/** Exemplo legível do corpo para a documentação ({{variáveis}} ficam como estão). */
 export function bodyExample(request: SavedRequest): string {
   switch (request.bodyType) {
     case 'form':
@@ -73,7 +69,6 @@ export function bodyExample(request: SavedRequest): string {
   }
 }
 
-/** Content-Type documentado quando a requisição não define um cabeçalho. */
 export function defaultContentType(request: SavedRequest): string {
   switch (request.bodyType) {
     case 'text':

@@ -5,7 +5,6 @@ interface PathTemplateProps {
   path: string;
 }
 
-/** Caminho da rota com parâmetros ({id}, :id, *) e {{variáveis}} realçados. */
 export function PathTemplate({ path }: PathTemplateProps) {
   const tokens = useMemo(() => tokenizePath(path), [path]);
 

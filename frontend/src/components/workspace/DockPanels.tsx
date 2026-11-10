@@ -11,7 +11,6 @@ import { REQUEST_PART_EDITORS } from '../request/RequestParts';
 import { ResponseViewer } from '../response/ResponseViewer';
 import { useWorkbench } from './WorkbenchContext';
 
-/** Conteúdo com rolagem e espaçamento padrão; Ctrl+Enter envia a requisição. */
 function PanelFrame({ children }: { children: ReactNode }) {
   return (
     <ErrorBoundary label="este painel">
@@ -48,7 +47,6 @@ function NoActiveRequest() {
   );
 }
 
-/** Nomes das variáveis habilitadas do ambiente ativo. */
 function useVariableNames(): string[] {
   const { environment } = useWorkbench();
   return (environment.active?.variables ?? []).filter((v) => v.enabled && v.key.trim()).map((v) => v.key.trim());
@@ -81,7 +79,6 @@ function RequestPanel() {
   );
 }
 
-/** Painel de uma parte destacada da requisição (Corpo, Cabeçalhos...). */
 function partPanel(part: RequestPart): FunctionComponent<IDockviewPanelProps> {
   const Editor = REQUEST_PART_EDITORS[part];
   return function RequestPartPanel() {
@@ -150,7 +147,6 @@ function ConsolePanel() {
   );
 }
 
-/** Mapa id → componente usado pelo dockview (precisa ser estável). */
 export const DOCK_COMPONENTS: Record<PanelId, FunctionComponent<IDockviewPanelProps>> = {
   request: RequestPanel,
   params: partPanel('params'),
@@ -162,7 +158,6 @@ export const DOCK_COMPONENTS: Record<PanelId, FunctionComponent<IDockviewPanelPr
   console: ConsolePanel,
 };
 
-/** Exibido quando todos os painéis foram fechados. */
 export function DockWatermark(_props: IWatermarkPanelProps) {
   const { dock } = useWorkbench();
   return (

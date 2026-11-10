@@ -1,10 +1,5 @@
 import type { JsonSchema } from '../../types';
 
-/**
- * Deduz um JSON Schema a partir de um exemplo. É só um ponto de partida
- * (todo campo do exemplo vira propriedade, nada é obrigatório) até o
- * scanner extrair o schema real dos DTOs.
- */
 export function inferSchema(value: unknown): JsonSchema {
   if (value === null) return { nullable: true };
   if (Array.isArray(value)) {

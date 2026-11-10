@@ -43,7 +43,6 @@ interface Deps {
   log: Logger;
 }
 
-/** Sem testes, vale o status HTTP; com testes, eles decidem (um 404 pode ser o esperado). */
 export function runFailed(result: RunResult): boolean {
   if (result.error || result.scriptError) return true;
   if (result.tests.length > 0) return result.tests.some((test) => !test.passed);
@@ -54,7 +53,6 @@ function wait(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-/** Executa em sequência as requisições de uma coleção; as variáveis passam de uma para a outra. */
 export function useCollectionRunner({ workspace, variables, runner, log }: Deps) {
   const [session, setSession] = useState<RunnerSession | null>(null);
   const stopRequested = useRef(false);
@@ -188,7 +186,6 @@ export function useCollectionRunner({ workspace, variables, runner, log }: Deps)
 
 export type CollectionRunnerControls = ReturnType<typeof useCollectionRunner>;
 
-/** Relatório sem cabeçalhos nem corpos, para não levar credenciais junto. */
 export function runnerReport(session: RunnerSession): string {
   return JSON.stringify(
     {

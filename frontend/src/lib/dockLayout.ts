@@ -16,11 +16,8 @@ interface Placement {
   initialHeight?: number;
 }
 
-/** Onde cada painel aparece quando é aberto fora de um layout pronto. */
 function defaultPlacement(api: DockviewApi, id: PanelId): Placement {
   if (isRequestPart(id)) {
-    // Partes destacadas se juntam como abas no grupo de outra parte já destacada;
-    // a primeira fica ao lado da resposta, que é a área com mais espaço.
     const sibling = REQUEST_PARTS.find((part) => part !== id && api.getPanel(part));
     if (sibling) return { position: { referencePanel: sibling, direction: 'within' } };
     return api.getPanel('response')
@@ -40,10 +37,6 @@ function defaultPlacement(api: DockviewApi, id: PanelId): Placement {
   }
 }
 
-/**
- * Abre o painel (ou só o ativa, se já estiver aberto). Se o painel de
- * referência não existir, cai para uma posição absoluta.
- */
 export function openPanel(api: DockviewApi, id: PanelId, placement: Placement = defaultPlacement(api, id)) {
   const existing = api.getPanel(id);
   if (existing) {
@@ -70,7 +63,6 @@ export function closePanel(api: DockviewApi, id: PanelId) {
   api.getPanel(id)?.api.close();
 }
 
-/** Recria o layout do zero (as partes destacadas voltam para a requisição). */
 export function applyPreset(api: DockviewApi, preset: LayoutPreset) {
   api.clear();
   openPanel(api, 'request', {});

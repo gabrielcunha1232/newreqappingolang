@@ -3,7 +3,6 @@ import type { SavedRequest } from '../../types';
 import { MenuItem, MenuSeparator } from '../common/ContextMenu';
 import type { DocsTabsProps, RequestTabsProps } from './WorkspaceTabsBar';
 
-/** Ids das abas à direita de `id`. */
 function idsAfter<T>(items: T[], getId: (item: T) => string, id: string): string[] {
   const index = items.findIndex((item) => getId(item) === id);
   return index === -1 ? [] : items.slice(index + 1).map(getId);

@@ -3,7 +3,6 @@ import { Modal } from '../common/Modal';
 
 interface ImportCurlDialogProps {
   onClose: () => void;
-  /** Lança Error com mensagem para o usuário se o comando for inválido. */
   onImport: (command: string) => void;
 }
 
@@ -11,7 +10,6 @@ const PLACEHOLDER = `curl -X POST 'https://api.exemplo.com/users' \\
   -H 'Content-Type: application/json' \\
   -d '{"nome": "Ana"}'`;
 
-/** Cola um comando curl (bash ou cmd) e cria uma requisição a partir dele. */
 export function ImportCurlDialog({ onClose, onImport }: ImportCurlDialogProps) {
   const [command, setCommand] = useState('');
   const [error, setError] = useState('');

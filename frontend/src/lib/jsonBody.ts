@@ -1,16 +1,9 @@
-/*
- * Corpo JSON com {{variáveis}}: elas podem aparecer dentro de textos
- * ("Bearer {{token}}") ou no lugar de um valor ("id": {{user_id}}), o que
- * não é JSON válido por si só. Aqui as variáveis são trocadas por marcadores
- * antes de validar/formatar e restauradas depois.
- */
 
 const VARIABLE_AT = /\{\{\s*[\w.-]+\s*\}\}/y;
 
 interface VariableSpan {
   from: number;
   to: number;
-  /** true quando está fora de aspas (no lugar de um valor). */
   bare: boolean;
 }
 
@@ -40,7 +33,6 @@ function findVariables(text: string): VariableSpan[] {
   return spans;
 }
 
-/** Mesmo tamanho do original, com variáveis soltas viradas número (posições de erro batem). */
 function toParsable(text: string): string {
   let out = '';
   let last = 0;
@@ -56,7 +48,6 @@ export interface JsonBodyError {
   message: string;
   line: number;
   column: number;
-  /** Posição (offset) do erro no texto. */
   position: number;
 }
 
@@ -73,11 +64,6 @@ const NUMBER_AT = /-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
 const ESCAPES = new Set(['"', '\\', '/', 'b', 'f', 'n', 'r', 't']);
 const WHITESPACE = new Set([' ', '\t', '\n', '\r']);
 
-/**
- * Validador JSON mínimo que aponta a posição exata do primeiro erro com uma
- * mensagem em português (as mensagens do JSON.parse variam por motor e nem
- * sempre trazem a posição).
- */
 function validateJson(text: string): void {
   let i = 0;
   const fail = (message: string, at = i): never => {
@@ -190,7 +176,6 @@ function lineAndColumn(text: string, position: number) {
   return { line, column };
 }
 
-/** Valida o corpo; retorna null se for JSON válido (ou vazio). */
 export function findJsonError(text: string): JsonBodyError | null {
   if (!text.trim()) return null;
   try {
@@ -202,7 +187,6 @@ export function findJsonError(text: string): JsonBodyError | null {
   }
 }
 
-/** Formata (indent = 2) ou minifica (indent = 0) preservando as {{variáveis}}. */
 export function formatJsonBody(text: string, indent: number): string | null {
   if (!text.trim()) return text;
 

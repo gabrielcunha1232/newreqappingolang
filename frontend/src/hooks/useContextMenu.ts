@@ -6,10 +6,6 @@ export interface OpenContextMenu<T> {
   position: MenuPosition;
 }
 
-/**
- * Estado de um menu de contexto: sobre qual item ele foi aberto e onde.
- * `openAt` é para o clique direito (no cursor); `openBelow`, para botões ⋯.
- */
 export function useContextMenu<T>() {
   const [menu, setMenu] = useState<OpenContextMenu<T> | null>(null);
 

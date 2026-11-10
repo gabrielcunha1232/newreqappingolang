@@ -12,7 +12,6 @@ function normalized(body: string): string {
 
 const PREFIX = { same: '  ', added: '+ ', removed: '- ' } as const;
 
-/** Diferença entre a resposta atual e a da execução anterior (JSON é comparado já formatado). */
 export function ResponseDiff({ previous, current }: { previous: Response; current: Response }) {
   const lines = useMemo(() => diffLines(normalized(previous.body), normalized(current.body)), [previous, current]);
   const added = lines?.filter((l) => l.kind === 'added').length ?? 0;

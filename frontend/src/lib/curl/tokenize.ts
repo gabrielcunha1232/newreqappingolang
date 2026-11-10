@@ -1,12 +1,4 @@
-/*
- * Divide um comando de shell em argumentos, como o shell faria, nos formatos
- * que as ferramentas geram ao "copiar como cURL":
- *   bash/zsh   aspas simples, duplas, $'...' e "\" no fim da linha
- *   cmd        ^" e ^ no fim da linha (Chrome "Copy as cURL (cmd)")
- *   PowerShell ` no fim da linha
- */
 
-/** O formato cmd escapa tudo com "^": "^\"a^\"" → "\"a\"". */
 function normalizeCmd(text: string): string {
   if (!/\^"/.test(text)) return text;
   return text.replace(/\^\r?\n/g, ' ').replace(/\^(.)/g, '$1');
@@ -38,13 +30,11 @@ export function tokenizeShell(command: string): string[] {
       push();
       i++;
     } else if (char === "'") {
-      // Aspas simples: tudo literal até a próxima.
       const end = text.indexOf("'", i + 1);
       current += text.slice(i + 1, end === -1 ? text.length : end);
       inToken = true;
       i = end === -1 ? text.length : end + 1;
     } else if (char === '$' && text[i + 1] === "'") {
-      // $'...': aspas com escapes estilo C (usado pelo Chrome em corpos com quebras de linha).
       i += 2;
       while (i < text.length && text[i] !== "'") {
         if (text[i] === '\\' && i + 1 < text.length) {
@@ -63,7 +53,6 @@ export function tokenizeShell(command: string): string[] {
       inToken = true;
       i++;
     } else if (char === '"') {
-      // Aspas duplas: \ escapa apenas " \ $ ` (como no bash).
       i++;
       while (i < text.length && text[i] !== '"') {
         if (text[i] === '\\' && '"\\$`'.includes(text[i + 1] ?? '')) {

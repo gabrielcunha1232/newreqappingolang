@@ -23,11 +23,9 @@ interface Deps {
   toast: ReturnType<typeof useToast>;
 }
 
-/** Casos de uso que combinam mais de um hook de estado (enviar, importar, persistir...). */
 export function useWorkspaceHandlers({ workspace, environments, history, logger, runner, toast }: Deps) {
   const { state, activeRequest, actions } = workspace;
 
-  /* ===== Persistência ===== */
 
   const snapshot = useMemo<AppSnapshot>(
     () => ({
@@ -68,7 +66,6 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     [actions, environments.actions, history.actions, runner.hydrate]
   );
 
-  /* ===== Requisição ativa ===== */
 
   const openTabs = useMemo(
     () =>
@@ -115,7 +112,6 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     [toast]
   );
 
-  /** Copia para a área de transferência e confirma ("URL copiada."). */
   const copyText = useCallback(
     (text: string, label: string) => {
       navigator.clipboard
@@ -126,7 +122,6 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     [toast]
   );
 
-  /* ===== Histórico e scanner ===== */
 
   const openHistoryAsNew = useCallback(
     (entry: HistoryEntry) =>
@@ -159,7 +154,6 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     [actions, logger, toast]
   );
 
-  // Clicar num endpoint já importado apenas abre a aba dele.
   const openEndpoint = useCallback(
     (endpoint: Endpoint) => {
       const existing = state.requests.find((r) => r.method === endpoint.method && r.url === endpoint.path);
@@ -172,7 +166,6 @@ export function useWorkspaceHandlers({ workspace, environments, history, logger,
     [actions, state.requests]
   );
 
-  /* ===== Atalhos ===== */
 
   const shortcuts = useMemo(
     () => ({

@@ -21,7 +21,6 @@ type Editing = TreeEdit | null;
 
 type DropZone = 'before' | 'after' | 'into';
 
-/** Sobre o que o menu de contexto foi aberto. */
 type MenuTarget =
   | { kind: 'request' | 'collection' | 'folder'; id: string }
   | { kind: 'ungrouped' }
@@ -284,7 +283,6 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
       <div
         className="tree"
         onContextMenu={(event) => {
-          // Em campos de texto (renomear, nova coleção) fica o menu nativo de copiar/colar.
           if ((event.target as HTMLElement).closest('input, textarea')) return;
           openAt(event, { kind: 'background' });
         }}
@@ -364,7 +362,6 @@ export function CollectionsTree({ collections, folders, requests, activeRequestI
                   placeholder="https://api.exemplo.com"
                   ariaLabel="URL base da coleção"
                   onCommit={(value) => {
-                    // URL base pode ser apagada (voltar a não ter prefixo).
                     actions.setCollectionBaseUrl(collection.id, value);
                     setEditing(null);
                   }}

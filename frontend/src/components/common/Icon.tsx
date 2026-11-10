@@ -2,7 +2,6 @@ import type { ReactNode } from 'react';
 
 export type IconName = 'folder' | 'folder-open' | 'chevron' | 'tray' | 'lock' | 'lock-open' | 'eye' | 'eye-off';
 
-/* Ícones de traço (24×24) que herdam a cor do texto (currentColor). */
 const PATHS: Record<IconName, ReactNode> = {
   folder: (
     <path

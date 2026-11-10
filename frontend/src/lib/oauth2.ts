@@ -1,8 +1,6 @@
 import type { OAuth2Settings } from '../types';
 
-/* Regras do OAuth2 sem E/S: montagem de URLs e interpretação de respostas. */
 
-/** Renova um pouco antes de expirar, para o token não vencer no caminho. */
 const EXPIRY_MARGIN_MS = 30_000;
 
 export type TokenPatch = Pick<OAuth2Settings, 'accessToken' | 'refreshToken' | 'expiresAt'>;
@@ -22,7 +20,6 @@ export function tokenExchangeFields(
   return form;
 }
 
-/** Aceita a resposta padrão em JSON e a variante form-urlencoded de alguns provedores. */
 export function parseTokenResponse(
   status: number,
   body: string,
@@ -45,7 +42,6 @@ export function parseTokenResponse(
   const expiresIn = Number(data.expires_in);
   return {
     accessToken: token,
-    // Muitos servidores só devolvem refresh_token na primeira troca: mantém o atual.
     refreshToken: typeof data.refresh_token === 'string' ? data.refresh_token : current.refreshToken,
     expiresAt: Number.isFinite(expiresIn) && expiresIn > 0 ? now + expiresIn * 1000 : null,
   };
@@ -83,7 +79,6 @@ export function authorizationUrl(
   return url.toString();
 }
 
-/** Extrai o código colado pelo usuário: a URL de retorno inteira ou só o código. */
 export function parseAuthorizationInput(input: string, expectedState: string): string {
   const text = input.trim();
   if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(text)) return text;

@@ -1,6 +1,5 @@
 import type { ScriptInput, ScriptOutput } from '../lib/scripts/types';
 
-/** Tempo máximo de um script (protege contra loops infinitos). */
 export const SCRIPT_TIMEOUT_MS = 5000;
 
 function failed(input: ScriptInput, error: string): ScriptOutput {
@@ -11,7 +10,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-/** O worker roda código do usuário: confere a forma da resposta antes de usar. */
 function validOutput(data: unknown, input: ScriptInput): ScriptOutput {
   if (!isRecord(data) || !isRecord(data.request) || !Array.isArray(data.tests)) {
     return failed(input, 'O script devolveu um resultado inválido.');
@@ -19,7 +17,6 @@ function validOutput(data: unknown, input: ScriptInput): ScriptOutput {
   return data as unknown as ScriptOutput;
 }
 
-/** Executa um script num Web Worker isolado, criado só para esta execução. */
 export function executeScript(input: ScriptInput, timeoutMs = SCRIPT_TIMEOUT_MS): Promise<ScriptOutput> {
   return new Promise((resolve) => {
     let worker: Worker;

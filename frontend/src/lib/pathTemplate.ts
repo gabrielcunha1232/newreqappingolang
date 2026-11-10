@@ -1,11 +1,3 @@
-/*
- * Caminhos de rota escritos na sintaxe de cada framework:
- *   :id, :id?      gin, echo, fiber, express
- *   {id}, {id?}    chi, gorilla/mux, Spring, Laravel, Symfony, OpenAPI
- *   {id:[0-9]+}    chi/mux/Spring com expressão regular
- *   *path, *       curingas (gin, echo, chi, fiber)
- * {{variavel}} é variável de ambiente do app, não parâmetro de rota.
- */
 
 export type PathToken =
   | { kind: 'text'; text: string }
@@ -15,7 +7,6 @@ export type PathToken =
 const PATTERN =
   /\{\{\s*([\w.-]+)\s*\}\}|\{([A-Za-z_][\w-]*)(\?)?(?::[^}]*)?\}|:([A-Za-z_]\w*)(\?)?|\*([A-Za-z_]\w*)?/g;
 
-/** Nome mostrado para curingas sem nome ("/static/*"). */
 export const WILDCARD_NAME = '*';
 
 export function tokenizePath(path: string): PathToken[] {
@@ -64,10 +55,6 @@ export function extractPathParams(path: string): PathParamInfo[] {
   return params;
 }
 
-/**
- * Índice onde começam a query e o hash. O "?" de parâmetro opcional (":id?"
- * no fim de um segmento, "{id?}") faz parte do caminho, não inicia a query.
- */
 function queryStart(url: string): number {
   let depth = 0;
   for (let i = 0; i < url.length; i++) {
@@ -83,31 +70,22 @@ function queryStart(url: string): number {
   return url.length;
 }
 
-/** Remove query e hash. */
 function stripQuery(url: string): string {
   return url.slice(0, queryStart(url));
 }
 
-/** Codifica o valor de um segmento; aceita valores já codificados ("a%20b"). */
 function encodeSegment(value: string): string {
   let decoded = value;
   try {
     decoded = decodeURIComponent(value);
   } catch {
-    // "%" solto: codifica como está.
   }
   return encodeURIComponent(decoded);
 }
 
-/**
- * Troca as variáveis de caminho da URL pelos valores ("/users/:id" + {id: 7}
- * → "/users/7"). Curingas mantêm as barras do valor; opcionais sem valor
- * somem; obrigatórios sem valor ficam como estão e são listados em `missing`.
- */
 export function fillPathParams(url: string, values: Record<string, string>): { url: string; missing: string[] } {
   const end = queryStart(url);
   const missing: string[] = [];
-  // A origem ("http://user:senha@host:8080") nunca tem variáveis de caminho.
   const origin = /^[a-z][a-z\d+.-]*:\/\/[^/]*/i.exec(url)?.[0] ?? '';
 
   const path = tokenizePath(url.slice(origin.length, end))
@@ -120,13 +98,11 @@ export function fillPathParams(url: string, values: Record<string, string>): { u
       return token.text;
     })
     .join('')
-    // Opcional removido no meio do caminho deixa "//".
     .replace(/\/{2,}/g, '/');
 
   return { url: origin + path + url.slice(end), missing };
 }
 
-/** Separa a base ("http://host:8080", "{{baseUrl}}") do caminho, sem query nem hash. */
 export function splitBaseAndPath(url: string): { base: string; path: string } {
   const clean = stripQuery(url.trim());
 
@@ -141,11 +117,6 @@ export function splitBaseAndPath(url: string): { base: string; path: string } {
 
 const IGNORED_SEGMENT = /^(api|rest|v\d+(\.\d+)*)$/i;
 
-/**
- * Agrupamento padrão (equivalente às tags do Swagger): primeiro segmento
- * significativo do caminho, ignorando prefixos como /api e /v1.
- * "/api/v1/users/:id" → "users".
- */
 export function tagFromPath(path: string, fallback = 'geral'): string {
   for (const token of tokenizePath(path)) {
     if (token.kind !== 'text') continue;
